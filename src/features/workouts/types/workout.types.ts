@@ -2,6 +2,13 @@
  * Workout-related TypeScript types and interfaces
  */
 
+import type { IntervalConfig, IntervalProgress } from './interval.types'
+
+/**
+ * Workout type discriminator
+ */
+export type WorkoutType = 'regular' | 'interval'
+
 export interface WorkoutSet {
   id: string
   reps?: number
@@ -23,7 +30,12 @@ export interface WorkoutExercise {
 export interface Workout {
   id: string
   name: string
+  type: WorkoutType
   exercises: WorkoutExercise[]
+  // Interval workout specific fields
+  intervalConfig?: IntervalConfig
+  intervalProgress?: IntervalProgress
+  // Common fields
   startTime?: Date | string
   endTime?: Date | string
   notes?: string
