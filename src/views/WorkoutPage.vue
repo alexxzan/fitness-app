@@ -152,6 +152,7 @@ import {
 } from "@ionic/vue";
 import { add } from "ionicons/icons";
 import { useWorkout } from "@/features/workouts/composables/useWorkout";
+import type { Exercise } from "@/features/exercises/types/exercise.types";
 import { useExerciseLibrary } from "@/features/exercises/composables/useExerciseLibrary";
 import SetTracker from "@/features/workouts/components/SetTracker.vue";
 import ExerciseSelector from "@/features/exercises/components/ExerciseSelector.vue";
@@ -194,8 +195,8 @@ async function handleStartWorkout() {
   showStartModal.value = false;
 }
 
-function handleAddExercise(exercise: { id: string; name: string }) {
-  addExercise(exercise.id, exercise.name);
+function handleAddExercise(exercise: Exercise) {
+  addExercise(exercise.exerciseId, exercise.name);
   showExerciseModal.value = false;
 }
 

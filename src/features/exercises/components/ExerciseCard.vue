@@ -3,14 +3,20 @@
     <ion-card-header>
       <ion-card-title>{{ exercise.name }}</ion-card-title>
       <ion-card-subtitle>
-        <AppBadge>{{ exercise.category }}</AppBadge>
+        <AppBadge v-for="bodyPart in exercise.bodyParts" :key="bodyPart" color="primary">
+          {{ bodyPart }}
+        </AppBadge>
       </ion-card-subtitle>
     </ion-card-header>
-    <ion-card-content v-if="exercise.description">
-      <p>{{ exercise.description }}</p>
-      <div v-if="exercise.muscleGroups && exercise.muscleGroups.length > 0" class="tags">
-        <AppBadge v-for="muscle in exercise.muscleGroups" :key="muscle" color="secondary">
+    <ion-card-content>
+      <div v-if="exercise.targetMuscles && exercise.targetMuscles.length > 0" class="tags">
+        <AppBadge v-for="muscle in exercise.targetMuscles" :key="muscle" color="secondary">
           {{ muscle }}
+        </AppBadge>
+      </div>
+      <div v-if="exercise.equipments && exercise.equipments.length > 0" class="tags">
+        <AppBadge v-for="equipment in exercise.equipments" :key="equipment" color="tertiary">
+          {{ equipment }}
         </AppBadge>
       </div>
     </ion-card-content>

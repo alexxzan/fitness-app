@@ -13,15 +13,13 @@ export function useExercise() {
   /**
    * Create a new exercise
    */
-  async function createExercise(exercise: Omit<Exercise, 'id' | 'createdAt' | 'updatedAt'>): Promise<Exercise> {
+  async function createExercise(exercise: Omit<Exercise, 'exerciseId'>): Promise<Exercise> {
     isLoading.value = true
     error.value = null
     try {
       const newExercise: Exercise = {
         ...exercise,
-        id: generateId(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        exerciseId: generateId()
       }
       await ExerciseRepository.save(newExercise)
       return newExercise
@@ -40,11 +38,7 @@ export function useExercise() {
     isLoading.value = true
     error.value = null
     try {
-      const updatedExercise: Exercise = {
-        ...exercise,
-        updatedAt: new Date().toISOString()
-      }
-      await ExerciseRepository.save(updatedExercise)
+      await ExerciseRepository.save(exercise)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to update exercise'
       throw err
@@ -56,11 +50,11 @@ export function useExercise() {
   /**
    * Delete an exercise
    */
-  async function deleteExercise(id: string): Promise<void> {
+  async function deleteExercise(exerciseId: string): Promise<void> {
     isLoading.value = true
     error.value = null
     try {
-      await ExerciseRepository.delete(id)
+      await ExerciseRepository.delete(exerciseId)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to delete exercise'
       throw err
@@ -70,13 +64,13 @@ export function useExercise() {
   }
 
   /**
-   * Get an exercise by ID
+   * Get an exercise by ID (exerciseId)
    */
-  async function getExerciseById(id: string): Promise<Exercise | null> {
+  async function getExerciseById(exerciseId: string): Promise<Exercise | null> {
     isLoading.value = true
     error.value = null
     try {
-      return await ExerciseRepository.getById(id)
+      return await ExerciseRepository.getById(exerciseId)
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load exercise'
       return null

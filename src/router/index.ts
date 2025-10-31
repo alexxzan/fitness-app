@@ -1,11 +1,16 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
+import { AppState } from '@/shared/storage/app.state';
 import TabsPage from '../views/TabsPage.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     redirect: '/tabs/home'
+  },
+  {
+    path: '/splash',
+    component: () => import('@/views/SplashScreen.vue')
   },
   {
     path: '/tabs/',
@@ -43,5 +48,32 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
 })
+
+// Navigation guard to check initialization status
+router.beforeEach(async (to, from, next) => {
+  // Check if app is initialized
+  const isInitialized = await AppState.isInitialized();
+  
+  // If trying to access splash screen
+  if (to.path === '/splash') {
+    // If already initialized, redirect to home
+    if (isInitialized) {
+      next('/tabs/home');
+    } else {
+      // Allow navigation to splash if not initialized
+      next();
+    }
+    return;
+  }
+
+  // For all other routes, check initialization
+  if (!isInitialized) {
+    // Redirect to splash screen if not initialized
+    next('/splash');
+  } else {
+    // Allow navigation if initialized
+    next();
+  }
+});
 
 export default router

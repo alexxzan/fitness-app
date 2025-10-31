@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { ExerciseRepository } from '../repositories/exercise.repository'
-import type { Exercise, ExerciseCategory, ExerciseFilters } from '../types/exercise.types'
+import type { Exercise, ExerciseFilters } from '../types/exercise.types'
 
 /**
  * Composable for managing exercise library
@@ -10,7 +10,9 @@ export function useExerciseLibrary() {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const searchQuery = ref('')
-  const selectedCategory = ref<ExerciseCategory | undefined>(undefined)
+  const selectedBodyParts = ref<string[]>([])
+  const selectedEquipments = ref<string[]>([])
+  const selectedTargetMuscles = ref<string[]>([])
 
   /**
    * Load all exercises from storage
@@ -46,13 +48,13 @@ export function useExerciseLibrary() {
   }
 
   /**
-   * Get exercises by category
+   * Get exercises by body part
    */
-  async function loadExercisesByCategory(category: ExerciseCategory) {
+  async function loadExercisesByBodyPart(bodyPart: string) {
     isLoading.value = true
     error.value = null
     try {
-      exercises.value = await ExerciseRepository.getByCategory(category)
+      exercises.value = await ExerciseRepository.getByBodyPart(bodyPart)
       exercises.value.sort((a, b) => a.name.localeCompare(b.name))
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to load exercises'
@@ -62,33 +64,67 @@ export function useExerciseLibrary() {
   }
 
   /**
-   * Filtered exercises based on current search and category
+   * Get exercises by equipment
+   */
+  async function loadExercisesByEquipment(equipment: string) {
+    isLoading.value = true
+    error.value = null
+    try {
+      exercises.value = await ExerciseRepository.getByEquipment(equipment)
+      exercises.value.sort((a, b) => a.name.localeCompare(b.name))
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load exercises'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Get exercises by target muscle
+   */
+  async function loadExercisesByTargetMuscle(targetMuscle: string) {
+    isLoading.value = true
+    error.value = null
+    try {
+      exercises.value = await ExerciseRepository.getByTargetMuscle(targetMuscle)
+      exercises.value.sort((a, b) => a.name.localeCompare(b.name))
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Failed to load exercises'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Apply current filters and search
+   */
+  async function applyFilters() {
+    const filters: ExerciseFilters = {
+      searchQuery: searchQuery.value || undefined,
+      bodyParts: selectedBodyParts.value.length > 0 ? selectedBodyParts.value : undefined,
+      equipments: selectedEquipments.value.length > 0 ? selectedEquipments.value : undefined,
+      targetMuscles: selectedTargetMuscles.value.length > 0 ? selectedTargetMuscles.value : undefined,
+    }
+    await searchExercises(filters)
+  }
+
+  /**
+   * Filtered exercises based on current search (for client-side filtering if needed)
    */
   const filteredExercises = computed(() => {
     let filtered = exercises.value
-
-    if (selectedCategory.value) {
-      filtered = filtered.filter(ex => ex.category === selectedCategory.value)
-    }
 
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
       filtered = filtered.filter(ex =>
         ex.name.toLowerCase().includes(query) ||
-        ex.description?.toLowerCase().includes(query)
+        ex.targetMuscles.some(m => m.toLowerCase().includes(query)) ||
+        ex.bodyParts.some(bp => bp.toLowerCase().includes(query)) ||
+        ex.equipments.some(eq => eq.toLowerCase().includes(query))
       )
     }
 
     return filtered
-  })
-
-  /**
-   * Get all unique categories from exercises
-   */
-  const categories = computed(() => {
-    const cats = new Set<ExerciseCategory>()
-    exercises.value.forEach(ex => cats.add(ex.category))
-    return Array.from(cats).sort()
   })
 
   return {
@@ -97,11 +133,15 @@ export function useExerciseLibrary() {
     isLoading,
     error,
     searchQuery,
-    selectedCategory,
-    categories,
+    selectedBodyParts,
+    selectedEquipments,
+    selectedTargetMuscles,
     loadExercises,
     searchExercises,
-    loadExercisesByCategory
+    loadExercisesByBodyPart,
+    loadExercisesByEquipment,
+    loadExercisesByTargetMuscle,
+    applyFilters
   }
 }
 

@@ -14,18 +14,8 @@
       <SearchBar
         v-model="searchQuery"
         placeholder="Search exercises..."
+        @update:modelValue="handleSearch"
       />
-
-      <ion-segment v-model="selectedCategory" @ionChange="handleCategoryChange">
-        <ion-segment-button value="">All</ion-segment-button>
-        <ion-segment-button
-          v-for="category in categories"
-          :key="category"
-          :value="category"
-        >
-          {{ category }}
-        </ion-segment-button>
-      </ion-segment>
 
       <div v-if="isLoading" class="loading">
         <ion-spinner />
@@ -38,7 +28,7 @@
       <div v-else class="exercise-list">
         <ExerciseCard
           v-for="exercise in filteredExercises"
-          :key="exercise.id"
+          :key="exercise.exerciseId"
           :exercise="exercise"
           @click="viewExercise(exercise)"
         />
@@ -61,28 +51,13 @@
           label="Exercise Name"
           placeholder="e.g., Bench Press"
         />
-        <ion-item>
-          <ion-label position="stacked">Category</ion-label>
-          <ion-select v-model="newExercise.category" placeholder="Select category">
-            <ion-select-option value="chest">Chest</ion-select-option>
-            <ion-select-option value="back">Back</ion-select-option>
-            <ion-select-option value="shoulders">Shoulders</ion-select-option>
-            <ion-select-option value="arms">Arms</ion-select-option>
-            <ion-select-option value="legs">Legs</ion-select-option>
-            <ion-select-option value="core">Core</ion-select-option>
-            <ion-select-option value="cardio">Cardio</ion-select-option>
-            <ion-select-option value="full-body">Full Body</ion-select-option>
-            <ion-select-option value="other">Other</ion-select-option>
-          </ion-select>
-        </ion-item>
-        <FormField
-          v-model="newExercise.description"
-          label="Description"
-          placeholder="Optional description"
-        />
         <div class="button-group">
-          <AppButton expand="block" @click="handleAddExercise">Add Exercise</AppButton>
-          <AppButton expand="block" fill="outline" @click="showAddModal = false">Cancel</AppButton>
+          <AppButton expand="block" @click="handleAddExercise"
+            >Add Exercise</AppButton
+          >
+          <AppButton expand="block" fill="outline" @click="showAddModal = false"
+            >Cancel</AppButton
+          >
         </div>
       </ion-content>
     </ion-modal>
@@ -90,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from "vue";
 import {
   IonPage,
   IonHeader,
@@ -104,75 +79,80 @@ import {
   IonSegmentButton,
   IonSpinner,
   IonModal,
-  IonItem,
-  IonLabel,
-  IonSelect,
-  IonSelectOption
-} from '@ionic/vue'
-import { add } from 'ionicons/icons'
-import { useExerciseLibrary } from '@/features/exercises/composables/useExerciseLibrary'
-import { useExercise } from '@/features/exercises/composables/useExercise'
-import type { ExerciseCategory } from '@/features/exercises/types/exercise.types'
-import ExerciseCard from '@/features/exercises/components/ExerciseCard.vue'
-import SearchBar from '@/components/molecules/SearchBar.vue'
-import FormField from '@/components/molecules/FormField.vue'
-import AppButton from '@/components/atoms/AppButton.vue'
+} from "@ionic/vue";
+import { add } from "ionicons/icons";
+import { useExerciseLibrary } from "@/features/exercises/composables/useExerciseLibrary";
+import { useExercise } from "@/features/exercises/composables/useExercise";
+import ExerciseCard from "@/features/exercises/components/ExerciseCard.vue";
+import SearchBar from "@/components/molecules/SearchBar.vue";
+import FormField from "@/components/molecules/FormField.vue";
+import AppButton from "@/components/atoms/AppButton.vue";
 
 const {
   exercises,
   filteredExercises,
   isLoading,
   searchQuery,
-  selectedCategory,
-  categories,
-  loadExercises
-} = useExerciseLibrary()
+  loadExercises,
+  searchExercises,
+} = useExerciseLibrary();
 
-const { createExercise } = useExercise()
+const { createExercise } = useExercise();
 
-const showAddModal = ref(false)
+const showAddModal = ref(false);
 const newExercise = ref<{
-  name: string
-  category: ExerciseCategory
-  description?: string
+  name: string;
+  bodyParts: string[];
+  equipments: string[];
+  targetMuscles: string[];
 }>({
-  name: '',
-  category: 'other',
-  description: ''
-})
+  name: "",
+  bodyParts: [],
+  equipments: [],
+  targetMuscles: [],
+});
 
 onMounted(async () => {
-  await loadExercises()
-})
+  await loadExercises();
+});
 
-function handleCategoryChange(event: CustomEvent) {
-  selectedCategory.value = event.detail.value || undefined
+function handleSearch() {
+  if (searchQuery.value) {
+    searchExercises({ searchQuery: searchQuery.value });
+  } else {
+    loadExercises();
+  }
 }
 
 async function handleAddExercise() {
-  if (!newExercise.value.name.trim()) return
+  if (!newExercise.value.name.trim()) return;
 
   try {
     await createExercise({
       name: newExercise.value.name.trim(),
-      category: newExercise.value.category,
-      description: newExercise.value.description?.trim()
-    })
-    await loadExercises()
+      bodyParts: newExercise.value.bodyParts,
+      equipments: newExercise.value.equipments,
+      targetMuscles: newExercise.value.targetMuscles,
+      secondaryMuscles: [],
+      instructions: [],
+      gifUrl: "",
+    });
+    await loadExercises();
     newExercise.value = {
-      name: '',
-      category: 'other',
-      description: ''
-    }
-    showAddModal.value = false
+      name: "",
+      bodyParts: [],
+      equipments: [],
+      targetMuscles: [],
+    };
+    showAddModal.value = false;
   } catch (error) {
-    console.error('Failed to create exercise:', error)
+    console.error("Failed to create exercise:", error);
   }
 }
 
 function viewExercise(exercise: any) {
   // Navigate to exercise detail page (to be implemented)
-  console.log('View exercise:', exercise)
+  console.log("View exercise:", exercise);
 }
 </script>
 
@@ -201,4 +181,3 @@ function viewExercise(exercise: any) {
   margin-top: var(--spacing-lg);
 }
 </style>
-

@@ -8,13 +8,13 @@
     <ion-list>
       <ion-item
         v-for="exercise in filteredExercises"
-        :key="exercise.id"
+        :key="exercise.exerciseId"
         button
         @click="selectExercise(exercise)"
       >
         <ion-label>
           <h2>{{ exercise.name }}</h2>
-          <p>{{ exercise.category }}</p>
+          <p>{{ exercise.bodyParts.join(', ') }}</p>
         </ion-label>
       </ion-item>
       <ion-item v-if="filteredExercises.length === 0">
@@ -51,8 +51,9 @@ const filteredExercises = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return props.exercises.filter(ex =>
     ex.name.toLowerCase().includes(query) ||
-    ex.description?.toLowerCase().includes(query) ||
-    ex.category.toLowerCase().includes(query)
+    ex.bodyParts.some(bp => bp.toLowerCase().includes(query)) ||
+    ex.targetMuscles.some(tm => tm.toLowerCase().includes(query)) ||
+    ex.equipments.some(eq => eq.toLowerCase().includes(query))
   )
 })
 

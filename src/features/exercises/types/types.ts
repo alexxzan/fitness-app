@@ -1,9 +1,3 @@
-/**
- * Exercise-related TypeScript types and interfaces
- *
- * These types match the JSON data structure from src/features/exercises/data/
- */
-
 export interface Equipment {
   name: string;
 }
@@ -47,7 +41,7 @@ export interface Exercise {
 
   /**
    * Secondary muscles engaged during the exercise.
-   * @example ["traps", "triceps"]
+   * @example ["traps", "traps", "triceps"]
    */
   secondaryMuscles: string[];
 
@@ -64,11 +58,4 @@ export interface BodyPart {
 
 export interface Muscle {
   name: string;
-}
-
-export interface ExerciseFilters {
-  searchQuery?: string;
-  bodyParts?: string[];
-  equipments?: string[];
-  targetMuscles?: string[];
 }
