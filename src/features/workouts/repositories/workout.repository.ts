@@ -1,14 +1,8 @@
-import { LocalStorage } from '@/shared/storage/local-storage'
-import type { Workout, WorkoutRoutine } from '../types/workout.types'
-
-const STORAGE_KEYS = {
-  WORKOUTS: 'workouts',
-  WORKOUT_ROUTINES: 'workout_routines',
-  ACTIVE_WORKOUT: 'active_workout'
-}
+import { db } from "@/shared/storage/database";
+import type { Workout, WorkoutRoutine } from "../types/workout.types";
 
 /**
- * Repository for workout data access
+ * Repository for workout data access using Dexie.js
  * Handles CRUD operations for workouts and routines
  */
 export class WorkoutRepository {
@@ -16,100 +10,94 @@ export class WorkoutRepository {
    * Get all saved workouts
    */
   static async getAll(): Promise<Workout[]> {
-    const workouts = await LocalStorage.get<Workout[]>(STORAGE_KEYS.WORKOUTS)
-    return workouts || []
+    return await db.workouts.orderBy("createdAt").reverse().toArray();
   }
 
   /**
    * Get a workout by ID
    */
   static async getById(id: string): Promise<Workout | null> {
-    const workouts = await this.getAll()
-    return workouts.find(w => w.id === id) || null
+    return (await db.workouts.get(id)) ?? null;
   }
 
   /**
-   * Save a workout
+   * Save a workout (create or update)
    */
-  static async save(workout: Workout): Promise<void> {
-    const workouts = await this.getAll()
-    const index = workouts.findIndex(w => w.id === workout.id)
-    
-    if (index >= 0) {
-      workouts[index] = workout
-    } else {
-      workouts.push(workout)
-    }
-
-    await LocalStorage.set(STORAGE_KEYS.WORKOUTS, workouts)
+  static async save(workout: Workout): Promise<string> {
+    return await db.workouts.put(workout);
   }
 
   /**
    * Delete a workout
    */
   static async delete(id: string): Promise<void> {
-    const workouts = await this.getAll()
-    const filtered = workouts.filter(w => w.id !== id)
-    await LocalStorage.set(STORAGE_KEYS.WORKOUTS, filtered)
+    await db.workouts.delete(id);
   }
 
   /**
    * Get the currently active workout (if any)
+   * Active workout is identified by having no endTime
    */
   static async getActiveWorkout(): Promise<Workout | null> {
-    return await LocalStorage.get<Workout>(STORAGE_KEYS.ACTIVE_WORKOUT)
+    // Check for workouts without endTime (active workouts)
+    const allWorkouts = await db.workouts.toArray();
+    const active = allWorkouts.find(
+      (w) => !w.endTime || w.endTime === "" || w.endTime === null
+    );
+    return active ?? null;
   }
 
   /**
-   * Set the active workout
+   * Set the active workout by marking it as incomplete
+   * Note: In Dexie, we just ensure the workout exists with no endTime
    */
   static async setActiveWorkout(workout: Workout | null): Promise<void> {
     if (workout) {
-      await LocalStorage.set(STORAGE_KEYS.ACTIVE_WORKOUT, workout)
-    } else {
-      await LocalStorage.remove(STORAGE_KEYS.ACTIVE_WORKOUT)
+      // Ensure endTime is cleared
+      workout.endTime = undefined;
+      await db.workouts.put(workout);
     }
+    // To "unset" active workout, we don't delete it, we just ensure all have endTime
+    // This is handled when finishing a workout
   }
 
   /**
    * Get all workout routines
    */
   static async getAllRoutines(): Promise<WorkoutRoutine[]> {
-    const routines = await LocalStorage.get<WorkoutRoutine[]>(STORAGE_KEYS.WORKOUT_ROUTINES)
-    return routines || []
+    return await db.routines.orderBy("createdAt").reverse().toArray();
   }
 
   /**
    * Get a routine by ID
    */
   static async getRoutineById(id: string): Promise<WorkoutRoutine | null> {
-    const routines = await this.getAllRoutines()
-    return routines.find(r => r.id === id) || null
+    return (await db.routines.get(id)) ?? null;
   }
 
   /**
    * Save a workout routine
    */
-  static async saveRoutine(routine: WorkoutRoutine): Promise<void> {
-    const routines = await this.getAllRoutines()
-    const index = routines.findIndex(r => r.id === routine.id)
-    
-    if (index >= 0) {
-      routines[index] = routine
-    } else {
-      routines.push(routine)
-    }
-
-    await LocalStorage.set(STORAGE_KEYS.WORKOUT_ROUTINES, routines)
+  static async saveRoutine(routine: WorkoutRoutine): Promise<string> {
+    return await db.routines.put(routine);
   }
 
   /**
    * Delete a workout routine
    */
   static async deleteRoutine(id: string): Promise<void> {
-    const routines = await this.getAllRoutines()
-    const filtered = routines.filter(r => r.id !== id)
-    await LocalStorage.set(STORAGE_KEYS.WORKOUT_ROUTINES, filtered)
+    await db.routines.delete(id);
+  }
+
+  /**
+   * Search workouts by name
+   */
+  static async searchByName(query: string): Promise<Workout[]> {
+    const lowerQuery = query.toLowerCase();
+    return await db.workouts
+      .filter((workout) =>
+        workout.name.toLowerCase().includes(lowerQuery)
+      )
+      .toArray();
   }
 }
-

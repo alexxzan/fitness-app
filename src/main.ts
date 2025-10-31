@@ -2,8 +2,14 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router';
 import { pinia } from './stores'
+import { db } from './shared/storage/database'
 
 import { IonicVue } from '@ionic/vue';
+
+// Initialize database
+db.open().catch((err) => {
+  console.error('Failed to open database:', err)
+})
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';

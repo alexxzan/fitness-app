@@ -1,10 +1,8 @@
-import { LocalStorage } from "@/shared/storage/local-storage";
+import { db } from "@/shared/storage/database";
 import type { Exercise, ExerciseFilters } from "../types/exercise.types";
 
-const STORAGE_KEY = "exercises";
-
 /**
- * Repository for exercise data access
+ * Repository for exercise data access using Dexie.js
  * Handles CRUD operations for exercises
  */
 export class ExerciseRepository {
@@ -12,53 +10,44 @@ export class ExerciseRepository {
    * Get all exercises
    */
   static async getAll(): Promise<Exercise[]> {
-    const exercises = await LocalStorage.get<Exercise[]>(STORAGE_KEY);
-    return exercises || [];
+    return await db.exercises.orderBy("name").toArray();
   }
 
   /**
    * Get an exercise by ID
    */
   static async getById(id: string): Promise<Exercise | null> {
-    const exercises = await this.getAll();
-    return exercises.find((e) => e.id === id) || null;
+    return (await db.exercises.get(id)) ?? null;
   }
 
   /**
-   * Save an exercise
+   * Save an exercise (create or update)
    */
-  static async save(exercise: Exercise): Promise<void> {
-    const exercises = await this.getAll();
-    const index = exercises.findIndex((e) => e.id === exercise.id);
-
-    if (index >= 0) {
-      exercises[index] = exercise;
-    } else {
-      exercises.push(exercise);
-    }
-
-    await LocalStorage.set(STORAGE_KEY, exercises);
+  static async save(exercise: Exercise): Promise<string> {
+    return await db.exercises.put(exercise);
   }
 
   /**
    * Delete an exercise
    */
   static async delete(id: string): Promise<void> {
-    const exercises = await this.getAll();
-    const filtered = exercises.filter((e) => e.id !== id);
-    await LocalStorage.set(STORAGE_KEY, filtered);
+    await db.exercises.delete(id);
   }
 
   /**
    * Search exercises with filters
    */
   static async search(filters: ExerciseFilters): Promise<Exercise[]> {
-    let exercises = await this.getAll();
+    let collection = db.exercises.toCollection();
 
+    // Filter by category if specified
     if (filters.category) {
-      exercises = exercises.filter((e) => e.category === filters.category);
+      collection = db.exercises.where("category").equals(filters.category);
     }
 
+    let exercises = await collection.toArray();
+
+    // Apply text search filter
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       exercises = exercises.filter(
@@ -68,6 +57,7 @@ export class ExerciseRepository {
       );
     }
 
+    // Filter by muscle group
     if (filters.muscleGroup) {
       exercises = exercises.filter((e) =>
         e.muscleGroups?.some(
@@ -76,6 +66,7 @@ export class ExerciseRepository {
       );
     }
 
+    // Filter by equipment
     if (filters.equipment) {
       exercises = exercises.filter((e) =>
         e.equipment?.some(
@@ -84,7 +75,7 @@ export class ExerciseRepository {
       );
     }
 
-    return exercises;
+    return exercises.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
@@ -93,7 +84,16 @@ export class ExerciseRepository {
   static async getByCategory(
     category: Exercise["category"]
   ): Promise<Exercise[]> {
-    const exercises = await this.getAll();
-    return exercises.filter((e) => e.category === category);
+    return await db.exercises.where("category").equals(category).sortBy("name");
+  }
+
+  /**
+   * Get exercises by name (case-insensitive search)
+   */
+  static async searchByName(query: string): Promise<Exercise[]> {
+    const lowerQuery = query.toLowerCase();
+    return await db.exercises
+      .filter((exercise) => exercise.name.toLowerCase().includes(lowerQuery))
+      .sortBy("name");
   }
 }
