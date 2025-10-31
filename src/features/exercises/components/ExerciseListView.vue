@@ -7,13 +7,17 @@
       @click="$emit('exercise-click', exercise)"
     >
       <!-- Thumbnail -->
-      <ion-thumbnail slot="start" v-if="exercise.gifUrl">
+      <ion-thumbnail slot="start">
         <ion-img
+          v-if="exercise.gifUrl"
           :src="exercise.gifUrl"
           :alt="exercise.name"
           loading="lazy"
           class="exercise-thumbnail"
         />
+        <div v-else class="exercise-placeholder">
+          <ion-icon :icon="barbellOutline" class="placeholder-icon" />
+        </div>
       </ion-thumbnail>
 
       <ion-label>
@@ -27,10 +31,7 @@
           >
             <ion-label>{{ formatName(bodyPart) }}</ion-label>
           </ion-chip>
-          <ion-chip
-            v-if="exercise.bodyParts.length > 2"
-            size="small"
-          >
+          <ion-chip v-if="exercise.bodyParts.length > 2" size="small">
             <ion-label>+{{ exercise.bodyParts.length - 2 }}</ion-label>
           </ion-chip>
         </div>
@@ -71,43 +72,43 @@ import {
   IonLabel,
   IonChip,
   IonButton,
-  IonIcon
-} from '@ionic/vue'
-import { heart, heartOutline, add } from 'ionicons/icons'
-import type { Exercise } from '../types/exercise.types'
+  IonIcon,
+} from "@ionic/vue";
+import { heart, heartOutline, add, barbellOutline } from "ionicons/icons";
+import type { Exercise } from "../types/exercise.types";
 
 interface Props {
-  exercises: Exercise[]
-  favoriteIds?: string[]
-  canAddToWorkout?: boolean
+  exercises: Exercise[];
+  favoriteIds?: string[];
+  canAddToWorkout?: boolean;
 }
 
 interface Emits {
-  (e: 'exercise-click', exercise: Exercise): void
-  (e: 'toggle-favorite', exercise: Exercise): void
-  (e: 'add-to-workout', exercise: Exercise): void
+  (e: "exercise-click", exercise: Exercise): void;
+  (e: "toggle-favorite", exercise: Exercise): void;
+  (e: "add-to-workout", exercise: Exercise): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   favoriteIds: () => [],
-  canAddToWorkout: false
-})
+  canAddToWorkout: false,
+});
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<Emits>();
 
 function formatName(name: string): string {
   return name
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function isFavorite(exerciseId: string): boolean {
-  return props.favoriteIds?.includes(exerciseId) ?? false
+  return props.favoriteIds?.includes(exerciseId) ?? false;
 }
 
 function handleToggleFavorite(exercise: Exercise) {
-  emit('toggle-favorite', exercise)
+  emit("toggle-favorite", exercise);
 }
 </script>
 
@@ -121,6 +122,22 @@ function handleToggleFavorite(exercise: Exercise) {
   height: 100%;
   object-fit: cover;
   border-radius: var(--radius-md);
+}
+
+.exercise-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background-secondary, #f4f5f8);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary, #666);
+}
+
+.placeholder-icon {
+  font-size: 32px;
+  opacity: 0.5;
 }
 
 ion-item {
@@ -151,4 +168,3 @@ ion-item h2 {
   align-items: center;
 }
 </style>
-

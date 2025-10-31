@@ -410,6 +410,62 @@
           </div>
         </div>
 
+        <!-- Instructions -->
+        <div class="form-field-group">
+          <div class="instructions-header">
+            <ion-label class="instructions-label">
+              Instructions
+              <ion-badge
+                v-if="newExercise.instructions.length > 0"
+                color="primary"
+                class="selection-badge"
+              >
+                {{ newExercise.instructions.length }}
+              </ion-badge>
+            </ion-label>
+            <AppButton
+              fill="outline"
+              size="small"
+              @click="addInstruction"
+              class="add-instruction-btn"
+            >
+              <ion-icon :icon="addCircle" slot="start" />
+              Add Instruction
+            </AppButton>
+          </div>
+          <div
+            v-if="newExercise.instructions.length > 0"
+            class="instructions-list"
+          >
+            <div
+              v-for="(instruction, index) in newExercise.instructions"
+              :key="`instruction-${index}`"
+              class="instruction-item"
+            >
+              <div class="instruction-number">{{ index + 1 }}</div>
+              <div class="instruction-input-wrapper">
+                <FormField
+                  v-model="newExercise.instructions[index]"
+                  :placeholder="`Step ${index + 1} instruction`"
+                  class="instruction-input"
+                />
+              </div>
+              <ion-button
+                fill="clear"
+                color="danger"
+                size="small"
+                @click="removeInstruction(index)"
+                class="remove-instruction-btn"
+              >
+                <ion-icon :icon="trashOutline" slot="icon-only" />
+              </ion-button>
+            </div>
+          </div>
+          <p v-else class="helper-text">
+            Add step-by-step instructions for performing this exercise
+          </p>
+        </div>
+
         <div class="button-group">
           <AppButton
             expand="block"
@@ -456,7 +512,17 @@ import {
   IonInfiniteScrollContent,
   IonChip,
 } from "@ionic/vue";
-import { add, grid, list, searchOutline, filter, close } from "ionicons/icons";
+import {
+  add,
+  addCircle,
+  remove,
+  grid,
+  list,
+  searchOutline,
+  filter,
+  close,
+  trashOutline,
+} from "ionicons/icons";
 import { useExerciseLibrary } from "@/features/exercises/composables/useExerciseLibrary";
 import { useExercise } from "@/features/exercises/composables/useExercise";
 import { useExerciseFavorites } from "@/features/exercises/composables/useExerciseFavorites";
@@ -551,11 +617,13 @@ const newExercise = ref<{
   bodyParts: string[];
   equipments: string[];
   targetMuscles: string[];
+  instructions: string[];
 }>({
   name: "",
   bodyParts: [],
   equipments: [],
   targetMuscles: [],
+  instructions: [],
 });
 
 // Computed
@@ -767,6 +835,7 @@ function resetExerciseForm() {
     bodyParts: [],
     equipments: [],
     targetMuscles: [],
+    instructions: [],
   };
 }
 
@@ -801,6 +870,14 @@ function removeSelectedItem(
   }
 }
 
+function addInstruction() {
+  newExercise.value.instructions.push("");
+}
+
+function removeInstruction(index: number) {
+  newExercise.value.instructions.splice(index, 1);
+}
+
 async function handleAddExercise() {
   const trimmedName = newExercise.value.name.trim();
   if (!trimmedName) return;
@@ -820,11 +897,13 @@ async function handleAddExercise() {
   try {
     await createExercise({
       name: trimmedName,
-      bodyParts: newExercise.value.bodyParts,
-      equipments: newExercise.value.equipments,
-      targetMuscles: newExercise.value.targetMuscles,
+      bodyParts: [...newExercise.value.bodyParts],
+      equipments: [...newExercise.value.equipments],
+      targetMuscles: [...newExercise.value.targetMuscles],
       secondaryMuscles: [],
-      instructions: [],
+      instructions: newExercise.value.instructions
+        .filter((inst) => inst.trim().length > 0)
+        .map((inst) => inst.trim()),
       gifUrl: "",
     });
     await loadExercises();
@@ -995,6 +1074,75 @@ onMounted(async () => {
   --padding-start: 0;
   --inner-padding-end: 0;
   --background: transparent;
+}
+
+/* Instructions styling */
+.instructions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-md);
+}
+
+.instructions-label {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.add-instruction-btn {
+  flex-shrink: 0;
+}
+
+.instructions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.instruction-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  background: var(--color-surface-variant, rgba(0, 0, 0, 0.02));
+  border-radius: var(--border-radius-md, 8px);
+}
+
+.instruction-number {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ion-color-primary, #3880ff);
+  color: white;
+  border-radius: 50%;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+}
+
+.instruction-input-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.instruction-input :deep(ion-item) {
+  --padding-start: var(--spacing-sm);
+  --padding-end: var(--spacing-sm);
+  --padding-top: var(--spacing-xs);
+  --padding-bottom: var(--spacing-xs);
+}
+
+.remove-instruction-btn {
+  flex-shrink: 0;
+  margin: 0;
+  --padding-start: 0;
+  --padding-end: 0;
 }
 
 ion-segment-button {

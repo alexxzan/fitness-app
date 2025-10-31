@@ -13,13 +13,18 @@
 
     <ion-content v-if="exercise" class="exercise-detail-content">
       <!-- Exercise GIF -->
-      <div v-if="exercise.gifUrl" class="exercise-image-container">
+      <div class="exercise-image-container">
         <ion-img
+          v-if="exercise.gifUrl"
           :src="exercise.gifUrl"
           :alt="exercise.name"
           loading="lazy"
           class="exercise-gif"
         />
+        <div v-else class="exercise-placeholder">
+          <ion-icon :icon="barbellOutline" class="placeholder-icon" />
+          <p class="placeholder-text">No Image Available</p>
+        </div>
       </div>
 
       <!-- Action Buttons -->
@@ -33,10 +38,7 @@
           <ion-icon :icon="add" slot="start" />
           Add to Workout
         </ion-button>
-        <ion-button
-          fill="outline"
-          @click="toggleFavorite"
-        >
+        <ion-button fill="outline" @click="toggleFavorite">
           <ion-icon
             :icon="isFavorite ? heart : heartOutline"
             slot="icon-only"
@@ -80,7 +82,9 @@
         </ion-card-content>
       </ion-card>
 
-      <ion-card v-if="exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0">
+      <ion-card
+        v-if="exercise.secondaryMuscles && exercise.secondaryMuscles.length > 0"
+      >
         <ion-card-header>
           <ion-card-title>Secondary Muscles</ion-card-title>
         </ion-card-header>
@@ -103,10 +107,7 @@
         </ion-card-header>
         <ion-card-content>
           <div class="badges-container">
-            <ion-chip
-              v-for="equipment in exercise.equipments"
-              :key="equipment"
-            >
+            <ion-chip v-for="equipment in exercise.equipments" :key="equipment">
               <ion-label>{{ formatName(equipment) }}</ion-label>
             </ion-chip>
           </div>
@@ -114,7 +115,9 @@
       </ion-card>
 
       <!-- Instructions -->
-      <ion-card v-if="exercise.instructions && exercise.instructions.length > 0">
+      <ion-card
+        v-if="exercise.instructions && exercise.instructions.length > 0"
+      >
         <ion-card-header>
           <ion-card-title>Instructions</ion-card-title>
         </ion-card-header>
@@ -137,7 +140,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
 import {
   IonModal,
   IonHeader,
@@ -155,47 +158,53 @@ import {
   IonChip,
   IonLabel,
   IonList,
-  IonItem
-} from '@ionic/vue'
-import { close, add, heart, heartOutline } from 'ionicons/icons'
-import type { Exercise } from '../types/exercise.types'
+  IonItem,
+} from "@ionic/vue";
+import {
+  close,
+  add,
+  heart,
+  heartOutline,
+  barbellOutline,
+} from "ionicons/icons";
+import type { Exercise } from "../types/exercise.types";
 
 interface Props {
-  isOpen: boolean
-  exercise: Exercise | null
-  isFavorite?: boolean
-  canAddToWorkout?: boolean
+  isOpen: boolean;
+  exercise: Exercise | null;
+  isFavorite?: boolean;
+  canAddToWorkout?: boolean;
 }
 
 interface Emits {
-  (e: 'close'): void
-  (e: 'add-to-workout', exercise: Exercise): void
-  (e: 'toggle-favorite', exercise: Exercise): void
+  (e: "close"): void;
+  (e: "add-to-workout", exercise: Exercise): void;
+  (e: "toggle-favorite", exercise: Exercise): void;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isFavorite: false,
-  canAddToWorkout: true
-})
+  canAddToWorkout: true,
+});
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<Emits>();
 
 function formatName(name: string): string {
   return name
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 function handleAddToWorkout() {
   if (props.exercise && props.canAddToWorkout) {
-    emit('add-to-workout', props.exercise)
+    emit("add-to-workout", props.exercise);
   }
 }
 
 function toggleFavorite() {
   if (props.exercise) {
-    emit('toggle-favorite', props.exercise)
+    emit("toggle-favorite", props.exercise);
   }
 }
 </script>
@@ -220,6 +229,31 @@ function toggleFavorite() {
   width: 100%;
   height: auto;
   display: block;
+}
+
+.exercise-placeholder {
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-background-secondary, #f4f5f8);
+  color: var(--color-text-secondary, #666);
+  padding: var(--spacing-xl);
+}
+
+.placeholder-icon {
+  font-size: 64px;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.5;
+}
+
+.placeholder-text {
+  font-size: var(--font-size-base);
+  margin: 0;
+  opacity: 0.7;
+  text-align: center;
 }
 
 .action-buttons {
@@ -271,4 +305,3 @@ ion-item p {
   white-space: normal;
 }
 </style>
-
