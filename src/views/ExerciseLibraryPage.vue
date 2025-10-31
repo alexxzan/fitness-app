@@ -247,30 +247,178 @@
     />
 
     <!-- Add Exercise Modal -->
-    <ion-modal :is-open="showAddModal" @did-dismiss="showAddModal = false">
+    <ion-modal :is-open="showAddModal" @did-dismiss="handleModalDismiss">
       <ion-header>
         <ion-toolbar>
           <ion-title>Add Exercise</ion-title>
           <ion-buttons slot="end">
-            <ion-button @click="showAddModal = false">Close</ion-button>
+            <ion-button @click="handleModalDismiss">Close</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
-        <FormField
-          v-model="newExercise.name"
-          label="Exercise Name"
-          placeholder="e.g., Bench Press"
-        />
+      <ion-content class="ion-padding add-exercise-modal-content">
+        <!-- Exercise Name Field -->
+        <div class="form-field-group" :class="{ 'has-error': isDuplicateName }">
+          <FormField
+            v-model="newExercise.name"
+            label="Exercise Name *"
+            placeholder="e.g., Bench Press"
+          />
+          <p v-if="isDuplicateName" class="error-text">
+            An exercise with this name already exists
+          </p>
+          <p v-else class="helper-text">
+            Enter a name for your custom exercise
+          </p>
+        </div>
+
+        <!-- Body Parts Multi-Select -->
+        <div class="form-field-group">
+          <ion-item>
+            <ion-label position="stacked" class="select-label">
+              Body Parts
+              <ion-badge
+                v-if="newExercise.bodyParts.length > 0"
+                color="primary"
+                class="selection-badge"
+              >
+                {{ newExercise.bodyParts.length }}
+              </ion-badge>
+            </ion-label>
+            <ion-select
+              v-model="newExercise.bodyParts"
+              multiple
+              interface="popover"
+              placeholder="Select body parts"
+              class="multi-select"
+            >
+              <ion-select-option
+                v-for="bodyPart in sortedBodyParts"
+                :key="bodyPart.name"
+                :value="bodyPart.name"
+              >
+                {{ formatName(bodyPart.name) }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+          <div v-if="newExercise.bodyParts.length > 0" class="selected-chips">
+            <ion-chip
+              v-for="bodyPart in newExercise.bodyParts"
+              :key="`selected-bp-${bodyPart}`"
+              color="primary"
+              class="selection-chip"
+            >
+              <ion-label>{{ formatName(bodyPart) }}</ion-label>
+              <ion-icon
+                :icon="close"
+                @click="removeSelectedItem('bodyParts', bodyPart)"
+              />
+            </ion-chip>
+          </div>
+        </div>
+
+        <!-- Equipment Multi-Select -->
+        <div class="form-field-group">
+          <ion-item>
+            <ion-label position="stacked" class="select-label">
+              Equipment
+              <ion-badge
+                v-if="newExercise.equipments.length > 0"
+                color="primary"
+                class="selection-badge"
+              >
+                {{ newExercise.equipments.length }}
+              </ion-badge>
+            </ion-label>
+            <ion-select
+              v-model="newExercise.equipments"
+              multiple
+              interface="popover"
+              placeholder="Select equipment"
+              class="multi-select"
+            >
+              <ion-select-option
+                v-for="equipment in sortedEquipment"
+                :key="equipment.name"
+                :value="equipment.name"
+              >
+                {{ formatName(equipment.name) }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+          <div v-if="newExercise.equipments.length > 0" class="selected-chips">
+            <ion-chip
+              v-for="equipment in newExercise.equipments"
+              :key="`selected-eq-${equipment}`"
+              color="primary"
+              class="selection-chip"
+            >
+              <ion-label>{{ formatName(equipment) }}</ion-label>
+              <ion-icon
+                :icon="close"
+                @click="removeSelectedItem('equipments', equipment)"
+              />
+            </ion-chip>
+          </div>
+        </div>
+
+        <!-- Target Muscles Multi-Select -->
+        <div class="form-field-group">
+          <ion-item>
+            <ion-label position="stacked" class="select-label">
+              Target Muscles
+              <ion-badge
+                v-if="newExercise.targetMuscles.length > 0"
+                color="primary"
+                class="selection-badge"
+              >
+                {{ newExercise.targetMuscles.length }}
+              </ion-badge>
+            </ion-label>
+            <ion-select
+              v-model="newExercise.targetMuscles"
+              multiple
+              interface="popover"
+              placeholder="Select target muscles"
+              class="multi-select"
+            >
+              <ion-select-option
+                v-for="muscle in sortedTargetMuscles"
+                :key="muscle.name"
+                :value="muscle.name"
+              >
+                {{ formatName(muscle.name) }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
+          <div
+            v-if="newExercise.targetMuscles.length > 0"
+            class="selected-chips"
+          >
+            <ion-chip
+              v-for="muscle in newExercise.targetMuscles"
+              :key="`selected-muscle-${muscle}`"
+              color="primary"
+              class="selection-chip"
+            >
+              <ion-label>{{ formatName(muscle) }}</ion-label>
+              <ion-icon
+                :icon="close"
+                @click="removeSelectedItem('targetMuscles', muscle)"
+              />
+            </ion-chip>
+          </div>
+        </div>
+
         <div class="button-group">
-          <AppButton expand="block" @click="handleAddExercise">
-            Add Exercise
-          </AppButton>
           <AppButton
             expand="block"
-            fill="outline"
-            @click="showAddModal = false"
+            @click="handleAddExercise"
+            :disabled="!canSubmitExercise"
           >
+            Add Exercise
+          </AppButton>
+          <AppButton expand="block" fill="outline" @click="handleModalDismiss">
             Cancel
           </AppButton>
         </div>
@@ -324,7 +472,13 @@ import FormField from "@/components/molecules/FormField.vue";
 import AppButton from "@/components/atoms/AppButton.vue";
 import type { Exercise } from "@/features/exercises/types/exercise.types";
 import bodyPartsData from "@/features/exercises/data/bodyparts.json";
-import type { BodyPart } from "@/features/exercises/types/exercise.types";
+import equipmentData from "@/features/exercises/data/equipment.json";
+import musclesData from "@/features/exercises/data/muscles.json";
+import type {
+  BodyPart,
+  Equipment,
+  Muscle,
+} from "@/features/exercises/types/exercise.types";
 
 // Composables
 const {
@@ -370,6 +524,28 @@ const bodyParts = ref<BodyPart[]>(bodyPartsData as BodyPart[]);
 const currentPage = ref(1);
 const itemsPerPage = 50;
 
+// Raw data for dropdowns
+const bodyPartsDataRaw = ref<BodyPart[]>(bodyPartsData as BodyPart[]);
+const equipmentDataRaw = ref<Equipment[]>(equipmentData as Equipment[]);
+const musclesDataRaw = ref<Muscle[]>(musclesData as Muscle[]);
+
+// Alphabetically sorted computed properties for modal dropdowns
+const sortedBodyParts = computed(() => {
+  return [...bodyPartsDataRaw.value].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+});
+
+const sortedEquipment = computed(() => {
+  return [...equipmentDataRaw.value].sort((a, b) =>
+    a.name.localeCompare(b.name)
+  );
+});
+
+const sortedTargetMuscles = computed(() => {
+  return [...musclesDataRaw.value].sort((a, b) => a.name.localeCompare(b.name));
+});
+
 const newExercise = ref<{
   name: string;
   bodyParts: string[];
@@ -384,6 +560,19 @@ const newExercise = ref<{
 
 // Computed
 const canAddToWorkout = computed(() => !!currentWorkout.value);
+
+const isDuplicateName = computed(() => {
+  const trimmedName = newExercise.value.name.trim().toLowerCase();
+  if (!trimmedName) return false;
+
+  return exercises.value.some(
+    (ex) => ex.name.trim().toLowerCase() === trimmedName
+  );
+});
+
+const canSubmitExercise = computed(() => {
+  return newExercise.value.name.trim().length > 0 && !isDuplicateName.value;
+});
 
 const activeFilterCount = computed(() => {
   return (
@@ -572,12 +761,65 @@ function handleInfiniteScroll(event: CustomEvent) {
   }, 500);
 }
 
+function resetExerciseForm() {
+  newExercise.value = {
+    name: "",
+    bodyParts: [],
+    equipments: [],
+    targetMuscles: [],
+  };
+}
+
+function handleModalDismiss() {
+  resetExerciseForm();
+  showAddModal.value = false;
+}
+
+function removeSelectedItem(
+  category: "bodyParts" | "equipments" | "targetMuscles",
+  item: string
+) {
+  switch (category) {
+    case "bodyParts": {
+      newExercise.value.bodyParts = newExercise.value.bodyParts.filter(
+        (bp) => bp !== item
+      );
+      break;
+    }
+    case "equipments": {
+      newExercise.value.equipments = newExercise.value.equipments.filter(
+        (eq) => eq !== item
+      );
+      break;
+    }
+    case "targetMuscles": {
+      newExercise.value.targetMuscles = newExercise.value.targetMuscles.filter(
+        (tm) => tm !== item
+      );
+      break;
+    }
+  }
+}
+
 async function handleAddExercise() {
-  if (!newExercise.value.name.trim()) return;
+  const trimmedName = newExercise.value.name.trim();
+  if (!trimmedName) return;
+
+  // Double-check for duplicates before submitting
+  const trimmedLowerName = trimmedName.toLowerCase();
+  const exists = exercises.value.some(
+    (ex) => ex.name.trim().toLowerCase() === trimmedLowerName
+  );
+
+  if (exists) {
+    // This shouldn't happen due to button disable, but handle gracefully
+    console.warn("Duplicate exercise name detected");
+    return;
+  }
 
   try {
     await createExercise({
-      name: newExercise.value.name.trim(),
+      name: trimmedName,
       bodyParts: newExercise.value.bodyParts,
       equipments: newExercise.value.equipments,
       targetMuscles: newExercise.value.targetMuscles,
@@ -586,12 +828,7 @@ async function handleAddExercise() {
       gifUrl: "",
     });
     await loadExercises();
-    newExercise.value = {
-      name: "",
-      bodyParts: [],
-      equipments: [],
-      targetMuscles: [],
-    };
+    resetExerciseForm();
     showAddModal.value = false;
   } catch (error) {
     console.error("Failed to create exercise:", error);
@@ -669,6 +906,95 @@ onMounted(async () => {
   flex-direction: column;
   gap: var(--spacing-md);
   margin-top: var(--spacing-lg);
+}
+
+/* Add Exercise Modal Styles */
+.add-exercise-modal-content {
+  --padding-start: var(--spacing-lg);
+  --padding-end: var(--spacing-lg);
+  --padding-top: var(--spacing-lg);
+  --padding-bottom: var(--spacing-lg);
+}
+
+.form-field-group {
+  margin-bottom: var(--spacing-xl);
+}
+
+.form-field-group:last-of-type {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-field-group.has-error :deep(ion-item) {
+  --border-color: var(--ion-color-danger, #eb445a);
+  --highlight-color-focused: var(--ion-color-danger, #eb445a);
+}
+
+.helper-text {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--color-text-secondary, #666);
+  margin-top: var(--spacing-xs);
+  margin-left: var(--spacing-base);
+  margin-bottom: 0;
+}
+
+.error-text {
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--ion-color-danger, #eb445a);
+  margin-top: var(--spacing-xs);
+  margin-left: var(--spacing-base);
+  margin-bottom: 0;
+}
+
+.error-field {
+  --border-color: var(--ion-color-danger, #eb445a);
+}
+
+.select-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.selection-badge {
+  font-size: 0.75rem;
+}
+
+.multi-select {
+  margin-top: var(--spacing-xs);
+}
+
+.selected-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+  padding: 0 var(--spacing-base);
+}
+
+.selection-chip {
+  cursor: pointer;
+  transition: var(--transition-all);
+}
+
+.selection-chip:hover {
+  opacity: var(--opacity-hover, 0.8);
+}
+
+.selection-chip ion-icon {
+  margin-left: var(--spacing-xs);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.selection-chip ion-label {
+  font-size: 0.875rem;
+}
+
+/* IonItem styling for dropdowns */
+.form-field-group ion-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  --background: transparent;
 }
 
 ion-segment-button {
