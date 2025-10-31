@@ -68,7 +68,7 @@ function decrement() {
 .counter-button {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .counter-value {

@@ -64,14 +64,14 @@ const duration = computed(() => {
 <style scoped>
 .workout-stats {
   display: flex;
-  gap: 16px;
+  gap: var(--spacing-base);
   flex-wrap: wrap;
 }
 
 .stat-item {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--spacing-sm);
   color: var(--ion-color-medium);
   font-size: 0.9em;
 }

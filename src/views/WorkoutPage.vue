@@ -241,17 +241,17 @@ async function handleFinishWorkout() {
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 32px;
+  padding: var(--spacing-xl);
   text-align: center;
 }
 
 .workout-container {
-  padding: 16px;
+  padding: var(--spacing-base);
 }
 
 .workout-summary {
-  margin: 16px 0;
-  padding: 16px;
+  margin: var(--spacing-base) 0;
+  padding: var(--spacing-base);
   background: var(--ion-color-light);
   border-radius: 8px;
 }
@@ -259,7 +259,7 @@ async function handleFinishWorkout() {
 .button-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 24px;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
 }
 </style>

@@ -92,8 +92,8 @@ function deleteSet(setId: string) {
 
 <style scoped>
 .set-item {
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  margin-bottom: var(--spacing-base);
+  padding-bottom: var(--spacing-base);
   border-bottom: 1px solid var(--ion-color-light);
 }
 
@@ -105,7 +105,7 @@ function deleteSet(setId: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
 }
 
 .set-number {
@@ -116,7 +116,7 @@ function deleteSet(setId: string) {
 .set-inputs {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 @media (min-width: 768px) {

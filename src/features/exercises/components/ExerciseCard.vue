@@ -40,8 +40,8 @@ defineEmits<{
 <style scoped>
 .tags {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
   flex-wrap: wrap;
 }
 </style>

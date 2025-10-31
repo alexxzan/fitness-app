@@ -69,12 +69,12 @@ function viewWorkout(workout: any) {
 
 .empty-state {
   text-align: center;
-  padding: 32px;
+  padding: var(--spacing-xl);
   color: var(--ion-color-medium);
 }
 
 .workout-list {
-  padding: 16px;
+  padding: var(--spacing-base);
 }
 </style>
 

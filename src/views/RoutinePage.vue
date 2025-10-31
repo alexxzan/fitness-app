@@ -88,7 +88,7 @@ function viewRoutine(routine: WorkoutRoutine) {
 <style scoped>
 .empty-state {
   text-align: center;
-  padding: 32px;
+  padding: var(--spacing-xl);
   color: var(--ion-color-medium);
 }
 </style>

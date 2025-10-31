@@ -186,19 +186,19 @@ function viewExercise(exercise: any) {
 
 .empty-state {
   text-align: center;
-  padding: 32px;
+  padding: var(--spacing-xl);
   color: var(--ion-color-medium);
 }
 
 .exercise-list {
-  padding: 16px;
+  padding: var(--spacing-base);
 }
 
 .button-group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 24px;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
 }
 </style>
 
