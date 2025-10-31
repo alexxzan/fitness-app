@@ -94,11 +94,14 @@ function deleteSet(setId: string) {
 .set-item {
   margin-bottom: var(--spacing-base);
   padding-bottom: var(--spacing-base);
-  border-bottom: 1px solid var(--ion-color-light);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+  transition: var(--transition-border);
 }
 
 .set-item:last-of-type {
   border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .set-header {
@@ -109,8 +112,9 @@ function deleteSet(setId: string) {
 }
 
 .set-number {
-  font-weight: 600;
-  font-size: 1.1em;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+  color: var(--color-text-primary);
 }
 
 .set-inputs {

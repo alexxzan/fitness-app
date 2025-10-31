@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router';
 import { pinia } from './stores'
 import { db } from './shared/storage/database'
+import { DatabaseReset } from './shared/storage/database-reset'
 
 import { IonicVue } from '@ionic/vue';
 
@@ -10,6 +11,35 @@ import { IonicVue } from '@ionic/vue';
 db.open().catch((err) => {
   console.error('Failed to open database:', err)
 })
+
+// Expose database reset utilities globally in development (handy for testing)
+if (import.meta.env.DEV) {
+  (window as any).__FITNESS_APP_DEBUG__ = {
+    resetDatabase: DatabaseReset.resetToCleanState.bind(DatabaseReset),
+    deleteDatabase: DatabaseReset.deleteDatabase.bind(DatabaseReset),
+    resetAndReinitialize: DatabaseReset.resetAndReinitialize.bind(DatabaseReset),
+    getStateInfo: DatabaseReset.getStateInfo.bind(DatabaseReset),
+  };
+  
+  console.log(
+    '%c🔧 Development Mode',
+    'color: #4CAF50; font-weight: bold; font-size: 14px;'
+  );
+  console.log(
+    '%cDatabase reset utilities available:',
+    'color: #2196F3; font-weight: bold;'
+  );
+  console.log('  - window.__FITNESS_APP_DEBUG__.resetDatabase() - Reset to clean state');
+  console.log('  - window.__FITNESS_APP_DEBUG__.deleteDatabase() - Delete entire database');
+  console.log('  - window.__FITNESS_APP_DEBUG__.resetAndReinitialize() - Reset and reload exercises');
+  console.log('  - window.__FITNESS_APP_DEBUG__.getStateInfo() - Get current database state');
+  console.log('');
+  console.log(
+    '%c💡 Tip:',
+    'color: #FF9800; font-weight: bold;'
+  );
+  console.log('Run resetDatabase() then refresh to see the splash screen again!');
+}
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';

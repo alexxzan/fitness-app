@@ -162,16 +162,25 @@ function viewExercise(exercise: any) {
   justify-content: center;
   align-items: center;
   height: 200px;
+  padding: var(--spacing-xl);
 }
 
 .empty-state {
   text-align: center;
   padding: var(--spacing-xl);
-  color: var(--ion-color-medium);
+  color: var(--color-text-secondary);
+  font-size: var(--typography-body-size);
+}
+
+.empty-state p {
+  margin: 0;
 }
 
 .exercise-list {
   padding: var(--spacing-base);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-base);
 }
 
 .button-group {

@@ -16,3 +16,12 @@ withDefaults(defineProps<Props>(), {
 })
 </script>
 
+<style scoped>
+ion-label {
+  --color: var(--color-text-primary);
+  font-size: var(--typography-body-size);
+  font-weight: var(--typography-body-weight);
+  line-height: var(--typography-body-line-height);
+}
+</style>
+

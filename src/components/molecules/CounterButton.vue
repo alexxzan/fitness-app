@@ -68,12 +68,14 @@ function decrement() {
 .counter-button {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--button-gap);
 }
 
 .counter-value {
-  min-width: 40px;
+  min-width: var(--spacing-2xl);
   text-align: center;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
 }
 </style>

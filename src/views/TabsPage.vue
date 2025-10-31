@@ -39,13 +39,14 @@ import { home, fitness, barbell, statsChart, restaurant } from 'ionicons/icons';
 
 <style scoped>
 .workout-tab {
-  --color-selected: var(--ion-color-primary);
-  --color: var(--ion-color-medium);
+  --color-selected: var(--color-primary);
+  --color: var(--color-text-tertiary);
   transform: scale(1.1);
-  margin-bottom: 8px;
+  margin-bottom: var(--spacing-sm);
+  transition: var(--transition-transform);
 }
 
 .workout-tab ion-icon {
-  font-size: 28px;
+  font-size: var(--icon-size-xl);
 }
 </style>

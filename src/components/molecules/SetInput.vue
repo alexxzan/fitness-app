@@ -44,8 +44,9 @@ function handleInput(event: Event) {
 
 <style scoped>
 .unit {
-  color: var(--ion-color-medium);
+  color: var(--color-text-tertiary);
   margin-left: var(--spacing-sm);
+  font-size: var(--typography-small-size);
 }
 </style>
 

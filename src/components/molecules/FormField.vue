@@ -39,3 +39,13 @@ defineEmits<{
   blur: [event: Event];
 }>();
 </script>
+
+<style scoped>
+ion-item {
+  --padding-start: var(--list-item-padding-x);
+  --padding-end: var(--list-item-padding-x);
+  --padding-top: var(--list-item-padding-y);
+  --padding-bottom: var(--list-item-padding-y);
+  --inner-padding-end: 0;
+}
+</style>

@@ -31,6 +31,11 @@ import {
   height: 100%;
   padding: var(--spacing-xl);
   text-align: center;
-  color: var(--ion-color-medium);
+  color: var(--color-text-secondary);
+  font-size: var(--typography-body-size);
+}
+
+.placeholder-container p {
+  margin: 0;
 }
 </style>

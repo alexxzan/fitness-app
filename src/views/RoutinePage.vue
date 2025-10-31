@@ -89,7 +89,12 @@ function viewRoutine(routine: WorkoutRoutine) {
 .empty-state {
   text-align: center;
   padding: var(--spacing-xl);
-  color: var(--ion-color-medium);
+  color: var(--color-text-secondary);
+  font-size: var(--typography-body-size);
+}
+
+.empty-state p {
+  margin: 0;
 }
 </style>
 

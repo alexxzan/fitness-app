@@ -244,17 +244,42 @@ async function handleFinishWorkout() {
   height: 100%;
   padding: var(--spacing-xl);
   text-align: center;
+  gap: var(--spacing-lg);
+}
+
+.empty-state h2 {
+  font-size: var(--typography-h2-size);
+  font-weight: var(--typography-h2-weight);
+  color: var(--color-text-primary);
+  margin: 0;
 }
 
 .workout-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-base);
   padding: var(--spacing-base);
 }
 
 .workout-summary {
   margin: var(--spacing-base) 0;
   padding: var(--spacing-base);
-  background: var(--ion-color-light);
-  border-radius: 8px;
+  background: var(--color-background-secondary);
+  border-radius: var(--radius-card);
+  border: var(--border-width-thin) solid var(--color-border);
+}
+
+.workout-summary h3 {
+  font-size: var(--typography-h3-size);
+  font-weight: var(--typography-h3-weight);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.workout-summary p {
+  font-size: var(--typography-body-size);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-sm) 0;
 }
 
 .button-group {

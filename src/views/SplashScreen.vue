@@ -110,7 +110,7 @@ onMounted(() => {
 
 <style scoped>
 .splash-content {
-  --background: var(--ion-background-color, #ffffff);
+  --background: var(--color-background);
 }
 
 .splash-container {
@@ -118,14 +118,15 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: var(--spacing-xl);
+  transition: var(--transition-background);
 }
 
 .splash-content-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: var(--spacing-xl);
   max-width: 400px;
   width: 100%;
 }
@@ -134,18 +135,21 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-base);
+  transition: var(--transition-transform);
 }
 
 .logo-container ion-icon {
-  font-size: 4rem;
+  font-size: var(--icon-size-2xl);
 }
 
 .loading-message {
   text-align: center;
-  font-size: 1.1rem;
-  color: var(--ion-text-color, #000000);
+  font-size: var(--typography-h5-size);
+  font-weight: var(--typography-h5-weight);
+  color: var(--color-text-primary);
   margin: 0;
+  transition: var(--transition-color);
 }
 
 .progress-container {
@@ -153,13 +157,13 @@ onMounted(() => {
   max-width: 300px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .progress-text {
   text-align: center;
-  font-size: 0.9rem;
-  color: var(--ion-text-color-step-600, #666666);
+  font-size: var(--typography-small-size);
+  color: var(--color-text-tertiary);
   margin: 0;
 }
 
@@ -167,12 +171,13 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: var(--spacing-base);
   text-align: center;
 }
 
 .error-message {
-  color: var(--ion-color-danger, #eb445a);
+  color: var(--color-error);
+  font-size: var(--typography-body-size);
   margin: 0;
 }
 </style>

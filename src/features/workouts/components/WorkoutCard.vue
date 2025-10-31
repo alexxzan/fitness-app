@@ -72,12 +72,13 @@ const duration = computed(() => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  color: var(--ion-color-medium);
-  font-size: 0.9em;
+  color: var(--color-text-secondary);
+  font-size: var(--typography-small-size);
 }
 
 .stat-item ion-icon {
-  font-size: 1.2em;
+  font-size: var(--icon-size-base);
+  color: var(--color-text-tertiary);
 }
 </style>
 

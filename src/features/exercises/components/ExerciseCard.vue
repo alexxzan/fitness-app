@@ -47,7 +47,7 @@ defineEmits<{
 .tags {
   display: flex;
   gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
+  margin-top: var(--card-gap);
   flex-wrap: wrap;
 }
 </style>
