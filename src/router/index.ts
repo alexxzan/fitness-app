@@ -5,7 +5,7 @@ import TabsPage from '../views/TabsPage.vue'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/tabs/workout'
+    redirect: '/tabs/home'
   },
   {
     path: '/tabs/',
@@ -13,23 +13,27 @@ const routes: Array<RouteRecordRaw> = [
     children: [
       {
         path: '',
-        redirect: '/tabs/workout'
+        redirect: '/tabs/home'
       },
       {
-        path: 'workout',
-        component: () => import('@/views/WorkoutPage.vue')
-      },
-      {
-        path: 'history',
-        component: () => import('@/views/WorkoutHistoryPage.vue')
+        path: 'home',
+        component: () => import('@/views/HomePage.vue')
       },
       {
         path: 'exercises',
         component: () => import('@/views/ExerciseLibraryPage.vue')
       },
       {
-        path: 'routines',
-        component: () => import('@/views/RoutinePage.vue')
+        path: 'workout',
+        component: () => import('@/views/WorkoutPage.vue')
+      },
+      {
+        path: 'progress',
+        component: () => import('@/views/ProgressPage.vue')
+      },
+      {
+        path: 'macros',
+        component: () => import('@/views/MacrosPage.vue')
       }
     ]
   }
