@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:ios": "concurrently -n \"VITE,CAP\" -c \"blue,green\" \"npm run dev\" \"wait-on http://localhost:5173 && xcrun simctl boot 'iPhone 16' 2>/dev/null; npx cap run ios -l --target='071BA057-EE92-4A00-9BF4-06BE6F8BC8A1'\"",
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "test:e2e": "cypress run",
@@ -15,6 +16,7 @@
     "@capacitor/app": "7.1.0",
     "@capacitor/core": "7.4.4",
     "@capacitor/haptics": "7.0.2",
+    "@capacitor/ios": "^7.4.4",
     "@capacitor/keyboard": "7.0.3",
     "@capacitor/preferences": "^7.0.2",
     "@capacitor/status-bar": "7.0.3",
@@ -32,6 +34,7 @@
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/eslint-config-typescript": "^12.0.0",
     "@vue/test-utils": "^2.3.0",
+    "concurrently": "^9.2.1",
     "cypress": "^13.5.0",
     "eslint": "^8.35.0",
     "eslint-plugin-vue": "^9.9.0",
@@ -40,7 +43,8 @@
     "typescript": "~5.6.2",
     "vite": "~5.2.0",
     "vitest": "^0.34.6",
-    "vue-tsc": "^2.1.10"
+    "vue-tsc": "^2.1.10",
+    "wait-on": "^9.0.1"
   },
   "overrides": {
     "rollup": "4.44.0"
