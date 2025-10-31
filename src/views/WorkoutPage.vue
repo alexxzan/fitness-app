@@ -29,8 +29,13 @@
           :key="exercise.id"
           :exercise="exercise"
           @add-set="handleAddSet(exercise.id)"
-          @update-set="(setId, field, value) => handleUpdateSet(exercise.id, { setId, field, value })"
-          @toggle-completed="(setId) => handleToggleCompleted(exercise.id, setId)"
+          @update-set="
+            (setId, field, value) =>
+              handleUpdateSet(exercise.id, { setId, field, value })
+          "
+          @toggle-completed="
+            (setId) => handleToggleCompleted(exercise.id, setId)
+          "
           @delete-set="(setId) => handleDeleteSet(exercise.id, setId)"
         />
 
@@ -42,7 +47,10 @@
       </div>
 
       <!-- Exercise Selection Modal -->
-      <ion-modal :is-open="showExerciseModal" @did-dismiss="showExerciseModal = false">
+      <ion-modal
+        :is-open="showExerciseModal"
+        @did-dismiss="showExerciseModal = false"
+      >
         <ion-header>
           <ion-toolbar>
             <ion-title>Add Exercise</ion-title>
@@ -60,7 +68,10 @@
       </ion-modal>
 
       <!-- Finish Workout Modal -->
-      <ion-modal :is-open="showFinishModal" @did-dismiss="showFinishModal = false">
+      <ion-modal
+        :is-open="showFinishModal"
+        @did-dismiss="showFinishModal = false"
+      >
         <ion-header>
           <ion-toolbar>
             <ion-title>Finish Workout</ion-title>
@@ -76,14 +87,24 @@
             <p>Duration: {{ statistics.duration }} minutes</p>
           </div>
           <div class="button-group">
-            <AppButton expand="block" @click="handleFinishWorkout">Finish</AppButton>
-            <AppButton expand="block" fill="outline" @click="showFinishModal = false">Cancel</AppButton>
+            <AppButton expand="block" @click="handleFinishWorkout"
+              >Finish</AppButton
+            >
+            <AppButton
+              expand="block"
+              fill="outline"
+              @click="showFinishModal = false"
+              >Cancel</AppButton
+            >
           </div>
         </ion-content>
       </ion-modal>
 
       <!-- Start Workout Modal -->
-      <ion-modal :is-open="showStartModal" @did-dismiss="showStartModal = false">
+      <ion-modal
+        :is-open="showStartModal"
+        @did-dismiss="showStartModal = false"
+      >
         <ion-header>
           <ion-toolbar>
             <ion-title>Start New Workout</ion-title>
@@ -96,8 +117,15 @@
             placeholder="Enter workout name"
           />
           <div class="button-group">
-            <AppButton expand="block" @click="handleStartWorkout">Start</AppButton>
-            <AppButton expand="block" fill="outline" @click="showStartModal = false">Cancel</AppButton>
+            <AppButton expand="block" @click="handleStartWorkout"
+              >Start</AppButton
+            >
+            <AppButton
+              expand="block"
+              fill="outline"
+              @click="showStartModal = false"
+              >Cancel</AppButton
+            >
           </div>
         </ion-content>
       </ion-modal>
@@ -106,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue";
 import {
   IonPage,
   IonHeader,
@@ -120,15 +148,15 @@ import {
   IonFab,
   IonFabButton,
   IonIcon,
-  IonModal
-} from '@ionic/vue'
-import { add } from 'ionicons/icons'
-import { useWorkout } from '@/features/workouts/composables/useWorkout'
-import { useExerciseLibrary } from '@/features/exercises/composables/useExerciseLibrary'
-import SetTracker from '@/features/workouts/components/SetTracker.vue'
-import ExerciseSelector from '@/features/exercises/components/ExerciseSelector.vue'
-import AppButton from '@/components/atoms/AppButton.vue'
-import FormField from '@/components/molecules/FormField.vue'
+  IonModal,
+} from "@ionic/vue";
+import { add } from "ionicons/icons";
+import { useWorkout } from "@/features/workouts/composables/useWorkout";
+import { useExerciseLibrary } from "@/features/exercises/composables/useExerciseLibrary";
+import SetTracker from "@/features/workouts/components/SetTracker.vue";
+import ExerciseSelector from "@/features/exercises/components/ExerciseSelector.vue";
+import AppButton from "@/components/atoms/AppButton.vue";
+import FormField from "@/components/molecules/FormField.vue";
 
 const {
   currentWorkout,
@@ -140,63 +168,68 @@ const {
   updateSet,
   toggleSetCompleted,
   deleteSet,
-  finishWorkout
-} = useWorkout()
+  finishWorkout,
+} = useWorkout();
 
-const { exercises, loadExercises } = useExerciseLibrary()
+const { exercises, loadExercises } = useExerciseLibrary();
 
-const showExerciseModal = ref(false)
-const showFinishModal = ref(false)
-const showStartModal = ref(false)
-const newWorkoutName = ref('')
+const showExerciseModal = ref(false);
+const showFinishModal = ref(false);
+const showStartModal = ref(false);
+const newWorkoutName = ref("");
 
 onMounted(async () => {
-  await loadActiveWorkout()
-  await loadExercises()
-})
+  await loadActiveWorkout();
+  await loadExercises();
+});
 
 async function startWorkout() {
-  showStartModal.value = true
+  showStartModal.value = true;
 }
 
 async function handleStartWorkout() {
-  if (!newWorkoutName.value.trim()) return
-  await createWorkout(newWorkoutName.value)
-  newWorkoutName.value = ''
-  showStartModal.value = false
+  if (!newWorkoutName.value.trim()) return;
+  await createWorkout(newWorkoutName.value);
+  newWorkoutName.value = "";
+  showStartModal.value = false;
 }
 
 function handleAddExercise(exercise: { id: string; name: string }) {
-  addExercise(exercise.id, exercise.name)
-  showExerciseModal.value = false
+  addExercise(exercise.id, exercise.name);
+  showExerciseModal.value = false;
 }
 
 function handleAddSet(exerciseId: string) {
   addSet(exerciseId, {
     reps: undefined,
     weight: undefined,
-    restTime: undefined
-  })
+    restTime: undefined,
+  });
 }
 
-function handleUpdateSet(exerciseId: string, payload: { setId: string; field: string; value: number | null }) {
-  updateSet(exerciseId, payload.setId, { [payload.field]: payload.value } as any)
+function handleUpdateSet(
+  exerciseId: string,
+  payload: { setId: string; field: string; value: number | null }
+) {
+  updateSet(exerciseId, payload.setId, {
+    [payload.field]: payload.value,
+  } as any);
 }
 
 function handleToggleCompleted(exerciseId: string, setId: string) {
-  toggleSetCompleted(exerciseId, setId)
+  toggleSetCompleted(exerciseId, setId);
 }
 
 function handleDeleteSet(exerciseId: string, setId: string) {
-  deleteSet(exerciseId, setId)
+  deleteSet(exerciseId, setId);
 }
 
 async function handleFinishWorkout() {
   try {
-    await finishWorkout()
-    showFinishModal.value = false
+    await finishWorkout();
+    showFinishModal.value = false;
   } catch (error) {
-    console.error('Failed to finish workout:', error)
+    console.error("Failed to finish workout:", error);
   }
 }
 </script>
@@ -230,4 +263,3 @@ async function handleFinishWorkout() {
   margin-top: 24px;
 }
 </style>
-
