@@ -168,8 +168,8 @@ function handleAddToWorkout() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--color-background-secondary, #f4f5f8);
-  color: var(--color-text-secondary, #666);
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
 }
 
 .placeholder-icon {
@@ -200,8 +200,8 @@ function handleAddToWorkout() {
 
 .favorite-button,
 .add-button {
-  --background: rgba(0, 0, 0, 0.5);
-  --color: white;
+  --background: var(--modal-backdrop-color);
+  --color: var(--color-text-primary);
   backdrop-filter: blur(4px);
 }
 

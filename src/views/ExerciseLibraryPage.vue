@@ -1004,13 +1004,13 @@ onMounted(async () => {
 }
 
 .form-field-group.has-error :deep(ion-item) {
-  --border-color: var(--ion-color-danger, #eb445a);
-  --highlight-color-focused: var(--ion-color-danger, #eb445a);
+  --border-color: var(--color-error);
+  --highlight-color-focused: var(--color-error);
 }
 
 .helper-text {
   font-size: var(--font-size-sm, 0.875rem);
-  color: var(--color-text-secondary, #666);
+  color: var(--color-text-secondary);
   margin-top: var(--spacing-xs);
   margin-left: var(--spacing-base);
   margin-bottom: 0;
@@ -1018,14 +1018,14 @@ onMounted(async () => {
 
 .error-text {
   font-size: var(--font-size-sm, 0.875rem);
-  color: var(--ion-color-danger, #eb445a);
+  color: var(--color-error);
   margin-top: var(--spacing-xs);
   margin-left: var(--spacing-base);
   margin-bottom: 0;
 }
 
 .error-field {
-  --border-color: var(--ion-color-danger, #eb445a);
+  --border-color: var(--color-error);
 }
 
 .select-label {
@@ -1108,8 +1108,8 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm);
-  background: var(--color-surface-variant, rgba(0, 0, 0, 0.02));
-  border-radius: var(--border-radius-md, 8px);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
 }
 
 .instruction-number {
@@ -1119,8 +1119,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--ion-color-primary, #3880ff);
-  color: white;
+  background: var(--color-primary);
+  color: var(--color-text-primary);
   border-radius: 50%;
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
@@ -1231,7 +1231,7 @@ ion-badge {
   opacity: 0.8;
   margin-right: 4px;
   padding-right: 4px;
-  border-right: 1px solid rgba(255, 255, 255, 0.3);
+  border-right: 1px solid var(--color-border);
 }
 
 .filter-chip ion-icon {

@@ -74,45 +74,90 @@ const emit = defineEmits<{
 }
 
 .start-button--primary {
-  background-color: var(--color-primary);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-500) 0%,
+    var(--color-primary-600) 50%,
+    var(--color-primary-700) 100%
+  );
+  color: var(--color-text-primary);
 }
 
 .start-button--primary:hover {
-  background-color: var(--color-primary-hover);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-400) 0%,
+    var(--color-primary-500) 50%,
+    var(--color-primary-600) 100%
+  );
   box-shadow: var(--shadow-card-hover);
 }
 
 .start-button--primary:active {
-  background-color: var(--color-primary-active);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-600) 0%,
+    var(--color-primary-700) 50%,
+    var(--color-primary-800) 100%
+  );
 }
 
 .start-button--secondary {
-  background-color: var(--color-secondary);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-600) 0%,
+    var(--color-primary-700) 50%,
+    var(--color-primary-800) 100%
+  );
+  color: var(--color-text-primary);
 }
 
 .start-button--secondary:hover {
-  background-color: var(--color-secondary-hover);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-500) 0%,
+    var(--color-primary-600) 50%,
+    var(--color-primary-700) 100%
+  );
   box-shadow: var(--shadow-card-hover);
 }
 
 .start-button--secondary:active {
-  background-color: var(--color-secondary-active);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-700) 0%,
+    var(--color-primary-800) 50%,
+    var(--color-primary-900) 100%
+  );
 }
 
 .start-button--routine {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary-700) 0%,
+    var(--color-secondary-800) 50%,
+    var(--color-secondary-900) 100%
+  );
+  color: var(--color-text-primary);
 }
 
 .start-button--routine:hover {
-  background: linear-gradient(135deg, #5568d3 0%, #653a8c 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary-600) 0%,
+    var(--color-secondary-700) 50%,
+    var(--color-secondary-800) 100%
+  );
   box-shadow: var(--shadow-card-hover);
 }
 
 .start-button--routine:active {
-  background: linear-gradient(135deg, #4a59bd 0%, #563177 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-secondary-800) 0%,
+    var(--color-secondary-900) 50%,
+    var(--color-secondary-950) 100%
+  );
 }
 
 .button-icon {

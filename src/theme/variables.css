@@ -23,31 +23,31 @@ http://ionicframework.com/docs/theming/ */
   /* ========================================================================
      COLOR SYSTEM - Brand Colors
      ======================================================================== */
-  /* Primary Color Palette */
-  --color-primary-50: #f0f9ff;
-  --color-primary-100: #e0f2fe;
-  --color-primary-200: #bae6fd;
-  --color-primary-300: #7dd3fc;
-  --color-primary-400: #38bdf8;
-  --color-primary-500: #0ea5e9;
-  --color-primary-600: #0284c7;
-  --color-primary-700: #0369a1;
-  --color-primary-800: #075985;
-  --color-primary-900: #0c4a6e;
-  --color-primary-950: #082f49;
+  /* Primary Color Palette - Spotify Green */
+  --color-primary-50: #e8faf0;
+  --color-primary-100: #d1f5e1;
+  --color-primary-200: #a3ebc3;
+  --color-primary-300: #75e1a5;
+  --color-primary-400: #47d787;
+  --color-primary-500: #1db954;
+  --color-primary-600: #17a346;
+  --color-primary-700: #128d38;
+  --color-primary-800: #0e772a;
+  --color-primary-900: #0a611c;
+  --color-primary-950: #064b0e;
 
-  /* Secondary Color Palette */
-  --color-secondary-50: #faf5ff;
-  --color-secondary-100: #f3e8ff;
-  --color-secondary-200: #e9d5ff;
-  --color-secondary-300: #d8b4fe;
-  --color-secondary-400: #c084fc;
-  --color-secondary-500: #a855f7;
-  --color-secondary-600: #9333ea;
-  --color-secondary-700: #7e22ce;
-  --color-secondary-800: #6b21a8;
-  --color-secondary-900: #581c87;
-  --color-secondary-950: #3b0764;
+  /* Secondary Color Palette - Neutral Grays (Spotify-style) */
+  --color-secondary-50: #f5f5f5;
+  --color-secondary-100: #e8e8e8;
+  --color-secondary-200: #d1d1d1;
+  --color-secondary-300: #b3b3b3;
+  --color-secondary-400: #969696;
+  --color-secondary-500: #808080;
+  --color-secondary-600: #6b6b6b;
+  --color-secondary-700: #575757;
+  --color-secondary-800: #424242;
+  --color-secondary-900: #2c2c2c;
+  --color-secondary-950: #1a1a1a;
 
   /* Semantic Colors - Success */
   --color-success-50: #f0fdf4;
@@ -101,18 +101,18 @@ http://ionicframework.com/docs/theming/ */
   --color-info-900: #1e3a8a;
   --color-info-950: #172554;
 
-  /* Neutral Gray Scale */
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
-  --color-gray-950: #030712;
+  /* Neutral Gray Scale - Spotify Dark Theme Optimized */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f4f4f4;
+  --color-gray-200: #e0e0e0;
+  --color-gray-300: #bdbdbd;
+  --color-gray-400: #9e9e9e;
+  --color-gray-500: #757575;
+  --color-gray-600: #616161;
+  --color-gray-700: #424242;
+  --color-gray-800: #2c2c2c;
+  --color-gray-900: #191414;
+  --color-gray-950: #121212;
 
   /* ========================================================================
      COLOR SEMANTICS - Application Usage
@@ -145,29 +145,29 @@ http://ionicframework.com/docs/theming/ */
   --color-info-light: var(--color-info-100);
   --color-info-lighter: var(--color-info-50);
 
-  /* Background Colors */
-  --color-background: #ffffff;
-  --color-background-secondary: var(--color-gray-50);
-  --color-background-tertiary: var(--color-gray-100);
-  --color-background-elevated: #ffffff;
+  /* Background Colors - Spotify Dark Theme */
+  --color-background: #191414;
+  --color-background-secondary: var(--color-gray-800);
+  --color-background-tertiary: var(--color-gray-700);
+  --color-background-elevated: var(--color-gray-800);
 
-  /* Surface Colors */
-  --color-surface: #ffffff;
-  --color-surface-hover: var(--color-gray-50);
-  --color-surface-active: var(--color-gray-100);
+  /* Surface Colors - Spotify Dark Theme */
+  --color-surface: var(--color-gray-800);
+  --color-surface-hover: var(--color-gray-700);
+  --color-surface-active: var(--color-gray-600);
 
-  /* Text Colors */
-  --color-text-primary: var(--color-gray-900);
-  --color-text-secondary: var(--color-gray-600);
-  --color-text-tertiary: var(--color-gray-500);
-  --color-text-disabled: var(--color-gray-400);
-  --color-text-inverse: #ffffff;
-  --color-text-link: var(--color-primary-600);
-  --color-text-link-hover: var(--color-primary-700);
+  /* Text Colors - Spotify Dark Theme */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: var(--color-gray-300);
+  --color-text-tertiary: var(--color-gray-400);
+  --color-text-disabled: var(--color-gray-600);
+  --color-text-inverse: var(--color-gray-900);
+  --color-text-link: var(--color-primary-500);
+  --color-text-link-hover: var(--color-primary-400);
 
-  /* Border Colors */
-  --color-border: var(--color-gray-200);
-  --color-border-hover: var(--color-gray-300);
+  /* Border Colors - Spotify Dark Theme */
+  --color-border: var(--color-gray-700);
+  --color-border-hover: var(--color-gray-600);
   --color-border-focus: var(--color-primary-500);
   --color-border-error: var(--color-error-500);
   --color-border-success: var(--color-success-500);
@@ -277,19 +277,19 @@ http://ionicframework.com/docs/theming/ */
   --radius-chip: var(--radius-full);
 
   /* ========================================================================
-     SHADOW/ELEVATION SYSTEM
+     SHADOW/ELEVATION SYSTEM - Spotify Dark Theme Optimized
      ======================================================================== */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
-  --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  --shadow-2xl: 0 30px 60px -12px rgba(0, 0, 0, 0.25);
-  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+  --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.4),
+    0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
+    0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6),
+    0 8px 10px -6px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  --shadow-2xl: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.3);
 
   /* Component-specific shadows */
   --shadow-card: var(--shadow-sm);
@@ -482,67 +482,147 @@ http://ionicframework.com/docs/theming/ */
   --border-width-thick: 4px;
   --outline-width: 2px;
   --min-touch-target: 44px; /* Minimum touch target for mobile accessibility */
+
+  /* ========================================================================
+     IONIC COLOR MAPPINGS - Map Ionic color system to theme colors
+     ======================================================================== */
+  /* Primary Color (Spotify Green) */
+  --ion-color-primary: var(--color-primary-600);
+  --ion-color-primary-rgb: 23, 163, 70;
+  --ion-color-primary-contrast: var(--color-text-primary);
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: var(--color-primary-700);
+  --ion-color-primary-tint: var(--color-primary-500);
+
+  /* Secondary Color (Neutral Gray) */
+  --ion-color-secondary: var(--color-secondary-600);
+  --ion-color-secondary-rgb: 107, 107, 107;
+  --ion-color-secondary-contrast: var(--color-text-primary);
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: var(--color-secondary-700);
+  --ion-color-secondary-tint: var(--color-secondary-500);
+
+  /* Tertiary Color (Primary lighter variant) */
+  --ion-color-tertiary: var(--color-primary-400);
+  --ion-color-tertiary-rgb: 71, 215, 135;
+  --ion-color-tertiary-contrast: var(--color-text-inverse);
+  --ion-color-tertiary-contrast-rgb: 0, 0, 0;
+  --ion-color-tertiary-shade: var(--color-primary-500);
+  --ion-color-tertiary-tint: var(--color-primary-300);
+
+  /* Success Color */
+  --ion-color-success: var(--color-success-600);
+  --ion-color-success-rgb: 22, 163, 74;
+  --ion-color-success-contrast: var(--color-text-primary);
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: var(--color-success-700);
+  --ion-color-success-tint: var(--color-success-500);
+
+  /* Warning Color */
+  --ion-color-warning: var(--color-warning-500);
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: var(--color-text-inverse);
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: var(--color-warning-600);
+  --ion-color-warning-tint: var(--color-warning-400);
+
+  /* Danger/Error Color */
+  --ion-color-danger: var(--color-error-600);
+  --ion-color-danger-rgb: 220, 38, 38;
+  --ion-color-danger-contrast: var(--color-text-primary);
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: var(--color-error-700);
+  --ion-color-danger-tint: var(--color-error-500);
+
+  /* Dark Color (for dark theme backgrounds) */
+  --ion-color-dark: var(--color-gray-800);
+  --ion-color-dark-rgb: 44, 44, 44;
+  --ion-color-dark-contrast: var(--color-text-primary);
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: var(--color-gray-900);
+  --ion-color-dark-tint: var(--color-gray-700);
+
+  /* Medium Color (for medium backgrounds) */
+  --ion-color-medium: var(--color-gray-500);
+  --ion-color-medium-rgb: 117, 117, 117;
+  --ion-color-medium-contrast: var(--color-text-primary);
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: var(--color-gray-600);
+  --ion-color-medium-tint: var(--color-gray-400);
+
+  /* Light Color (for light backgrounds) */
+  --ion-color-light: var(--color-gray-200);
+  --ion-color-light-rgb: 224, 224, 224;
+  --ion-color-light-contrast: var(--color-text-inverse);
+  --ion-color-light-contrast-rgb: 0, 0, 0;
+  --ion-color-light-shade: var(--color-gray-300);
+  --ion-color-light-tint: var(--color-gray-100);
 }
 
 /* ==========================================================================
-   DARK MODE OVERRIDES
+   LIGHT MODE OVERRIDES (Default is now dark Spotify-style)
    ========================================================================== */
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   :root {
-    /* Background Colors */
-    --color-background: var(--color-gray-900);
-    --color-background-secondary: var(--color-gray-800);
-    --color-background-tertiary: var(--color-gray-700);
-    --color-background-elevated: var(--color-gray-800);
+    /* Background Colors - Light Mode */
+    --color-background: #ffffff;
+    --color-background-secondary: var(--color-gray-50);
+    --color-background-tertiary: var(--color-gray-100);
+    --color-background-elevated: #ffffff;
 
-    /* Surface Colors */
-    --color-surface: var(--color-gray-800);
-    --color-surface-hover: var(--color-gray-700);
-    --color-surface-active: var(--color-gray-600);
+    /* Surface Colors - Light Mode */
+    --color-surface: #ffffff;
+    --color-surface-hover: var(--color-gray-50);
+    --color-surface-active: var(--color-gray-100);
 
-    /* Text Colors */
-    --color-text-primary: var(--color-gray-100);
-    --color-text-secondary: var(--color-gray-400);
+    /* Text Colors - Light Mode */
+    --color-text-primary: var(--color-gray-900);
+    --color-text-secondary: var(--color-gray-600);
     --color-text-tertiary: var(--color-gray-500);
-    --color-text-disabled: var(--color-gray-600);
-    --color-text-inverse: var(--color-gray-900);
-    --color-text-link: var(--color-primary-400);
-    --color-text-link-hover: var(--color-primary-300);
+    --color-text-disabled: var(--color-gray-400);
+    --color-text-inverse: #ffffff;
+    --color-text-link: var(--color-primary-600);
+    --color-text-link-hover: var(--color-primary-700);
 
-    /* Border Colors */
-    --color-border: var(--color-gray-700);
-    --color-border-hover: var(--color-gray-600);
-    --color-border-focus: var(--color-primary-400);
-    --color-border-error: var(--color-error-400);
-    --color-border-success: var(--color-success-400);
+    /* Border Colors - Light Mode */
+    --color-border: var(--color-gray-200);
+    --color-border-hover: var(--color-gray-300);
+    --color-border-focus: var(--color-primary-500);
+    --color-border-error: var(--color-error-500);
+    --color-border-success: var(--color-success-500);
 
-    /* Input */
-    --input-background: var(--color-gray-800);
-    --input-background-disabled: var(--color-gray-700);
-    --input-border-color: var(--color-gray-700);
+    /* Input - Light Mode */
+    --input-background: #ffffff;
+    --input-background-disabled: var(--color-gray-50);
+    --input-border-color: var(--color-gray-200);
 
-    /* Card */
-    --card-background: var(--color-gray-800);
-    --card-border-color: var(--color-gray-700);
+    /* Card - Light Mode */
+    --card-background: #ffffff;
+    --card-border-color: var(--color-gray-200);
 
-    /* Modal */
-    --modal-backdrop-color: rgba(0, 0, 0, 0.75);
+    /* Modal - Light Mode */
+    --modal-backdrop-color: rgba(0, 0, 0, 0.5);
 
-    /* Toolbar */
-    --toolbar-background: var(--color-gray-800);
+    /* Toolbar - Light Mode */
+    --toolbar-background: #ffffff;
 
-    /* Shadow adjustments for dark mode */
-    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4),
-      0 1px 2px -1px rgba(0, 0, 0, 0.4);
-    --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.4),
-      0 2px 4px -2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5),
-      0 4px 6px -4px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6),
-      0 8px 10px -6px rgba(0, 0, 0, 0.6);
-    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-    --shadow-2xl: 0 30px 60px -12px rgba(0, 0, 0, 0.8);
+    /* Shadow adjustments for light mode */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+      0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-2xl: 0 30px 60px -12px rgba(0, 0, 0, 0.25);
+
+    /* Ionic Color Mappings for Light Mode */
+    --ion-color-primary-contrast: var(--color-text-inverse);
+    --ion-color-secondary-contrast: var(--color-text-inverse);
+    --ion-color-tertiary-contrast: var(--color-text-inverse);
   }
 }
 

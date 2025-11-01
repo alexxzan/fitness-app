@@ -49,12 +49,12 @@ const formattedTime = computed(() => {
 
 .interval-timer--work {
   background: linear-gradient(135deg, var(--color-error-600) 0%, var(--color-error-700) 100%);
-  color: white;
+  color: var(--color-text-primary);
 }
 
 .interval-timer--rest {
   background: linear-gradient(135deg, var(--color-success-600) 0%, var(--color-success-700) 100%);
-  color: white;
+  color: var(--color-text-primary);
 }
 
 .timer-content {
@@ -81,7 +81,7 @@ const formattedTime = computed(() => {
   line-height: var(--line-height-tight);
   font-variant-numeric: tabular-nums;
   letter-spacing: var(--letter-spacing-tight);
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  text-shadow: var(--shadow-sm);
 }
 
 .exercise-name {

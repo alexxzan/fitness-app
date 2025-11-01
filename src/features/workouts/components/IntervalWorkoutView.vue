@@ -291,7 +291,7 @@ details[open] .exercise-list-header::before {
   width: 24px;
   height: 24px;
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-text-primary);
   border-radius: var(--radius-full);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);

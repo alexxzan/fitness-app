@@ -130,9 +130,9 @@ function handleToggleFavorite(exercise: Exercise) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-background-secondary, #f4f5f8);
+  background: var(--color-background-secondary);
   border-radius: var(--radius-md);
-  color: var(--color-text-secondary, #666);
+  color: var(--color-text-secondary);
 }
 
 .placeholder-icon {

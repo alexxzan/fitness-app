@@ -104,11 +104,11 @@ initializeDatabase()
     console.error("Failed to start app:", err);
     // Show error to user
     document.body.innerHTML = `
-      <div style="padding: 20px; font-family: sans-serif;">
+      <div style="padding: 20px; font-family: sans-serif; background-color: var(--color-background); color: var(--color-text-primary);">
         <h1>⚠️ App Initialization Error</h1>
         <p>This app requires a native platform (iOS or Android).</p>
         <p>Please run the app on a device or simulator.</p>
-        <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px;">${err}</pre>
+        <pre style="background: var(--color-background-secondary); padding: 10px; border-radius: 5px; color: var(--color-text-primary);">${err}</pre>
       </div>
     `;
   });

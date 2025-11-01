@@ -396,7 +396,7 @@ function getDifficultyColor(difficulty: string) {
 
 .meta {
   font-size: var(--font-size-sm);
-  color: var(--ion-color-primary);
+  color: var(--color-primary);
   font-weight: var(--font-weight-semibold);
 }
 

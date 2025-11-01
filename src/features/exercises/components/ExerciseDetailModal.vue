@@ -238,8 +238,8 @@ function toggleFavorite() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--color-background-secondary, #f4f5f8);
-  color: var(--color-text-secondary, #666);
+  background: var(--color-background-secondary);
+  color: var(--color-text-secondary);
   padding: var(--spacing-xl);
 }
 

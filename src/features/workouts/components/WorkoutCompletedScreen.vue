@@ -160,7 +160,7 @@ function handleDone() {
   background: linear-gradient(135deg, var(--color-success-600) 0%, var(--color-success-700) 100%);
   border-radius: var(--radius-full);
   font-size: var(--font-size-4xl);
-  color: white;
+  color: var(--color-text-primary);
   box-shadow: var(--shadow-lg);
 }
 
