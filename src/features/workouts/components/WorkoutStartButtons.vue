@@ -1,19 +1,14 @@
 <template>
   <div class="workout-start-buttons">
+    <h2 class="section-title">Quick Start</h2>
     <div class="button-container">
-      <button
-        class="start-button start-button--routine"
-        @click="emit('startFromRoutine')"
-      >
-        <span class="button-text">
-          <span class="button-title">From Routine</span>
-          <span class="button-description">Use saved program</span>
-        </span>
-      </button>
       <button
         class="start-button start-button--primary"
         @click="emit('startRegular')"
       >
+        <div class="button-icon">
+          <ion-icon :icon="barbell" />
+        </div>
         <span class="button-text">
           <span class="button-title">Regular</span>
           <span class="button-description">Sets & reps</span>
@@ -23,9 +18,24 @@
         class="start-button start-button--secondary"
         @click="emit('startInterval')"
       >
+        <div class="button-icon">
+          <ion-icon :icon="flash" />
+        </div>
         <span class="button-text">
           <span class="button-title">Interval</span>
           <span class="button-description">HIIT training</span>
+        </span>
+      </button>
+      <button
+        class="start-button start-button--routine"
+        @click="emit('startFromRoutine')"
+      >
+        <div class="button-icon">
+          <ion-icon :icon="list" />
+        </div>
+        <span class="button-text">
+          <span class="button-title">From Routine</span>
+          <span class="button-description">Use saved program</span>
         </span>
       </button>
     </div>
@@ -33,6 +43,9 @@
 </template>
 
 <script setup lang="ts">
+import { IonIcon } from '@ionic/vue'
+import { barbell, flash, list } from 'ionicons/icons'
+
 const emit = defineEmits<{
   startFromRoutine: [];
   startRegular: [];
@@ -43,6 +56,15 @@ const emit = defineEmits<{
 <style scoped>
 .workout-start-buttons {
   width: 100%;
+  padding: 0 var(--spacing-base);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-base) 0;
 }
 
 .button-container {
@@ -55,7 +77,7 @@ const emit = defineEmits<{
 .start-button {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-base);
   padding: var(--spacing-md) var(--spacing-base);
   min-height: auto;
   border: none;
@@ -161,9 +183,19 @@ const emit = defineEmits<{
 }
 
 .button-icon {
-  font-size: var(--font-size-lg);
   flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-button);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+}
+
+.button-icon ion-icon {
+  font-size: 24px;
 }
 
 .button-text {
