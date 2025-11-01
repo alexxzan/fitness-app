@@ -1,64 +1,64 @@
-import { createRouter, createWebHistory } from '@ionic/vue-router';
-import { RouteRecordRaw } from 'vue-router';
-import { AppState } from '@/shared/storage/app.state';
-import TabsPage from '../views/TabsPage.vue'
+import { createRouter, createWebHistory } from "@ionic/vue-router";
+import { RouteRecordRaw } from "vue-router";
+import { AppState } from "@/shared/storage/app.state";
+import TabsPage from "../views/TabsPage.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/',
-    redirect: '/tabs/home'
+    path: "/",
+    redirect: "/home",
   },
   {
-    path: '/splash',
-    component: () => import('@/views/SplashScreen.vue')
+    path: "/splash",
+    component: () => import("@/views/SplashScreen.vue"),
   },
   {
-    path: '/tabs/',
+    path: "/",
     component: TabsPage,
     children: [
       {
-        path: '',
-        redirect: '/tabs/home'
+        path: "",
+        redirect: "/home",
       },
       {
-        path: 'home',
-        component: () => import('@/views/HomePage.vue')
+        path: "home",
+        component: () => import("@/views/HomePage.vue"),
       },
       {
-        path: 'exercises',
-        component: () => import('@/views/ExerciseLibraryPage.vue')
+        path: "exercises",
+        component: () => import("@/views/ExerciseLibraryPage.vue"),
       },
       {
-        path: 'workout',
-        component: () => import('@/views/WorkoutPage.vue')
+        path: "workout",
+        component: () => import("@/views/WorkoutPage.vue"),
       },
       {
-        path: 'progress',
-        component: () => import('@/views/ProgressPage.vue')
+        path: "progress",
+        component: () => import("@/views/ProgressPage.vue"),
       },
       {
-        path: 'macros',
-        component: () => import('@/views/MacrosPage.vue')
-      }
-    ]
-  }
-]
+        path: "macros",
+        component: () => import("@/views/MacrosPage.vue"),
+      },
+    ],
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
-})
+  routes,
+});
 
 // Navigation guard to check initialization status
 router.beforeEach(async (to, from, next) => {
   // Check if app is initialized
   const isInitialized = await AppState.isInitialized();
-  
+
   // If trying to access splash screen
-  if (to.path === '/splash') {
+  if (to.path === "/splash") {
     // If already initialized, redirect to home
     if (isInitialized) {
-      next('/tabs/home');
+      next("/tabs/home");
     } else {
       // Allow navigation to splash if not initialized
       next();
@@ -69,11 +69,11 @@ router.beforeEach(async (to, from, next) => {
   // For all other routes, check initialization
   if (!isInitialized) {
     // Redirect to splash screen if not initialized
-    next('/splash');
+    next("/splash");
   } else {
     // Allow navigation if initialized
     next();
   }
 });
 
-export default router
+export default router;

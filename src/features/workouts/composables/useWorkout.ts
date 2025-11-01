@@ -19,12 +19,22 @@ export function useWorkout() {
 
   /**
    * Load the active workout from storage
+   * Note: Interval workouts are discarded on load since they're time-sensitive
+   * and cannot be properly restored after a page refresh.
    */
   async function loadActiveWorkout() {
     isLoading.value = true;
     error.value = null;
     try {
-      currentWorkout.value = await WorkoutRepository.getActiveWorkout();
+      const activeWorkout = await WorkoutRepository.getActiveWorkout();
+      
+      // Discard interval workouts on load - they're time-sensitive and can't be restored
+      if (activeWorkout?.type === 'interval') {
+        await WorkoutRepository.setActiveWorkout(null);
+        currentWorkout.value = null;
+      } else {
+        currentWorkout.value = activeWorkout;
+      }
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Failed to load workout";

@@ -60,3 +60,16 @@ export interface WorkoutStatistics {
   exercisesCount: number
 }
 
+export interface WorkoutTemplate {
+  id: string
+  name: string
+  description: string
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+  durationWeeks: number
+  exercises: Array<{
+    exerciseName: string
+    targetSets?: number
+    targetReps?: string
+  }>
+}
+

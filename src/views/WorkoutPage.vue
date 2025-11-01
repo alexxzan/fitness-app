@@ -4,7 +4,10 @@
       <ion-toolbar>
         <ion-title>Workout</ion-title>
         <ion-buttons slot="end">
-          <ion-button v-if="currentWorkout && workoutState === 'active'" @click="showFinishModal = true">
+          <ion-button
+            v-if="currentWorkout && workoutState === 'active'"
+            @click="showFinishModal = true"
+          >
             Finish
           </ion-button>
         </ion-buttons>
@@ -21,7 +24,9 @@
 
       <!-- Regular Workout View -->
       <RegularWorkoutView
-        v-else-if="workoutState === 'active' && currentWorkout?.type === 'regular'"
+        v-else-if="
+          workoutState === 'active' && currentWorkout?.type === 'regular'
+        "
         :workout="currentWorkout"
         :statistics="statistics"
         @add-exercise="showExerciseModal = true"
@@ -33,7 +38,9 @@
 
       <!-- Interval Workout View -->
       <IntervalWorkoutView
-        v-else-if="workoutState === 'active' && currentWorkout?.type === 'interval'"
+        v-else-if="
+          workoutState === 'active' && currentWorkout?.type === 'interval'
+        "
         :workout="currentWorkout"
         @finish="showFinishModal = true"
         @update-progress="handleUpdateIntervalProgress"
@@ -41,113 +48,44 @@
 
       <!-- Workout Completed View -->
       <WorkoutCompletedScreen
-        v-else-if="workoutState === 'completed' && completedWorkout && completedStats"
+        v-else-if="
+          workoutState === 'completed' && completedWorkout && completedStats
+        "
         :workout="completedWorkout"
         :statistics="completedStats"
         @done="handleCompletedDone"
       />
 
       <!-- Regular Workout Start Modal -->
-      <ion-modal
+      <StartRegularWorkoutModal
         :is-open="showStartRegularModal"
-        @did-dismiss="showStartRegularModal = false"
-      >
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Start Regular Workout</ion-title>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-          <FormField
-            v-model="newWorkoutName"
-            label="Workout Name"
-            placeholder="Enter workout name"
-          />
-          <div class="button-group">
-            <AppButton expand="block" @click="handleStartRegularWorkout">
-              Start
-            </AppButton>
-            <AppButton
-              expand="block"
-              fill="outline"
-              @click="showStartRegularModal = false"
-            >
-              Cancel
-            </AppButton>
-          </div>
-        </ion-content>
-      </ion-modal>
+        @start="handleStartRegularWorkout"
+        @cancel="showStartRegularModal = false"
+      />
 
       <!-- Interval Workout Config Modal -->
-      <ion-modal
+      <StartIntervalWorkoutModal
         :is-open="showStartIntervalModal"
-        @did-dismiss="showStartIntervalModal = false"
-      >
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Start Interval Workout</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="showStartIntervalModal = false">Cancel</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <IntervalWorkoutConfig
-            ref="intervalConfigRef"
-            @start="handleStartIntervalWorkout"
-            @cancel="showStartIntervalModal = false"
-            @open-exercise-selector="openIntervalExerciseSelector"
-          />
-        </ion-content>
-      </ion-modal>
+        ref="intervalModalRef"
+        @start="handleStartIntervalWorkout"
+        @cancel="showStartIntervalModal = false"
+        @open-exercise-selector="openIntervalExerciseSelector"
+      />
 
       <!-- Exercise Selection Modal -->
-      <ion-modal
+      <ExerciseSelectorModal
         :is-open="showExerciseModal"
-        @did-dismiss="showExerciseModal = false"
-      >
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Add Exercise</ion-title>
-            <ion-buttons slot="end">
-              <ion-button @click="showExerciseModal = false">Close</ion-button>
-            </ion-buttons>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content>
-          <ExerciseSelector
-            :exercises="exercises"
-            @select="handleAddExercise"
-          />
-        </ion-content>
-      </ion-modal>
+        :exercises="exercises"
+        @select="handleAddExercise"
+        @close="showExerciseModal = false"
+      />
 
       <!-- Finish Workout Modal -->
-      <ion-modal
+      <FinishWorkoutModal
         :is-open="showFinishModal"
-        @did-dismiss="showFinishModal = false"
-      >
-        <ion-header>
-          <ion-toolbar>
-            <ion-title>Finish Workout</ion-title>
-          </ion-toolbar>
-        </ion-header>
-        <ion-content class="ion-padding">
-          <p>Are you sure you want to finish this workout?</p>
-          <div class="button-group">
-            <AppButton expand="block" @click="handleFinishWorkout">
-              Finish
-            </AppButton>
-            <AppButton
-              expand="block"
-              fill="outline"
-              @click="showFinishModal = false"
-            >
-              Cancel
-            </AppButton>
-          </div>
-        </ion-content>
-      </ion-modal>
+        @finish="handleFinishWorkout"
+        @cancel="showFinishModal = false"
+      />
     </ion-content>
   </ion-page>
 </template>
@@ -162,21 +100,23 @@ import {
   IonContent,
   IonButton,
   IonButtons,
-  IonModal,
 } from "@ionic/vue";
 import { useWorkout } from "@/features/workouts/composables/useWorkout";
 import type { Exercise } from "@/features/exercises/types/exercise.types";
-import type { Workout, WorkoutStatistics } from "@/features/workouts/types/workout.types";
+import type {
+  Workout,
+  WorkoutStatistics,
+} from "@/features/workouts/types/workout.types";
 import type { IntervalConfig } from "@/features/workouts/types/interval.types";
 import { useExerciseLibrary } from "@/features/exercises/composables/useExerciseLibrary";
 import WorkoutStartButtons from "@/features/workouts/components/WorkoutStartButtons.vue";
 import RegularWorkoutView from "@/features/workouts/components/RegularWorkoutView.vue";
 import IntervalWorkoutView from "@/features/workouts/components/IntervalWorkoutView.vue";
-import IntervalWorkoutConfig from "@/features/workouts/components/IntervalWorkoutConfig.vue";
 import WorkoutCompletedScreen from "@/features/workouts/components/WorkoutCompletedScreen.vue";
-import ExerciseSelector from "@/features/exercises/components/ExerciseSelector.vue";
-import AppButton from "@/components/atoms/AppButton.vue";
-import FormField from "@/components/molecules/FormField.vue";
+import StartRegularWorkoutModal from "@/features/workouts/components/StartRegularWorkoutModal.vue";
+import StartIntervalWorkoutModal from "@/features/workouts/components/StartIntervalWorkoutModal.vue";
+import ExerciseSelectorModal from "@/features/workouts/components/ExerciseSelectorModal.vue";
+import FinishWorkoutModal from "@/features/workouts/components/FinishWorkoutModal.vue";
 
 const {
   currentWorkout,
@@ -200,18 +140,19 @@ const showExerciseModal = ref(false);
 const showFinishModal = ref(false);
 const showStartRegularModal = ref(false);
 const showStartIntervalModal = ref(false);
-const newWorkoutName = ref("");
-const intervalConfigRef = ref<InstanceType<typeof IntervalWorkoutConfig> | null>(null);
+const intervalModalRef = ref<InstanceType<
+  typeof StartIntervalWorkoutModal
+> | null>(null);
 
 // Completed workout state
 const completedWorkout = ref<Workout | null>(null);
 const completedStats = ref<WorkoutStatistics | null>(null);
 
 // Workout state machine
-const workoutState = computed<'empty' | 'active' | 'completed'>(() => {
-  if (completedWorkout.value) return 'completed';
-  if (currentWorkout.value) return 'active';
-  return 'empty';
+const workoutState = computed<"empty" | "active" | "completed">(() => {
+  if (completedWorkout.value) return "completed";
+  if (currentWorkout.value) return "active";
+  return "empty";
 });
 
 onMounted(async () => {
@@ -221,14 +162,11 @@ onMounted(async () => {
 
 // Regular Workout Handlers
 function handleStartRegular() {
-  newWorkoutName.value = `Workout - ${new Date().toLocaleDateString()}`;
   showStartRegularModal.value = true;
 }
 
-async function handleStartRegularWorkout() {
-  if (!newWorkoutName.value.trim()) return;
-  await createRegularWorkout(newWorkoutName.value);
-  newWorkoutName.value = "";
+async function handleStartRegularWorkout(name: string) {
+  await createRegularWorkout(name);
   showStartRegularModal.value = false;
 }
 
@@ -238,20 +176,20 @@ function handleStartInterval() {
 }
 
 async function handleStartIntervalWorkout(config: {
-  name: string
-  workDuration: number
-  restDuration: number
-  rounds: number
-  exercises: any[]
+  name: string;
+  workDuration: number;
+  restDuration: number;
+  rounds: number;
+  exercises: any[];
 }) {
   const intervalConfig: IntervalConfig = {
     workDuration: config.workDuration,
     restDuration: config.restDuration,
     rounds: config.rounds,
     exercises: config.exercises,
-    autoAdvance: true
+    autoAdvance: true,
   };
-  
+
   await createIntervalWorkout(config.name, intervalConfig);
   showStartIntervalModal.value = false;
 }
@@ -265,11 +203,11 @@ function handleUpdateIntervalProgress(progress: any) {
 }
 
 function handleAddExercise(exercise: Exercise) {
-  if (showStartIntervalModal.value && intervalConfigRef.value) {
+  if (showStartIntervalModal.value && intervalModalRef.value) {
     // Adding exercise to interval config
-    intervalConfigRef.value.addExercise({
+    intervalModalRef.value.addExercise({
       exerciseId: exercise.exerciseId,
-      name: exercise.name
+      name: exercise.name,
     });
   } else {
     // Adding exercise to regular workout
@@ -302,7 +240,7 @@ async function handleFinishWorkout() {
       completedWorkout.value = JSON.parse(JSON.stringify(currentWorkout.value));
       completedStats.value = JSON.parse(JSON.stringify(statistics.value));
     }
-    
+
     await finishWorkout();
     showFinishModal.value = false;
   } catch (error) {
@@ -316,7 +254,7 @@ async function handleCompletedDone(notes: string) {
     completedWorkout.value.notes = notes;
     // TODO: Save notes to workout history
   }
-  
+
   // Clear completed workout state
   completedWorkout.value = null;
   completedStats.value = null;
@@ -333,12 +271,5 @@ async function handleCompletedDone(notes: string) {
   padding: var(--spacing-xl);
   text-align: center;
   gap: var(--spacing-lg);
-}
-
-.button-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-lg);
 }
 </style>
