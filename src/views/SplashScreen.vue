@@ -89,7 +89,7 @@ const initialize = async () => {
     });
 
     // Navigate to home page after successful initialization
-    router.replace("/tabs/home");
+    router.replace("/home");
   } catch (err) {
     console.error("Initialization error:", err);
     error.value =

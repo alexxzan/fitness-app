@@ -5,9 +5,12 @@ import type {
   WorkoutExercise,
   WorkoutSet,
   WorkoutStatistics,
+  WorkoutRoutine,
+  RoutineExercise,
 } from "../types/workout.types";
 import type { IntervalConfig, IntervalProgress } from "../types/interval.types";
 import { generateId } from "@/shared/utils/id";
+import { useRoutineAnalytics } from "./useRoutineAnalytics";
 
 /**
  * Composable for managing workout state and operations
@@ -88,6 +91,58 @@ export function useWorkout() {
         isPaused: false,
       },
       startTime: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    currentWorkout.value = workout;
+    await WorkoutRepository.setActiveWorkout(toPlainWorkout(workout));
+    return workout;
+  }
+
+  /**
+   * Create a workout from a routine
+   */
+  async function createWorkoutFromRoutine(routine: WorkoutRoutine): Promise<Workout> {
+    // Convert routine exercises to workout exercises with empty sets
+    const exercises: WorkoutExercise[] = routine.exercises.map((routineEx: RoutineExercise) => {
+      const sets: WorkoutSet[] = [];
+      
+      // Pre-populate sets based on targetSets if specified
+      if (routineEx.targetSets && routineEx.targetSets > 0) {
+        for (let i = 0; i < routineEx.targetSets; i++) {
+          sets.push({
+            id: generateId(),
+            reps: undefined,
+            weight: undefined,
+            restTime: routineEx.restTime,
+            completed: false,
+            notes: routineEx.targetReps ? `Target: ${routineEx.targetReps}` : undefined,
+          });
+        }
+      }
+
+      return {
+        id: generateId(),
+        exerciseId: routineEx.exerciseId,
+        exerciseName: routineEx.exerciseName,
+        sets,
+        notes: routineEx.notes,
+        order: routineEx.order,
+      };
+    });
+
+    const workout: Workout = {
+      id: generateId(),
+      name: routine.name,
+      type: 'regular',
+      exercises,
+      routineId: routine.id,
+      routineTemplateId: routine.templateId,
+      completed: false,
+      completionPercentage: 0,
+      startTime: new Date().toISOString(),
+      notes: routine.description,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -332,11 +387,31 @@ export function useWorkout() {
     isLoading.value = true;
     error.value = null;
     try {
+      const { calculateWorkoutCompletionPercentage, updateRoutineAnalyticsAfterWorkout } = useRoutineAnalytics();
+
       currentWorkout.value.endTime = new Date().toISOString();
       currentWorkout.value.updatedAt = new Date().toISOString();
 
-      await WorkoutRepository.save(toPlainWorkout(currentWorkout.value));
+      // Calculate completion percentage
+      const completionPercentage = calculateWorkoutCompletionPercentage(currentWorkout.value);
+      currentWorkout.value.completionPercentage = completionPercentage;
+      currentWorkout.value.completed = completionPercentage >= 50; // Consider 50%+ as completed
+
+      const workoutToSave = toPlainWorkout(currentWorkout.value);
+
+      await WorkoutRepository.save(workoutToSave);
       await WorkoutRepository.setActiveWorkout(null);
+
+      // Update routine analytics if workout was from a routine
+      if (workoutToSave.routineId) {
+        try {
+          await updateRoutineAnalyticsAfterWorkout(workoutToSave);
+        } catch (analyticsErr) {
+          console.error("Failed to update routine analytics:", analyticsErr);
+          // Don't throw - analytics failure shouldn't prevent workout completion
+        }
+      }
+
       currentWorkout.value = null;
     } catch (err) {
       error.value =
@@ -373,6 +448,7 @@ export function useWorkout() {
     createWorkout,
     createRegularWorkout,
     createIntervalWorkout,
+    createWorkoutFromRoutine,
     updateIntervalProgress,
     addExercise,
     removeExercise,

@@ -15,10 +15,12 @@ import type {
   Equipment,
   Muscle,
 } from "@/features/exercises/types/exercise.types";
+import type { RoutineAnalytics } from "@/features/workouts/types/analytics.types";
 
 class FitnessDexieDB extends Dexie {
   workouts!: Table<Workout, string>;
   routines!: Table<WorkoutRoutine, string>;
+  routineAnalytics!: Table<RoutineAnalytics, string>;
   exercises!: Table<Exercise, string>;
   bodyParts!: Table<BodyPart, string>;
   equipment!: Table<Equipment, string>;
@@ -29,9 +31,22 @@ class FitnessDexieDB extends Dexie {
     super("FitnessDatabase");
 
     // Schema matching the SQLite structure
+    // Version 1: Original schema
     this.version(1).stores({
       workouts: "id, name, createdAt, startTime, endTime",
       routines: "id, name, createdAt",
+      exercises: "exerciseId, name, *bodyParts, *equipments, *targetMuscles",
+      bodyParts: "name",
+      equipment: "name",
+      muscles: "name",
+      appSettings: "key",
+    });
+
+    // Version 2: Add routine analytics and new workout/routine fields
+    this.version(2).stores({
+      workouts: "id, name, createdAt, startTime, endTime, routineId, completed",
+      routines: "id, name, createdAt, type, templateId, isFavorite",
+      routineAnalytics: "id, routineId, lastCompletedAt",
       exercises: "exerciseId, name, *bodyParts, *equipments, *targetMuscles",
       bodyParts: "name",
       equipment: "name",

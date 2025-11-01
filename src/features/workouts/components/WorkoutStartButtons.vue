@@ -1,15 +1,28 @@
 <template>
   <div class="workout-start-buttons">
     <div class="button-container">
-      <button class="start-button start-button--primary" @click="emit('startRegular')">
-        <span class="button-icon">💪</span>
+      <button
+        class="start-button start-button--routine"
+        @click="emit('startFromRoutine')"
+      >
+        <span class="button-text">
+          <span class="button-title">From Routine</span>
+          <span class="button-description">Use saved program</span>
+        </span>
+      </button>
+      <button
+        class="start-button start-button--primary"
+        @click="emit('startRegular')"
+      >
         <span class="button-text">
           <span class="button-title">Regular</span>
           <span class="button-description">Sets & reps</span>
         </span>
       </button>
-      <button class="start-button start-button--secondary" @click="emit('startInterval')">
-        <span class="button-icon">⏱️</span>
+      <button
+        class="start-button start-button--secondary"
+        @click="emit('startInterval')"
+      >
         <span class="button-text">
           <span class="button-title">Interval</span>
           <span class="button-description">HIIT training</span>
@@ -21,9 +34,10 @@
 
 <script setup lang="ts">
 const emit = defineEmits<{
-  startRegular: []
-  startInterval: []
-}>()
+  startFromRoutine: [];
+  startRegular: [];
+  startInterval: [];
+}>();
 </script>
 
 <style scoped>
@@ -33,7 +47,7 @@ const emit = defineEmits<{
 
 .button-container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: var(--spacing-md);
   width: 100%;
 }
@@ -87,6 +101,20 @@ const emit = defineEmits<{
   background-color: var(--color-secondary-active);
 }
 
+.start-button--routine {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.start-button--routine:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #653a8c 100%);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.start-button--routine:active {
+  background: linear-gradient(135deg, #4a59bd 0%, #563177 100%);
+}
+
 .button-icon {
   font-size: var(--font-size-lg);
   flex-shrink: 0;
@@ -114,4 +142,3 @@ const emit = defineEmits<{
   line-height: var(--line-height-normal);
 }
 </style>
-

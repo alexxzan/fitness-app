@@ -111,6 +111,10 @@ class DatabaseManager {
         start_time TEXT,
         end_time TEXT,
         notes TEXT,
+        routine_id TEXT,
+        routine_template_id TEXT,
+        completed INTEGER DEFAULT 0,
+        completion_percentage REAL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
@@ -120,6 +124,28 @@ class DatabaseManager {
         name TEXT NOT NULL,
         description TEXT,
         exercises TEXT NOT NULL,
+        type TEXT NOT NULL,
+        template_id TEXT,
+        is_favorite INTEGER DEFAULT 0,
+        tags TEXT,
+        estimated_duration INTEGER,
+        difficulty TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS routine_analytics (
+        id TEXT PRIMARY KEY,
+        routine_id TEXT NOT NULL,
+        total_completions INTEGER DEFAULT 0,
+        average_completion_rate REAL,
+        total_workouts_started INTEGER DEFAULT 0,
+        average_duration REAL,
+        average_volume REAL,
+        last_completed_at TEXT,
+        last_started_at TEXT,
+        best_volume REAL,
+        best_duration REAL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
@@ -155,6 +181,12 @@ class DatabaseManager {
       -- Create indexes for better query performance
       CREATE INDEX IF NOT EXISTS idx_workouts_created_at ON workouts(created_at);
       CREATE INDEX IF NOT EXISTS idx_workouts_name ON workouts(name);
+      CREATE INDEX IF NOT EXISTS idx_workouts_routine_id ON workouts(routine_id);
+      CREATE INDEX IF NOT EXISTS idx_workouts_completed ON workouts(completed);
+      CREATE INDEX IF NOT EXISTS idx_routines_type ON routines(type);
+      CREATE INDEX IF NOT EXISTS idx_routines_template_id ON routines(template_id);
+      CREATE INDEX IF NOT EXISTS idx_routine_analytics_routine_id ON routine_analytics(routine_id);
+      CREATE INDEX IF NOT EXISTS idx_routine_analytics_last_completed ON routine_analytics(last_completed_at);
       CREATE INDEX IF NOT EXISTS idx_exercises_name ON exercises(name);
     `;
 

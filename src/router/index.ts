@@ -60,7 +60,7 @@ router.beforeEach(async (to, from, next) => {
     if (to.path === "/splash") {
       // If already initialized, redirect to home
       if (isInitialized) {
-        next("/tabs/home");
+        next("/home");
       } else {
         // Allow navigation to splash if not initialized
         next();

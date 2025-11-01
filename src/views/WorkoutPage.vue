@@ -17,6 +17,7 @@
       <!-- Empty State -->
       <div v-if="workoutState === 'empty'" class="empty-state">
         <WorkoutStartButtons
+          @start-from-routine="handleStartFromRoutine"
           @start-regular="handleStartRegular"
           @start-interval="handleStartInterval"
         />
@@ -86,6 +87,14 @@
         @finish="handleFinishWorkout"
         @cancel="showFinishModal = false"
       />
+
+      <!-- Routine Selector Modal -->
+      <RoutineSelector
+        :is-open="showRoutineSelector"
+        @close="showRoutineSelector = false"
+        @select-routine="handleSelectRoutine"
+        @select-template="handleSelectTemplate"
+      />
     </ion-content>
   </ion-page>
 </template>
@@ -102,6 +111,7 @@ import {
   IonButtons,
 } from "@ionic/vue";
 import { useWorkout } from "@/features/workouts/composables/useWorkout";
+import { useRoutine } from "@/features/workouts/composables/useRoutine";
 import type { Exercise } from "@/features/exercises/types/exercise.types";
 import type {
   Workout,
@@ -117,6 +127,7 @@ import StartRegularWorkoutModal from "@/features/workouts/components/StartRegula
 import StartIntervalWorkoutModal from "@/features/workouts/components/StartIntervalWorkoutModal.vue";
 import ExerciseSelectorModal from "@/features/workouts/components/ExerciseSelectorModal.vue";
 import FinishWorkoutModal from "@/features/workouts/components/FinishWorkoutModal.vue";
+import RoutineSelector from "@/features/workouts/components/RoutineSelector.vue";
 
 const {
   currentWorkout,
@@ -124,6 +135,7 @@ const {
   loadActiveWorkout,
   createRegularWorkout,
   createIntervalWorkout,
+  createWorkoutFromRoutine,
   updateIntervalProgress,
   addExercise,
   addSet,
@@ -134,12 +146,14 @@ const {
 } = useWorkout();
 
 const { exercises, loadExercises } = useExerciseLibrary();
+const { createRoutineFromTemplate } = useRoutine();
 
 // Modal states
 const showExerciseModal = ref(false);
 const showFinishModal = ref(false);
 const showStartRegularModal = ref(false);
 const showStartIntervalModal = ref(false);
+const showRoutineSelector = ref(false);
 const intervalModalRef = ref<InstanceType<
   typeof StartIntervalWorkoutModal
 > | null>(null);
@@ -159,6 +173,23 @@ onMounted(async () => {
   await loadActiveWorkout();
   await loadExercises();
 });
+
+// Routine Handlers
+function handleStartFromRoutine() {
+  showRoutineSelector.value = true;
+}
+
+async function handleSelectRoutine(routine: any) {
+  await createWorkoutFromRoutine(routine);
+  showRoutineSelector.value = false;
+}
+
+async function handleSelectTemplate(template: any) {
+  // Create routine from template, then start workout
+  const routine = await createRoutineFromTemplate(template);
+  await createWorkoutFromRoutine(routine);
+  showRoutineSelector.value = false;
+}
 
 // Regular Workout Handlers
 function handleStartRegular() {
