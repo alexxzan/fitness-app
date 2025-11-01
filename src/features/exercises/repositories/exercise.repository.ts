@@ -1,103 +1,83 @@
-import { db } from "@/shared/storage/database";
+import { getDb, schema } from "@/shared/storage/database";
+import { eq, asc } from "drizzle-orm";
 import type { Exercise, ExerciseFilters } from "../types/exercise.types";
+import type { ExerciseInsert } from "@/shared/storage/schema";
 
 /**
- * Repository for exercise data access using Dexie.js
- * Handles CRUD operations for exercises with performance-optimized queries using indexes
+ * Repository for exercise data access using Drizzle ORM with SQLite
+ * Handles CRUD operations for exercises with performance-optimized queries
  */
 export class ExerciseRepository {
   /**
    * Get all exercises
    */
   static async getAll(): Promise<Exercise[]> {
-    return await db.exercises.orderBy("name").toArray();
+    const db = getDb();
+    const results = await db
+      .select()
+      .from(schema.exercises)
+      .orderBy(asc(schema.exercises.name));
+
+    return results.map((row) => this.parseExerciseFromDb(row));
   }
 
   /**
    * Get an exercise by ID (exerciseId)
    */
   static async getById(exerciseId: string): Promise<Exercise | null> {
-    return (await db.exercises.get(exerciseId)) ?? null;
+    const db = getDb();
+    const results = await db
+      .select()
+      .from(schema.exercises)
+      .where(eq(schema.exercises.exerciseId, exerciseId))
+      .limit(1);
+
+    if (results.length === 0) {
+      return null;
+    }
+
+    return this.parseExerciseFromDb(results[0]);
   }
 
   /**
    * Save an exercise (create or update)
    */
   static async save(exercise: Exercise): Promise<string> {
-    return await db.exercises.put(exercise);
+    const db = getDb();
+    const serialized = this.serializeExerciseForDb(exercise);
+
+    await db
+      .insert(schema.exercises)
+      .values(serialized)
+      .onConflictDoUpdate({
+        target: schema.exercises.exerciseId,
+        set: serialized,
+      });
+
+    return exercise.exerciseId;
   }
 
   /**
    * Delete an exercise
    */
   static async delete(exerciseId: string): Promise<void> {
-    await db.exercises.delete(exerciseId);
+    const db = getDb();
+    await db
+      .delete(schema.exercises)
+      .where(eq(schema.exercises.exerciseId, exerciseId));
   }
 
   /**
-   * Search exercises with filters using indexed queries for performance
+   * Search exercises with filters
+   * Note: SQLite doesn't support array operations, so we filter in memory
    */
   static async search(filters: ExerciseFilters): Promise<Exercise[]> {
-    let exercises: Exercise[] = [];
+    // Get all exercises and filter in memory
+    const allExercises = await this.getAll();
 
-    // Build query using indexes for optimal performance
-    if (filters.bodyParts && filters.bodyParts.length > 0) {
-      // Use indexed query for bodyParts (multi-entry index)
-      const bodyPartQueries = filters.bodyParts.map((bodyPart) =>
-        db.exercises.where("bodyParts").equals(bodyPart)
-      );
-      
-      // If multiple body parts, we need to intersect results
-      if (bodyPartQueries.length === 1) {
-        exercises = await bodyPartQueries[0].toArray();
-      } else {
-        // For multiple body parts, get results from each and intersect
-        const allResults = await Promise.all(
-          bodyPartQueries.map((q) => q.toArray())
-        );
-        // Intersect: exercises that have all specified body parts
-        exercises = allResults.reduce((acc, curr) =>
-          acc.filter((ex) => curr.some((e) => e.exerciseId === ex.exerciseId))
-        );
-      }
-    } else if (filters.equipments && filters.equipments.length > 0) {
-      // Use indexed query for equipments (multi-entry index)
-      const equipmentQueries = filters.equipments.map((equipment) =>
-        db.exercises.where("equipments").equals(equipment)
-      );
-      
-      if (equipmentQueries.length === 1) {
-        exercises = await equipmentQueries[0].toArray();
-      } else {
-        const allResults = await Promise.all(
-          equipmentQueries.map((q) => q.toArray())
-        );
-        exercises = allResults.reduce((acc, curr) =>
-          acc.filter((ex) => curr.some((e) => e.exerciseId === ex.exerciseId))
-        );
-      }
-    } else if (filters.targetMuscles && filters.targetMuscles.length > 0) {
-      // Use indexed query for targetMuscles (multi-entry index)
-      const muscleQueries = filters.targetMuscles.map((muscle) =>
-        db.exercises.where("targetMuscles").equals(muscle)
-      );
-      
-      if (muscleQueries.length === 1) {
-        exercises = await muscleQueries[0].toArray();
-      } else {
-        const allResults = await Promise.all(
-          muscleQueries.map((q) => q.toArray())
-        );
-        exercises = allResults.reduce((acc, curr) =>
-          acc.filter((ex) => curr.some((e) => e.exerciseId === ex.exerciseId))
-        );
-      }
-    } else {
-      // No indexed filters, get all exercises
-      exercises = await db.exercises.toArray();
-    }
+    let exercises = allExercises;
 
-    // Apply additional filters (text search, combine multiple filter types)
+    // Apply search query filter
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       exercises = exercises.filter(
@@ -109,7 +89,7 @@ export class ExerciseRepository {
       );
     }
 
-    // Apply multiple filter types intersection
+    // Apply body parts filter
     if (filters.bodyParts && filters.bodyParts.length > 0) {
       exercises = exercises.filter((e) =>
         filters.bodyParts!.some((bp) =>
@@ -118,6 +98,7 @@ export class ExerciseRepository {
       );
     }
 
+    // Apply equipment filter
     if (filters.equipments && filters.equipments.length > 0) {
       exercises = exercises.filter((e) =>
         filters.equipments!.some((eq) =>
@@ -126,6 +107,7 @@ export class ExerciseRepository {
       );
     }
 
+    // Apply target muscles filter
     if (filters.targetMuscles && filters.targetMuscles.length > 0) {
       exercises = exercises.filter((e) =>
         filters.targetMuscles!.some((tm) =>
@@ -138,33 +120,41 @@ export class ExerciseRepository {
   }
 
   /**
-   * Get exercises by body part (using indexed query)
+   * Get exercises by body part
    */
   static async getByBodyPart(bodyPart: string): Promise<Exercise[]> {
-    return await db.exercises
-      .where("bodyParts")
-      .equals(bodyPart)
-      .sortBy("name");
+    const allExercises = await this.getAll();
+    return allExercises
+      .filter((e) =>
+        e.bodyParts.some((bp) => bp.toLowerCase() === bodyPart.toLowerCase())
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
-   * Get exercises by equipment (using indexed query)
+   * Get exercises by equipment
    */
   static async getByEquipment(equipment: string): Promise<Exercise[]> {
-    return await db.exercises
-      .where("equipments")
-      .equals(equipment)
-      .sortBy("name");
+    const allExercises = await this.getAll();
+    return allExercises
+      .filter((e) =>
+        e.equipments.some((eq) => eq.toLowerCase() === equipment.toLowerCase())
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
-   * Get exercises by target muscle (using indexed query)
+   * Get exercises by target muscle
    */
   static async getByTargetMuscle(targetMuscle: string): Promise<Exercise[]> {
-    return await db.exercises
-      .where("targetMuscles")
-      .equals(targetMuscle)
-      .sortBy("name");
+    const allExercises = await this.getAll();
+    return allExercises
+      .filter((e) =>
+        e.targetMuscles.some(
+          (tm) => tm.toLowerCase() === targetMuscle.toLowerCase()
+        )
+      )
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   /**
@@ -172,8 +162,41 @@ export class ExerciseRepository {
    */
   static async searchByName(query: string): Promise<Exercise[]> {
     const lowerQuery = query.toLowerCase();
-    return await db.exercises
+    const allExercises = await this.getAll();
+    return allExercises
       .filter((exercise) => exercise.name.toLowerCase().includes(lowerQuery))
-      .sortBy("name");
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  /**
+   * Parse exercise from database row
+   */
+  private static parseExerciseFromDb(row: Record<string, any>): Exercise {
+    return {
+      exerciseId: row.exerciseId,
+      name: row.name,
+      gifUrl: row.gifUrl,
+      equipments: JSON.parse(row.equipments),
+      bodyParts: JSON.parse(row.bodyParts),
+      targetMuscles: JSON.parse(row.targetMuscles),
+      secondaryMuscles: JSON.parse(row.secondaryMuscles),
+      instructions: JSON.parse(row.instructions),
+    };
+  }
+
+  /**
+   * Serialize exercise for database storage
+   */
+  private static serializeExerciseForDb(exercise: Exercise): ExerciseInsert {
+    return {
+      exerciseId: exercise.exerciseId,
+      name: exercise.name,
+      gifUrl: exercise.gifUrl,
+      equipments: JSON.stringify(exercise.equipments),
+      bodyParts: JSON.stringify(exercise.bodyParts),
+      targetMuscles: JSON.stringify(exercise.targetMuscles),
+      secondaryMuscles: JSON.stringify(exercise.secondaryMuscles),
+      instructions: JSON.stringify(exercise.instructions),
+    };
   }
 }

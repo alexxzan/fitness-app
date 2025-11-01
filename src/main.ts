@@ -2,15 +2,29 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import { pinia } from "./stores";
-import { db } from "./shared/storage/database";
+import { dbManager } from "./shared/storage/database";
 import { DatabaseReset } from "./shared/storage/database-reset";
+import { Capacitor } from "@capacitor/core";
 
 import { IonicVue } from "@ionic/vue";
 
-// Initialize database
-db.open().catch((err) => {
-  console.error("Failed to open database:", err);
-});
+// Initialize database (async, must complete before router is ready)
+async function initializeDatabase() {
+  // Only initialize SQLite on native platforms (iOS/Android)
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await dbManager.initialize();
+      console.log("✅ Database initialized successfully");
+    } catch (err) {
+      console.error("❌ Failed to initialize database:", err);
+      throw err;
+    }
+  } else {
+    console.warn("⚠️ Running on web platform - SQLite not available. This app requires a native platform (iOS/Android).");
+    // For development on web, we could show a warning page
+    // For now, we'll just log a warning
+  }
+}
 
 // Expose database reset utilities globally in development (handy for testing)
 if (import.meta.env.DEV) {
@@ -81,6 +95,21 @@ import "./theme/variables.css";
 
 const app = createApp(App).use(IonicVue).use(pinia).use(router);
 
-router.isReady().then(() => {
-  app.mount("#app");
-});
+// Initialize database, then wait for router, then mount app
+initializeDatabase()
+  .then(() => router.isReady())
+  .then(() => {
+    app.mount("#app");
+  })
+  .catch((err) => {
+    console.error("Failed to start app:", err);
+    // Show error to user
+    document.body.innerHTML = `
+      <div style="padding: 20px; font-family: sans-serif;">
+        <h1>⚠️ App Initialization Error</h1>
+        <p>This app requires a native platform (iOS or Android).</p>
+        <p>Please run the app on a device or simulator.</p>
+        <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px;">${err}</pre>
+      </div>
+    `;
+  });

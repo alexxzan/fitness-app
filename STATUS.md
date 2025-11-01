@@ -1,6 +1,6 @@
 # Fitness App - Implementation Status
 
-**Last Updated:** December 2024
+**Last Updated:** November 2025
 
 ## Overall Progress
 
@@ -13,16 +13,17 @@
 - [x] Feature-based folder structure implemented
 - [x] Pinia store setup and configuration
 - [x] TypeScript types for all core entities
-- [x] **Dexie.js database** - Persistent IndexedDB storage with ORM-like API
+- [x] **SQLite + Drizzle ORM** - Native SQLite database with Drizzle ORM for iOS
 - [x] Project structure following feature-based pattern
 
 ### ✅ Data Layer
 
-- [x] `FitnessDatabase` - Dexie.js database schema and setup
-- [x] `WorkoutRepository` - Full CRUD operations for workouts (using Dexie)
+- [x] `DatabaseManager` - SQLite connection management with @capacitor-community/sqlite
+- [x] `Drizzle Schema` - Type-safe database schema definitions
+- [x] `WorkoutRepository` - Full CRUD operations for workouts (using Drizzle)
 - [x] `WorkoutRepository` - Routine management operations
-- [x] `ExerciseRepository` - Full CRUD operations for exercises (using Dexie)
-- [x] `ExerciseRepository` - Search and filtering functionality with indexes
+- [x] `ExerciseRepository` - Full CRUD operations for exercises (using Drizzle)
+- [x] `ExerciseRepository` - Search and filtering functionality
 - [x] Type-safe data models and interfaces
 - [x] Database indexes for optimized queries
 

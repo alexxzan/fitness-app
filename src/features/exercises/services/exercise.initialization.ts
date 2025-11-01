@@ -1,4 +1,4 @@
-import { db } from "@/shared/storage/database";
+import { getDb, schema } from "@/shared/storage/database";
 import { AppState } from "@/shared/storage/app.state";
 import type {
   Exercise,
@@ -66,23 +66,40 @@ export class ExerciseInitialization {
    * Load reference data (bodyParts, equipment, muscles) into database
    */
   private static async loadReferenceData(): Promise<void> {
+    const db = getDb();
+
     // Load body parts
     const bodyParts: BodyPart[] = bodyPartsData.map((item) => ({
       name: item.name,
     }));
-    await db.bodyParts.bulkPut(bodyParts);
+    for (const bodyPart of bodyParts) {
+      await db
+        .insert(schema.bodyParts)
+        .values(bodyPart)
+        .onConflictDoNothing();
+    }
 
     // Load equipment
     const equipment: Equipment[] = equipmentData.map((item) => ({
       name: item.name,
     }));
-    await db.equipment.bulkPut(equipment);
+    for (const eq of equipment) {
+      await db
+        .insert(schema.equipment)
+        .values(eq)
+        .onConflictDoNothing();
+    }
 
     // Load muscles
     const muscles: Muscle[] = musclesData.map((item) => ({
       name: item.name,
     }));
-    await db.muscles.bulkPut(muscles);
+    for (const muscle of muscles) {
+      await db
+        .insert(schema.muscles)
+        .values(muscle)
+        .onConflictDoNothing();
+    }
   }
 
   /**
@@ -92,8 +109,9 @@ export class ExerciseInitialization {
   private static async loadExercises(
     onProgress?: (progress: number) => void
   ): Promise<void> {
+    const db = getDb();
     const exercises: Exercise[] = exercisesData as Exercise[];
-    const BATCH_SIZE = 100; // Process 500 exercises at a time
+    const BATCH_SIZE = 100; // Process 100 exercises at a time
     const totalBatches = Math.ceil(exercises.length / BATCH_SIZE);
 
     for (let i = 0; i < totalBatches; i++) {
@@ -101,8 +119,23 @@ export class ExerciseInitialization {
       const end = Math.min(start + BATCH_SIZE, exercises.length);
       const batch = exercises.slice(start, end);
 
-      // Use bulkPut for efficient batch insertion
-      await db.exercises.bulkPut(batch);
+      // Insert batch - serialize JSON fields
+      for (const exercise of batch) {
+        const serialized = {
+          exerciseId: exercise.exerciseId,
+          name: exercise.name,
+          gifUrl: exercise.gifUrl,
+          equipments: JSON.stringify(exercise.equipments),
+          bodyParts: JSON.stringify(exercise.bodyParts),
+          targetMuscles: JSON.stringify(exercise.targetMuscles),
+          secondaryMuscles: JSON.stringify(exercise.secondaryMuscles),
+          instructions: JSON.stringify(exercise.instructions),
+        };
+        await db
+          .insert(schema.exercises)
+          .values(serialized)
+          .onConflictDoNothing();
+      }
 
       // Update progress
       const batchProgress = ((i + 1) / totalBatches) * 100;
@@ -119,10 +152,11 @@ export class ExerciseInitialization {
    * Reset initialization (useful for testing or re-initialization)
    */
   static async reset(): Promise<void> {
-    await db.exercises.clear();
-    await db.bodyParts.clear();
-    await db.equipment.clear();
-    await db.muscles.clear();
+    const db = getDb();
+    await db.delete(schema.exercises);
+    await db.delete(schema.bodyParts);
+    await db.delete(schema.equipment);
+    await db.delete(schema.muscles);
     await AppState.resetInitialization();
   }
 }

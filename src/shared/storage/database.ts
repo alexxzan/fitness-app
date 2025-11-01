@@ -1,72 +1,228 @@
-import Dexie, { Table } from "dexie";
-import type {
-  Workout,
-  WorkoutRoutine,
-} from "@/features/workouts/types/workout.types";
-import type {
-  Exercise,
-  BodyPart,
-  Equipment,
-  Muscle,
-} from "@/features/exercises/types/exercise.types";
+import { drizzle } from "drizzle-orm/sqlite-proxy";
+import {
+  CapacitorSQLite,
+  SQLiteConnection,
+  SQLiteDBConnection,
+} from "@capacitor-community/sqlite";
+import { Capacitor } from "@capacitor/core";
+import * as schema from "./schema";
 
 /**
- * Fitness Database using Dexie.js
- * Provides persistent storage with IndexedDB (web) and can be extended for native SQLite
+ * SQLite Database Manager
+ * Manages SQLite connection using @capacitor-community/sqlite and Drizzle ORM
  */
-export class FitnessDatabase extends Dexie {
-  workouts!: Table<Workout, string>;
-  routines!: Table<WorkoutRoutine, string>;
-  exercises!: Table<Exercise, string>;
-  bodyParts!: Table<BodyPart, string>;
-  equipment!: Table<Equipment, string>;
-  muscles!: Table<Muscle, string>;
-  appSettings!: Table<{ key: string; value: any }, string>;
+class DatabaseManager {
+  private sqliteConnection: SQLiteConnection;
+  private dbConnection: SQLiteDBConnection | null = null;
+  private drizzleDb: ReturnType<typeof drizzle> | null = null;
+  private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
-    super("FitnessDatabase");
+    this.sqliteConnection = new SQLiteConnection(CapacitorSQLite);
+  }
 
-    // Define schema version 1
-    // Indexes: ++ = auto-increment primary key, * = multi-entry index
-    this.version(1).stores({
-      workouts: "++id, name, createdAt, startTime, endTime",
-      exercises: "++id, name, category, createdAt",
-      routines: "++id, name, createdAt",
-    });
+  /**
+   * Initialize the SQLite database
+   * This should be called once during app startup
+   */
+  async initialize(): Promise<void> {
+    // If already initialized, return
+    if (this.isInitialized && this.drizzleDb) {
+      return;
+    }
 
-    // Define schema version 2 - updated exercise structure with performance indexes
-    // IMPORTANT: Dexie cannot change primary key from ++id to exerciseId in an upgrade
-    // Solution: We need to delete the database and recreate it, or use a workaround
-    // For this migration, we'll delete the exercises table entirely and let it be recreated
-    this.version(2)
-      .stores({
-        workouts: "++id, name, createdAt, startTime, endTime",
-        // Note: If version 1 exists, we need to handle the primary key change
-        // by deleting the old table first, then recreating with new structure
-        exercises: null, // First, delete the old table
-        routines: "++id, name, createdAt",
-        appSettings: "key",
-        bodyParts: "name",
-        equipment: "name",
-        muscles: "name",
-      })
-      .upgrade(async (tx) => {
-        // The exercises table will be deleted and recreated with new structure
-        // No data migration needed as exercises will be reloaded from JSON
-      });
+    // If initialization is in progress, wait for it
+    if (this.initPromise) {
+      return this.initPromise;
+    }
 
-    // Define schema version 3 - recreate exercises table with new primary key
-    this.version(3).stores({
-      workouts: "++id, name, createdAt, startTime, endTime",
-      exercises: "exerciseId, name, *bodyParts, *equipments, *targetMuscles", // New structure
-      routines: "++id, name, createdAt",
-      appSettings: "key",
-      bodyParts: "name",
-      equipment: "name",
-      muscles: "name",
-    });
+    // Start initialization
+    this.initPromise = this._initialize();
+    await this.initPromise;
+    this.initPromise = null;
+  }
+
+  private async _initialize(): Promise<void> {
+    try {
+      console.log("🗄️ Initializing SQLite database...");
+
+      // Create or open the database
+      this.dbConnection = await this.sqliteConnection.createConnection(
+        "fitness-db",
+        false, // not encrypted
+        "no-encryption",
+        1, // version
+        false // readonly
+      );
+
+      // Open the database
+      await this.dbConnection.open();
+
+      // Initialize Drizzle with the SQLite connection using proxy
+      this.drizzleDb = drizzle(
+        async (sql, params, method) => {
+          try {
+            const result = await this.dbConnection!.query(sql, params || []);
+            if (method === "get") {
+              return {
+                rows:
+                  result.values && result.values.length > 0
+                    ? [result.values[0]]
+                    : [],
+              };
+            }
+            return { rows: result.values || [] };
+          } catch (error) {
+            console.error("SQL Error:", error);
+            throw error;
+          }
+        },
+        { schema }
+      );
+
+      // Create tables if they don't exist
+      await this.createTables();
+
+      this.isInitialized = true;
+      console.log("✅ SQLite database initialized successfully");
+    } catch (error) {
+      console.error("❌ Failed to initialize SQLite database:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create all tables if they don't exist
+   */
+  private async createTables(): Promise<void> {
+    if (!this.dbConnection) {
+      throw new Error("Database connection not initialized");
+    }
+
+    const createTablesSQL = `
+      CREATE TABLE IF NOT EXISTS workouts (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        exercises TEXT NOT NULL,
+        interval_config TEXT,
+        interval_progress TEXT,
+        start_time TEXT,
+        end_time TEXT,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS routines (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        exercises TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS exercises (
+        exercise_id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        gif_url TEXT NOT NULL,
+        equipments TEXT NOT NULL,
+        body_parts TEXT NOT NULL,
+        target_muscles TEXT NOT NULL,
+        secondary_muscles TEXT NOT NULL,
+        instructions TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS body_parts (
+        name TEXT PRIMARY KEY
+      );
+
+      CREATE TABLE IF NOT EXISTS equipment (
+        name TEXT PRIMARY KEY
+      );
+
+      CREATE TABLE IF NOT EXISTS muscles (
+        name TEXT PRIMARY KEY
+      );
+
+      CREATE TABLE IF NOT EXISTS app_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+
+      -- Create indexes for better query performance
+      CREATE INDEX IF NOT EXISTS idx_workouts_created_at ON workouts(created_at);
+      CREATE INDEX IF NOT EXISTS idx_workouts_name ON workouts(name);
+      CREATE INDEX IF NOT EXISTS idx_exercises_name ON exercises(name);
+    `;
+
+    await this.dbConnection.execute(createTablesSQL);
+  }
+
+  /**
+   * Get the Drizzle database instance
+   */
+  getDb() {
+    // If running on web (not native), throw a helpful error
+    if (!Capacitor.isNativePlatform()) {
+      throw new Error(
+        "SQLite database is only available on native platforms (iOS/Android). " +
+          "This app must be run on a device or simulator."
+      );
+    }
+
+    if (!this.drizzleDb || !this.isInitialized) {
+      throw new Error("Database not initialized. Call initialize() first.");
+    }
+    return this.drizzleDb;
+  }
+
+  /**
+   * Get the raw SQLite connection for direct queries
+   */
+  getConnection(): SQLiteDBConnection {
+    if (!this.dbConnection) {
+      throw new Error("Database connection not initialized");
+    }
+    return this.dbConnection;
+  }
+
+  /**
+   * Close the database connection
+   */
+  async close(): Promise<void> {
+    if (this.dbConnection) {
+      await this.dbConnection.close();
+      this.dbConnection = null;
+      this.drizzleDb = null;
+      this.isInitialized = false;
+    }
+  }
+
+  /**
+   * Delete the database completely
+   */
+  async deleteDatabase(): Promise<void> {
+    try {
+      await this.close();
+      // Close and delete the connection
+      await this.sqliteConnection.closeConnection("fitness-db", false);
+      await CapacitorSQLite.deleteDatabase({ database: "fitness-db" });
+      console.log("✅ Database deleted successfully");
+    } catch (error) {
+      console.error("❌ Failed to delete database:", error);
+      throw error;
+    }
   }
 }
 
 // Export singleton instance
-export const db = new FitnessDatabase();
+export const dbManager = new DatabaseManager();
+
+// Export convenience function to get the Drizzle DB
+export const getDb = () => dbManager.getDb();
+
+// Export the schema for use in repositories
+export { schema };

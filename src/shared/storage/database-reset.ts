@@ -1,6 +1,7 @@
-import { db } from "./database";
+import { dbManager, getDb, schema } from "./database";
 import { AppState } from "./app.state";
 import { ExerciseInitialization } from "@/features/exercises/services/exercise.initialization";
+import { sql } from "drizzle-orm";
 
 /**
  * Development utility to reset the database to a clean state
@@ -18,19 +19,21 @@ export class DatabaseReset {
     clearUserData: boolean = false
   ): Promise<void> {
     try {
+      const db = getDb();
+
       // Clear exercise-related tables
-      await db.exercises.clear();
-      await db.bodyParts.clear();
-      await db.equipment.clear();
-      await db.muscles.clear();
+      await db.delete(schema.exercises);
+      await db.delete(schema.bodyParts);
+      await db.delete(schema.equipment);
+      await db.delete(schema.muscles);
 
       // Reset initialization flag
       await AppState.resetInitialization();
 
       // Optionally clear user data (workouts, routines)
       if (clearUserData) {
-        await db.workouts.clear();
-        await db.routines.clear();
+        await db.delete(schema.workouts);
+        await db.delete(schema.routines);
       }
 
       console.log("✅ Database reset to clean state");
@@ -49,9 +52,8 @@ export class DatabaseReset {
    */
   static async deleteDatabase(): Promise<void> {
     try {
-      db.close();
-      await db.delete();
-      await db.open();
+      await dbManager.deleteDatabase();
+      await dbManager.initialize();
       console.log("✅ Database completely deleted and recreated");
     } catch (error) {
       console.error("Failed to delete database:", error);
@@ -83,6 +85,8 @@ export class DatabaseReset {
     workoutCount: number;
     routineCount: number;
   }> {
+    const db = getDb();
+
     const [
       exercises,
       bodyParts,
@@ -92,23 +96,23 @@ export class DatabaseReset {
       routines,
       initialized,
     ] = await Promise.all([
-      db.exercises.count(),
-      db.bodyParts.count(),
-      db.equipment.count(),
-      db.muscles.count(),
-      db.workouts.count(),
-      db.routines.count(),
+      db.select({ count: sql<number>`count(*)` }).from(schema.exercises),
+      db.select({ count: sql<number>`count(*)` }).from(schema.bodyParts),
+      db.select({ count: sql<number>`count(*)` }).from(schema.equipment),
+      db.select({ count: sql<number>`count(*)` }).from(schema.muscles),
+      db.select({ count: sql<number>`count(*)` }).from(schema.workouts),
+      db.select({ count: sql<number>`count(*)` }).from(schema.routines),
       AppState.isInitialized(),
     ]);
 
     return {
       initialized,
-      exerciseCount: exercises,
-      bodyPartCount: bodyParts,
-      equipmentCount: equipment,
-      muscleCount: muscles,
-      workoutCount: workouts,
-      routineCount: routines,
+      exerciseCount: Number(exercises[0].count),
+      bodyPartCount: Number(bodyParts[0].count),
+      equipmentCount: Number(equipment[0].count),
+      muscleCount: Number(muscles[0].count),
+      workoutCount: Number(workouts[0].count),
+      routineCount: Number(routines[0].count),
     };
   }
 }
