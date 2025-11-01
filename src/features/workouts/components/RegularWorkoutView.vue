@@ -23,8 +23,9 @@
         :exercise="exercise"
         :previous-performance="previousPerformances[exercise.exerciseId]"
         @add-set="handleAddSet(exercise.id)"
-        @update-set="handleUpdateSet(exercise.id, $event)"
+        @update-set="(setId, field, value) => handleUpdateSet(exercise.id, { setId, field, value })"
         @toggle-completed="(setId) => handleToggleCompleted(exercise.id, setId)"
+        @delete-set="(setId) => handleDeleteSet(exercise.id, setId)"
       />
     </div>
 
@@ -57,6 +58,7 @@ const emit = defineEmits<{
   addSet: [exerciseId: string, setData: any]
   updateSet: [exerciseId: string, setId: string, updates: any]
   toggleCompleted: [exerciseId: string, setId: string]
+  deleteSet: [exerciseId: string, setId: string]
 }>()
 
 const { loadWorkoutHistory, getPreviousPerformances } = usePreviousExercisePerformance()
@@ -104,6 +106,10 @@ function handleUpdateSet(
 
 function handleToggleCompleted(exerciseId: string, setId: string) {
   emit('toggleCompleted', exerciseId, setId)
+}
+
+function handleDeleteSet(exerciseId: string, setId: string) {
+  emit('deleteSet', exerciseId, setId)
 }
 </script>
 
