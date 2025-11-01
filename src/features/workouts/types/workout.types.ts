@@ -9,6 +9,8 @@ import type { IntervalConfig, IntervalProgress } from "./interval.types";
  */
 export type WorkoutType = "regular" | "interval";
 
+export type SetType = 'working' | 'warmup' | 'dropset' | 'superset' | 'failure' | 'rpe';
+
 export interface WorkoutSet {
   id: string;
   reps?: number;
@@ -16,6 +18,7 @@ export interface WorkoutSet {
   restTime?: number; // in seconds
   completed: boolean;
   notes?: string;
+  setType?: SetType; // Defaults to 'working'
 }
 
 export interface WorkoutExercise {
@@ -102,4 +105,14 @@ export interface WorkoutTemplate {
     targetSets?: number;
     targetReps?: string;
   }>;
+}
+
+/**
+ * Previous exercise performance data from workout history
+ */
+export interface PreviousExercisePerformance {
+  weight?: number;
+  reps?: number;
+  setType?: SetType;
+  performedAt?: Date | string;
 }

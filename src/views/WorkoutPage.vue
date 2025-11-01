@@ -379,7 +379,12 @@ function handleAddExercise(exercise: Exercise) {
 }
 
 function handleAddSet(exerciseId: string, setData: any) {
-  addSet(exerciseId, setData);
+  // Ensure setType defaults to 'working' if not provided
+  const setWithType = {
+    ...setData,
+    setType: setData.setType || "working",
+  };
+  addSet(exerciseId, setWithType);
 }
 
 function handleUpdateSet(exerciseId: string, setId: string, updates: any) {

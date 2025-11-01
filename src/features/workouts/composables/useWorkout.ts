@@ -117,6 +117,7 @@ export function useWorkout() {
             weight: undefined,
             restTime: routineEx.restTime,
             completed: false,
+            setType: 'working',
             notes: routineEx.targetReps ? `Target: ${routineEx.targetReps}` : undefined,
           });
         }
@@ -223,6 +224,7 @@ export function useWorkout() {
 
     const newSet: WorkoutSet = {
       id: generateId(),
+      setType: set.setType || 'working', // Default to 'working'
       ...set,
       completed: false,
     };
