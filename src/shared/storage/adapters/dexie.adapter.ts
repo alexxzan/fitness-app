@@ -8,6 +8,7 @@ import type { IDatabaseAdapter } from "./types";
 import type {
   Workout,
   WorkoutRoutine,
+  WorkoutProgram,
 } from "@/features/workouts/types/workout.types";
 import type {
   Exercise,
@@ -20,6 +21,7 @@ import type { RoutineAnalytics } from "@/features/workouts/types/analytics.types
 class FitnessDexieDB extends Dexie {
   workouts!: Table<Workout, string>;
   routines!: Table<WorkoutRoutine, string>;
+  workoutPrograms!: Table<WorkoutProgram, string>;
   routineAnalytics!: Table<RoutineAnalytics, string>;
   exercises!: Table<Exercise, string>;
   bodyParts!: Table<BodyPart, string>;
@@ -46,6 +48,19 @@ class FitnessDexieDB extends Dexie {
     this.version(2).stores({
       workouts: "id, name, createdAt, startTime, endTime, routineId, completed",
       routines: "id, name, createdAt, type, templateId, isFavorite",
+      routineAnalytics: "id, routineId, lastCompletedAt",
+      exercises: "exerciseId, name, *bodyParts, *equipments, *targetMuscles",
+      bodyParts: "name",
+      equipment: "name",
+      muscles: "name",
+      appSettings: "key",
+    });
+
+    // Version 3: Add workout programs
+    this.version(3).stores({
+      workouts: "id, name, createdAt, startTime, endTime, routineId, completed",
+      routines: "id, name, createdAt, type, templateId, isFavorite",
+      workoutPrograms: "id, name, createdAt, templateId",
       routineAnalytics: "id, routineId, lastCompletedAt",
       exercises: "exerciseId, name, *bodyParts, *equipments, *targetMuscles",
       bodyParts: "name",
@@ -139,6 +154,25 @@ export class DexieAdapter implements IDatabaseAdapter {
 
     delete: async (id: string): Promise<void> => {
       await this.db.routines.delete(id);
+    },
+  };
+
+  // Workout Programs
+  workoutPrograms = {
+    getAll: async (): Promise<WorkoutProgram[]> => {
+      return await this.db.workoutPrograms.orderBy("createdAt").reverse().toArray();
+    },
+
+    getById: async (id: string): Promise<WorkoutProgram | null> => {
+      return (await this.db.workoutPrograms.get(id)) ?? null;
+    },
+
+    save: async (program: WorkoutProgram): Promise<string> => {
+      return await this.db.workoutPrograms.put(program);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await this.db.workoutPrograms.delete(id);
     },
   };
 

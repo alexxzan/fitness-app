@@ -1,5 +1,9 @@
 import { getDatabase } from "@/shared/storage/database-adapter";
-import type { Workout, WorkoutRoutine } from "../types/workout.types";
+import type {
+  Workout,
+  WorkoutRoutine,
+  WorkoutProgram,
+} from "../types/workout.types";
 import type { RoutineAnalytics } from "../types/analytics.types";
 
 /**
@@ -174,6 +178,38 @@ export class WorkoutRepository {
       const workoutDate = new Date(w.startTime);
       return workoutDate >= startDate && workoutDate <= endDate;
     });
+  }
+
+  /**
+   * Get all workout programs
+   */
+  static async getAllPrograms(): Promise<WorkoutProgram[]> {
+    const db = getDatabase();
+    return await db.workoutPrograms.getAll();
+  }
+
+  /**
+   * Get a workout program by ID
+   */
+  static async getProgramById(id: string): Promise<WorkoutProgram | null> {
+    const db = getDatabase();
+    return await db.workoutPrograms.getById(id);
+  }
+
+  /**
+   * Save a workout program (create or update)
+   */
+  static async saveProgram(program: WorkoutProgram): Promise<string> {
+    const db = getDatabase();
+    return await db.workoutPrograms.save(program);
+  }
+
+  /**
+   * Delete a workout program
+   */
+  static async deleteProgram(id: string): Promise<void> {
+    const db = getDatabase();
+    await db.workoutPrograms.delete(id);
   }
 }
 

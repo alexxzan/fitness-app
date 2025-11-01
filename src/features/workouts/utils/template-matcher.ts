@@ -55,7 +55,8 @@ function exerciseNamesMatch(templateName: string, exerciseName: string): boolean
  */
 export function matchTemplateExercises(
   template: WorkoutTemplate,
-  exercises: Exercise[]
+  exercises: Exercise[],
+  workoutIndex?: number
 ): Array<{ exerciseId: string; exerciseName: string; targetSets?: number; targetReps?: string }> {
   const matchedExercises: Array<{
     exerciseId: string
@@ -64,24 +65,32 @@ export function matchTemplateExercises(
     targetReps?: string
   }> = []
 
-  for (const templateExercise of template.exercises) {
-    // Try to find exact or fuzzy match
-    const matched = exercises.find(ex =>
-      exerciseNamesMatch(templateExercise.exerciseName, ex.name)
-    )
+  // If workoutIndex is specified, only match exercises from that workout
+  // Otherwise, match all exercises from all workouts
+  const workoutsToProcess = workoutIndex !== undefined 
+    ? [template.workouts[workoutIndex]].filter(Boolean)
+    : template.workouts
 
-    if (matched) {
-      matchedExercises.push({
-        exerciseId: matched.exerciseId,
-        exerciseName: matched.name,
-        targetSets: templateExercise.targetSets,
-        targetReps: templateExercise.targetReps,
-      })
-    } else {
-      // Log warning for unmatched exercises
-      console.warn(
-        `Could not find exercise "${templateExercise.exerciseName}" in exercise library for template "${template.name}"`
+  for (const workout of workoutsToProcess) {
+    for (const templateExercise of workout.exercises) {
+      // Try to find exact or fuzzy match
+      const matched = exercises.find(ex =>
+        exerciseNamesMatch(templateExercise.exerciseName, ex.name)
       )
+
+      if (matched) {
+        matchedExercises.push({
+          exerciseId: matched.exerciseId,
+          exerciseName: matched.name,
+          targetSets: templateExercise.targetSets,
+          targetReps: templateExercise.targetReps,
+        })
+      } else {
+        // Log warning for unmatched exercises
+        console.warn(
+          `Could not find exercise "${templateExercise.exerciseName}" in exercise library for template "${template.name}"`
+        )
+      }
     }
   }
 

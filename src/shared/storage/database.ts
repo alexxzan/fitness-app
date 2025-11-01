@@ -173,6 +173,16 @@ class DatabaseManager {
         name TEXT PRIMARY KEY
       );
 
+      CREATE TABLE IF NOT EXISTS workout_programs (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        template_id TEXT,
+        workouts TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
       CREATE TABLE IF NOT EXISTS app_settings (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
@@ -188,6 +198,8 @@ class DatabaseManager {
       CREATE INDEX IF NOT EXISTS idx_routine_analytics_routine_id ON routine_analytics(routine_id);
       CREATE INDEX IF NOT EXISTS idx_routine_analytics_last_completed ON routine_analytics(last_completed_at);
       CREATE INDEX IF NOT EXISTS idx_exercises_name ON exercises(name);
+      CREATE INDEX IF NOT EXISTS idx_workout_programs_template_id ON workout_programs(template_id);
+      CREATE INDEX IF NOT EXISTS idx_workout_programs_created_at ON workout_programs(created_at);
     `;
 
     await this.dbConnection.execute(createTablesSQL);

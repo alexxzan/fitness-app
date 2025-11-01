@@ -6,36 +6,41 @@
       "description": "A strength-focused program using compound movements with five sets of five repetitions. Perfect for building foundational strength. Schedule: 3 days per week (Monday, Wednesday, Friday).",
       "difficulty": "intermediate",
       "durationWeeks": 12,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 5,
-          "targetReps": "5",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell bench press",
-          "targetSets": 5,
-          "targetReps": "5",
-          "exerciseId": "EIeI8Vf"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 5,
-          "targetReps": "5",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 1,
-          "targetReps": "5",
-          "exerciseId": "ila4NZS"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 5,
-          "targetReps": "5",
-          "exerciseId": "A6wtbuL"
+          "name": "Full Body",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 5,
+              "targetReps": "5",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 5,
+              "targetReps": "5",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 5,
+              "targetReps": "5",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 1,
+              "targetReps": "5",
+              "exerciseId": "ila4NZS"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 5,
+              "targetReps": "5",
+              "exerciseId": "A6wtbuL"
+            }
+          ]
         }
       ]
     },
@@ -45,36 +50,41 @@
       "description": "A beginner-friendly version of StrongLifts with slightly higher rep ranges for muscle building. Uses compound movements with progressive overload. Schedule: 3 days per week (Monday, Wednesday, Friday).",
       "difficulty": "beginner",
       "durationWeeks": 12,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "EIeI8Vf"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 1,
-          "targetReps": "5",
-          "exerciseId": "ila4NZS"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "A6wtbuL"
+          "name": "Full Body",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 1,
+              "targetReps": "5",
+              "exerciseId": "ila4NZS"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "A6wtbuL"
+            }
+          ]
         }
       ]
     },
@@ -84,90 +94,105 @@
       "description": "A 6-day training split alternating between push, pull, and leg workouts. Each muscle group is trained twice per week. Ideal for advanced lifters seeking high volume and frequency.",
       "difficulty": "advanced",
       "durationWeeks": 10,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 4,
-          "targetReps": "8-10",
-          "exerciseId": "EIeI8Vf"
+          "name": "Push",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 4,
+              "targetReps": "8-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "dumbbell seated shoulder press",
+              "targetSets": 4,
+              "targetReps": "8-10",
+              "exerciseId": "znQUdHY"
+            },
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "dumbbell lateral raise",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "DsgkuIt"
+            },
+            {
+              "exerciseName": "cable pushdown",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "3ZflifB"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell seated shoulder press",
-          "targetSets": 4,
-          "targetReps": "8-10",
-          "exerciseId": "znQUdHY"
+          "name": "Pull",
+          "exercises": [
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 4,
+              "targetReps": "8-10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 4,
+              "targetReps": "8-12",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "cable seated row",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "fUBheHs"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "25GPyDY"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "ns0SIbU"
-        },
-        {
-          "exerciseName": "dumbbell lateral raise",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "DsgkuIt"
-        },
-        {
-          "exerciseName": "cable pushdown",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "3ZflifB"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 4,
-          "targetReps": "8-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 4,
-          "targetReps": "8-12",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "cable seated row",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "fUBheHs"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 4,
-          "targetReps": "8-10",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell romanian deadlift",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "wQ2c4XD"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 4,
-          "targetReps": "15-20",
-          "exerciseId": "8ozhUIZ"
+          "name": "Legs",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 4,
+              "targetReps": "8-10",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell romanian deadlift",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "wQ2c4XD"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 4,
+              "targetReps": "15-20",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         }
       ]
     },
@@ -177,90 +202,105 @@
       "description": "A beginner-friendly 3-day PPL split where each muscle group is trained once per week. Perfect for those new to training or with limited time availability. Schedule: Monday (Push), Wednesday (Pull), Friday (Legs).",
       "difficulty": "beginner",
       "durationWeeks": 10,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "EIeI8Vf"
+          "name": "Push",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "dumbbell lateral raise",
+              "targetSets": 2,
+              "targetReps": "12-15",
+              "exerciseId": "DsgkuIt"
+            },
+            {
+              "exerciseName": "cable pushdown",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "3ZflifB"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "ns0SIbU"
+          "name": "Pull",
+          "exercises": [
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "cable seated row",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "fUBheHs"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "25GPyDY"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "dumbbell lateral raise",
-          "targetSets": 2,
-          "targetReps": "12-15",
-          "exerciseId": "DsgkuIt"
-        },
-        {
-          "exerciseName": "cable pushdown",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "3ZflifB"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "cable seated row",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "fUBheHs"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell romanian deadlift",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "wQ2c4XD"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "8ozhUIZ"
+          "name": "Legs",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell romanian deadlift",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "wQ2c4XD"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         }
       ]
     },
@@ -270,78 +310,88 @@
       "description": "A balanced 4-day program alternating upper and lower body workouts. Each muscle group is trained twice per week. Great for intermediate lifters with good recovery capacity.",
       "difficulty": "intermediate",
       "durationWeeks": 10,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 4,
-          "targetReps": "6-8",
-          "exerciseId": "EIeI8Vf"
+          "name": "Upper",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 4,
+              "targetReps": "6-8",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 4,
+              "targetReps": "6-8",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "dumbbell fly",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "yz9nUhF"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "25GPyDY"
+            },
+            {
+              "exerciseName": "weighted tricep dips",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "bZq4bwK"
+            }
+          ]
         },
         {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 4,
-          "targetReps": "6-8",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "dumbbell fly",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "yz9nUhF"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "weighted tricep dips",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "bZq4bwK"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 4,
-          "targetReps": "6-8",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell romanian deadlift",
-          "targetSets": 4,
-          "targetReps": "6-8",
-          "exerciseId": "wQ2c4XD"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "8ozhUIZ"
+          "name": "Lower",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 4,
+              "targetReps": "6-8",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell romanian deadlift",
+              "targetSets": 4,
+              "targetReps": "6-8",
+              "exerciseId": "wQ2c4XD"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         }
       ]
     },
@@ -351,78 +401,88 @@
       "description": "A beginner-friendly 2-day upper/lower split where each muscle group is trained once per week. Perfect for those starting out or with very limited time. Schedule: Monday (Upper), Thursday (Lower).",
       "difficulty": "beginner",
       "durationWeeks": 10,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "EIeI8Vf"
+          "name": "Upper",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "dumbbell fly",
+              "targetSets": 2,
+              "targetReps": "10-12",
+              "exerciseId": "yz9nUhF"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 2,
+              "targetReps": "10-12",
+              "exerciseId": "25GPyDY"
+            },
+            {
+              "exerciseName": "weighted tricep dips",
+              "targetSets": 2,
+              "targetReps": "10-12",
+              "exerciseId": "bZq4bwK"
+            }
+          ]
         },
         {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "dumbbell fly",
-          "targetSets": 2,
-          "targetReps": "10-12",
-          "exerciseId": "yz9nUhF"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 2,
-          "targetReps": "10-12",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "weighted tricep dips",
-          "targetSets": 2,
-          "targetReps": "10-12",
-          "exerciseId": "bZq4bwK"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell romanian deadlift",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "wQ2c4XD"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "8ozhUIZ"
+          "name": "Lower",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell romanian deadlift",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "wQ2c4XD"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         }
       ]
     },
@@ -432,36 +492,41 @@
       "description": "An intense hypertrophy program using 10 sets of 10 repetitions. Designed for advanced lifters looking for maximum muscle growth.",
       "difficulty": "advanced",
       "durationWeeks": 6,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 10,
-          "targetReps": "10",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell bench press",
-          "targetSets": 10,
-          "targetReps": "10",
-          "exerciseId": "EIeI8Vf"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 10,
-          "targetReps": "10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 10,
-          "targetReps": "10",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 10,
-          "targetReps": "10",
-          "exerciseId": "ila4NZS"
+          "name": "Full Body",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 10,
+              "targetReps": "10",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 10,
+              "targetReps": "10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 10,
+              "targetReps": "10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 10,
+              "targetReps": "10",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 10,
+              "targetReps": "10",
+              "exerciseId": "ila4NZS"
+            }
+          ]
         }
       ]
     },
@@ -471,54 +536,59 @@
       "description": "A complete workout hitting all major muscle groups three times per week. Perfect for beginners or those with limited time. Schedule: Monday, Wednesday, Friday.",
       "difficulty": "beginner",
       "durationWeeks": 10,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "EIeI8Vf"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 3,
-          "targetReps": "5-6",
-          "exerciseId": "ila4NZS"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "dumbbell biceps curl",
-          "targetSets": 2,
-          "targetReps": "10-12",
-          "exerciseId": "NbVPDMW"
-        },
-        {
-          "exerciseName": "dumbbell lying triceps extension",
-          "targetSets": 2,
-          "targetReps": "10-12",
-          "exerciseId": "mpKZGWz"
+          "name": "Full Body",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 3,
+              "targetReps": "5-6",
+              "exerciseId": "ila4NZS"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "dumbbell biceps curl",
+              "targetSets": 2,
+              "targetReps": "10-12",
+              "exerciseId": "NbVPDMW"
+            },
+            {
+              "exerciseName": "dumbbell lying triceps extension",
+              "targetSets": 2,
+              "targetReps": "10-12",
+              "exerciseId": "mpKZGWz"
+            }
+          ]
         }
       ]
     },
@@ -528,54 +598,59 @@
       "description": "A minimalist full-body workout hitting all major muscle groups twice per week. Ideal for complete beginners or those with extremely limited time. Schedule: Monday, Thursday.",
       "difficulty": "beginner",
       "durationWeeks": 10,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "EIeI8Vf"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 1,
-          "targetReps": "5",
-          "exerciseId": "ila4NZS"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 2,
-          "targetReps": "6-10",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "dumbbell biceps curl",
-          "targetSets": 2,
-          "targetReps": "10-12",
-          "exerciseId": "NbVPDMW"
-        },
-        {
-          "exerciseName": "dumbbell lying triceps extension",
-          "targetSets": 2,
-          "targetReps": "10-12",
-          "exerciseId": "mpKZGWz"
+          "name": "Full Body",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 1,
+              "targetReps": "5",
+              "exerciseId": "ila4NZS"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 2,
+              "targetReps": "6-10",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "dumbbell biceps curl",
+              "targetSets": 2,
+              "targetReps": "10-12",
+              "exerciseId": "NbVPDMW"
+            },
+            {
+              "exerciseName": "dumbbell lying triceps extension",
+              "targetSets": 2,
+              "targetReps": "10-12",
+              "exerciseId": "mpKZGWz"
+            }
+          ]
         }
       ]
     },
@@ -585,60 +660,70 @@
       "description": "Fascia Stretch Training using seven sets with minimal rest to stretch muscle fascia and promote growth. Ideal for intermediate to advanced lifters.",
       "difficulty": "intermediate",
       "durationWeeks": 7,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "EIeI8Vf"
+          "name": "Chest & Back",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "dumbbell fly",
+              "targetSets": 7,
+              "targetReps": "10-12",
+              "exerciseId": "yz9nUhF"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "cable seated row",
+              "targetSets": 7,
+              "targetReps": "10-12",
+              "exerciseId": "fUBheHs"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "ns0SIbU"
-        },
-        {
-          "exerciseName": "dumbbell fly",
-          "targetSets": 7,
-          "targetReps": "10-12",
-          "exerciseId": "yz9nUhF"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "cable seated row",
-          "targetSets": 7,
-          "targetReps": "10-12",
-          "exerciseId": "fUBheHs"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever leg extension",
-          "targetSets": 7,
-          "targetReps": "10-12",
-          "exerciseId": "my33uHU"
+          "name": "Legs",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever leg extension",
+              "targetSets": 7,
+              "targetReps": "10-12",
+              "exerciseId": "my33uHU"
+            }
+          ]
         }
       ]
     },
@@ -648,114 +733,129 @@
       "description": "Arnold Schwarzenegger's classic 6-day training split combining chest/back, shoulders/arms, and legs. Each muscle group is trained twice per week. High-volume training designed for maximum muscle growth with focus on mind-muscle connection.",
       "difficulty": "advanced",
       "durationWeeks": 8,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 5,
-          "targetReps": "6-10",
-          "exerciseId": "EIeI8Vf"
+          "name": "Chest & Back",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 5,
+              "targetReps": "6-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 5,
+              "targetReps": "6-10",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "dumbbell fly",
+              "targetSets": 5,
+              "targetReps": "10-15",
+              "exerciseId": "yz9nUhF"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 5,
+              "targetReps": "10-15",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "lever t bar row",
+              "targetSets": 5,
+              "targetReps": "6-10",
+              "exerciseId": "aaXr7ld"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 5,
+              "targetReps": "6-10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "dumbbell one arm bent-over row",
+              "targetSets": 4,
+              "targetReps": "8-12",
+              "exerciseId": "C0MA9bC"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 5,
-          "targetReps": "6-10",
-          "exerciseId": "ns0SIbU"
+          "name": "Shoulders & Arms",
+          "exercises": [
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 4,
+              "targetReps": "6-10",
+              "exerciseId": "25GPyDY"
+            },
+            {
+              "exerciseName": "dumbbell biceps curl",
+              "targetSets": 4,
+              "targetReps": "6-10",
+              "exerciseId": "NbVPDMW"
+            },
+            {
+              "exerciseName": "barbell standing close grip military press",
+              "targetSets": 5,
+              "targetReps": "6-10",
+              "exerciseId": "wdRZISl"
+            },
+            {
+              "exerciseName": "dumbbell lateral raise",
+              "targetSets": 5,
+              "targetReps": "10-15",
+              "exerciseId": "DsgkuIt"
+            },
+            {
+              "exerciseName": "dumbbell seated bent arm lateral raise",
+              "targetSets": 5,
+              "targetReps": "10-15",
+              "exerciseId": "JzQbv7J"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell fly",
-          "targetSets": 5,
-          "targetReps": "10-15",
-          "exerciseId": "yz9nUhF"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 5,
-          "targetReps": "10-15",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "lever t bar row",
-          "targetSets": 5,
-          "targetReps": "6-10",
-          "exerciseId": "aaXr7ld"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 5,
-          "targetReps": "6-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "dumbbell one arm bent-over row",
-          "targetSets": 4,
-          "targetReps": "8-12",
-          "exerciseId": "C0MA9bC"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 4,
-          "targetReps": "6-10",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "dumbbell biceps curl",
-          "targetSets": 4,
-          "targetReps": "6-10",
-          "exerciseId": "NbVPDMW"
-        },
-        {
-          "exerciseName": "barbell standing close grip military press",
-          "targetSets": 5,
-          "targetReps": "6-10",
-          "exerciseId": "wdRZISl"
-        },
-        {
-          "exerciseName": "dumbbell lateral raise",
-          "targetSets": 5,
-          "targetReps": "10-15",
-          "exerciseId": "DsgkuIt"
-        },
-        {
-          "exerciseName": "dumbbell seated bent arm lateral raise",
-          "targetSets": 5,
-          "targetReps": "10-15",
-          "exerciseId": "JzQbv7J"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 5,
-          "targetReps": "8-12",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 5,
-          "targetReps": "10-15",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever leg extension",
-          "targetSets": 5,
-          "targetReps": "10-15",
-          "exerciseId": "my33uHU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 5,
-          "targetReps": "10-15",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 5,
-          "targetReps": "10-15",
-          "exerciseId": "8ozhUIZ"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 4,
-          "targetReps": "6-10",
-          "exerciseId": "ila4NZS"
+          "name": "Legs",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 5,
+              "targetReps": "8-12",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 5,
+              "targetReps": "10-15",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever leg extension",
+              "targetSets": 5,
+              "targetReps": "10-15",
+              "exerciseId": "my33uHU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 5,
+              "targetReps": "10-15",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 5,
+              "targetReps": "10-15",
+              "exerciseId": "8ozhUIZ"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 4,
+              "targetReps": "6-10",
+              "exerciseId": "ila4NZS"
+            }
+          ]
         }
       ]
     },
@@ -765,126 +865,151 @@
       "description": "Traditional bodybuilding routine targeting one muscle group per day. Each muscle group is trained once per week with maximum volume. Perfect for intermediate lifters who want high intensity per session. Schedule: Monday (Chest), Tuesday (Back), Wednesday (Shoulders), Thursday (Legs), Friday (Arms).",
       "difficulty": "intermediate",
       "durationWeeks": 8,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 4,
-          "targetReps": "6-8",
-          "exerciseId": "EIeI8Vf"
+          "name": "Chest",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 4,
+              "targetReps": "6-8",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell incline bench press",
+              "targetSets": 4,
+              "targetReps": "8-10",
+              "exerciseId": "3TZduzM"
+            },
+            {
+              "exerciseName": "dumbbell fly",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "yz9nUhF"
+            },
+            {
+              "exerciseName": "cable standing up straight crossovers",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "UKWTJWR"
+            }
+          ]
         },
         {
-          "exerciseName": "barbell incline bench press",
-          "targetSets": 4,
-          "targetReps": "8-10",
-          "exerciseId": "3TZduzM"
+          "name": "Back",
+          "exercises": [
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 4,
+              "targetReps": "8-12",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 4,
+              "targetReps": "6-8",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "lever t bar row",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "aaXr7ld"
+            },
+            {
+              "exerciseName": "cable pulldown",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "RVwzP10"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell fly",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "yz9nUhF"
+          "name": "Shoulders",
+          "exercises": [
+            {
+              "exerciseName": "barbell standing close grip military press",
+              "targetSets": 4,
+              "targetReps": "6-8",
+              "exerciseId": "wdRZISl"
+            },
+            {
+              "exerciseName": "dumbbell lateral raise",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "DsgkuIt"
+            },
+            {
+              "exerciseName": "cable cross-over revers fly",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "aqvSOQE"
+            }
+          ]
         },
         {
-          "exerciseName": "cable standing up straight crossovers",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "UKWTJWR"
+          "name": "Legs",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 4,
+              "targetReps": "6-8",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 4,
+              "targetReps": "10-12",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever leg extension",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "my33uHU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 4,
+              "targetReps": "15-20",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         },
         {
-          "exerciseName": "pull-up",
-          "targetSets": 4,
-          "targetReps": "8-12",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 4,
-          "targetReps": "6-8",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "lever t bar row",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "aaXr7ld"
-        },
-        {
-          "exerciseName": "cable pulldown",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "RVwzP10"
-        },
-        {
-          "exerciseName": "barbell standing close grip military press",
-          "targetSets": 4,
-          "targetReps": "6-8",
-          "exerciseId": "wdRZISl"
-        },
-        {
-          "exerciseName": "dumbbell lateral raise",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "DsgkuIt"
-        },
-        {
-          "exerciseName": "cable cross-over revers fly",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "aqvSOQE"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 4,
-          "targetReps": "8-10",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "dumbbell hammer curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "slDvUAU"
-        },
-        {
-          "exerciseName": "barbell close-grip bench press",
-          "targetSets": 4,
-          "targetReps": "8-10",
-          "exerciseId": "J6Dx1Mu"
-        },
-        {
-          "exerciseName": "cable pushdown",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "3ZflifB"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 4,
-          "targetReps": "6-8",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 4,
-          "targetReps": "10-12",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever leg extension",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "my33uHU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 4,
-          "targetReps": "15-20",
-          "exerciseId": "8ozhUIZ"
+          "name": "Arms",
+          "exercises": [
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 4,
+              "targetReps": "8-10",
+              "exerciseId": "25GPyDY"
+            },
+            {
+              "exerciseName": "dumbbell hammer curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "slDvUAU"
+            },
+            {
+              "exerciseName": "barbell close-grip bench press",
+              "targetSets": 4,
+              "targetReps": "8-10",
+              "exerciseId": "J6Dx1Mu"
+            },
+            {
+              "exerciseName": "cable pushdown",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "3ZflifB"
+            }
+          ]
         }
       ]
     },
@@ -894,90 +1019,105 @@
       "description": "A beginner-friendly version of the bro split focusing on compound movements. Targets major muscle groups in a 3-day rotation. Perfect for those new to bodybuilding-style training. Schedule: Day 1 (Chest/Triceps), Day 2 (Back/Biceps), Day 3 (Legs/Shoulders).",
       "difficulty": "beginner",
       "durationWeeks": 8,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "EIeI8Vf"
+          "name": "Chest & Triceps",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "dumbbell fly",
+              "targetSets": 2,
+              "targetReps": "10-12",
+              "exerciseId": "yz9nUhF"
+            },
+            {
+              "exerciseName": "cable pushdown",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "3ZflifB"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "ns0SIbU"
+          "name": "Back & Biceps",
+          "exercises": [
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 3,
+              "targetReps": "8-12",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "cable pulldown",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "RVwzP10"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "25GPyDY"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell fly",
-          "targetSets": 2,
-          "targetReps": "10-12",
-          "exerciseId": "yz9nUhF"
-        },
-        {
-          "exerciseName": "cable pushdown",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "3ZflifB"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 3,
-          "targetReps": "8-12",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "cable pulldown",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "RVwzP10"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 3,
-          "targetReps": "10-12",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "8-10",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "dumbbell lateral raise",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "DsgkuIt"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "8ozhUIZ"
+          "name": "Legs & Shoulders",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 3,
+              "targetReps": "10-12",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "8-10",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "dumbbell lateral raise",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "DsgkuIt"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         }
       ]
     },
@@ -987,78 +1127,98 @@
       "description": "A 4-day program combining power and hypertrophy training. Alternates between strength-focused and muscle-building workouts for both upper and lower body.",
       "difficulty": "intermediate",
       "durationWeeks": 12,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 4,
-          "targetReps": "3-5",
-          "exerciseId": "EIeI8Vf"
+          "name": "Upper Power",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 4,
+              "targetReps": "3-5",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 4,
+              "targetReps": "3-5",
+              "exerciseId": "eZyBC3j"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "lBDjFxJ"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "ns0SIbU"
+          "name": "Upper Hypertrophy",
+          "exercises": [
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "25GPyDY"
+            },
+            {
+              "exerciseName": "cable pushdown",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "3ZflifB"
+            }
+          ]
         },
         {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 4,
-          "targetReps": "3-5",
-          "exerciseId": "eZyBC3j"
+          "name": "Lower Power",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 4,
+              "targetReps": "3-5",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell romanian deadlift",
+              "targetSets": 3,
+              "targetReps": "5-8",
+              "exerciseId": "wQ2c4XD"
+            }
+          ]
         },
         {
-          "exerciseName": "pull-up",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "cable pushdown",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "3ZflifB"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 4,
-          "targetReps": "3-5",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell romanian deadlift",
-          "targetSets": 3,
-          "targetReps": "5-8",
-          "exerciseId": "wQ2c4XD"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 3,
-          "targetReps": "10-15",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 3,
-          "targetReps": "10-15",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 3,
-          "targetReps": "10-15",
-          "exerciseId": "8ozhUIZ"
+          "name": "Lower Hypertrophy",
+          "exercises": [
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 3,
+              "targetReps": "10-15",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 3,
+              "targetReps": "10-15",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 3,
+              "targetReps": "10-15",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         }
       ]
     },
@@ -1068,36 +1228,41 @@
       "description": "Mark Rippetoe's foundational strength program for beginners. Focuses on linear progression with three main compound movements. Perfect for building a solid strength base.",
       "difficulty": "beginner",
       "durationWeeks": 12,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "5",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "5",
-          "exerciseId": "EIeI8Vf"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 1,
-          "targetReps": "5",
-          "exerciseId": "ila4NZS"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "5",
-          "exerciseId": "A6wtbuL"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "5",
-          "exerciseId": "eZyBC3j"
+          "name": "Full Body",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "5",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "5",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 1,
+              "targetReps": "5",
+              "exerciseId": "ila4NZS"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "5",
+              "exerciseId": "A6wtbuL"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "5",
+              "exerciseId": "eZyBC3j"
+            }
+          ]
         }
       ]
     },
@@ -1107,30 +1272,35 @@
       "description": "Jim Wendler's periodized strength program using percentages of training max. Focuses on slow, steady progress with the main lifts. Great for intermediate to advanced lifters.",
       "difficulty": "intermediate",
       "durationWeeks": 16,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 3,
-          "targetReps": "5/3/1",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "barbell bench press",
-          "targetSets": 3,
-          "targetReps": "5/3/1",
-          "exerciseId": "EIeI8Vf"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 1,
-          "targetReps": "5/3/1",
-          "exerciseId": "ila4NZS"
-        },
-        {
-          "exerciseName": "dumbbell standing overhead press",
-          "targetSets": 3,
-          "targetReps": "5/3/1",
-          "exerciseId": "A6wtbuL"
+          "name": "Full Body",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 3,
+              "targetReps": "5/3/1",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 3,
+              "targetReps": "5/3/1",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 1,
+              "targetReps": "5/3/1",
+              "exerciseId": "ila4NZS"
+            },
+            {
+              "exerciseName": "dumbbell standing overhead press",
+              "targetSets": 3,
+              "targetReps": "5/3/1",
+              "exerciseId": "A6wtbuL"
+            }
+          ]
         }
       ]
     },
@@ -1140,114 +1310,129 @@
       "description": "A 4-day intermediate version of Arnold's training split. Combines chest/back and shoulders/arms in upper body sessions, with dedicated leg days. Great for those who want Arnold-style training but with more recovery time.",
       "difficulty": "intermediate",
       "durationWeeks": 8,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 4,
-          "targetReps": "6-10",
-          "exerciseId": "EIeI8Vf"
+          "name": "Chest & Back",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 4,
+              "targetReps": "6-10",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 4,
+              "targetReps": "6-10",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "dumbbell fly",
+              "targetSets": 3,
+              "targetReps": "10-15",
+              "exerciseId": "yz9nUhF"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 4,
+              "targetReps": "10-15",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "lever t bar row",
+              "targetSets": 4,
+              "targetReps": "6-10",
+              "exerciseId": "aaXr7ld"
+            },
+            {
+              "exerciseName": "barbell bent over row",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "eZyBC3j"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 4,
-          "targetReps": "6-10",
-          "exerciseId": "ns0SIbU"
+          "name": "Shoulders & Arms",
+          "exercises": [
+            {
+              "exerciseName": "barbell standing close grip military press",
+              "targetSets": 4,
+              "targetReps": "6-10",
+              "exerciseId": "wdRZISl"
+            },
+            {
+              "exerciseName": "dumbbell lateral raise",
+              "targetSets": 4,
+              "targetReps": "10-15",
+              "exerciseId": "DsgkuIt"
+            },
+            {
+              "exerciseName": "dumbbell seated bent arm lateral raise",
+              "targetSets": 3,
+              "targetReps": "10-15",
+              "exerciseId": "JzQbv7J"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "25GPyDY"
+            },
+            {
+              "exerciseName": "dumbbell biceps curl",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "NbVPDMW"
+            },
+            {
+              "exerciseName": "cable pushdown",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "3ZflifB"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell fly",
-          "targetSets": 3,
-          "targetReps": "10-15",
-          "exerciseId": "yz9nUhF"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 4,
-          "targetReps": "10-15",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "lever t bar row",
-          "targetSets": 4,
-          "targetReps": "6-10",
-          "exerciseId": "aaXr7ld"
-        },
-        {
-          "exerciseName": "barbell bent over row",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "eZyBC3j"
-        },
-        {
-          "exerciseName": "barbell standing close grip military press",
-          "targetSets": 4,
-          "targetReps": "6-10",
-          "exerciseId": "wdRZISl"
-        },
-        {
-          "exerciseName": "dumbbell lateral raise",
-          "targetSets": 4,
-          "targetReps": "10-15",
-          "exerciseId": "DsgkuIt"
-        },
-        {
-          "exerciseName": "dumbbell seated bent arm lateral raise",
-          "targetSets": 3,
-          "targetReps": "10-15",
-          "exerciseId": "JzQbv7J"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "dumbbell biceps curl",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "NbVPDMW"
-        },
-        {
-          "exerciseName": "cable pushdown",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "3ZflifB"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 4,
-          "targetReps": "8-12",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 4,
-          "targetReps": "10-15",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever leg extension",
-          "targetSets": 4,
-          "targetReps": "10-15",
-          "exerciseId": "my33uHU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 4,
-          "targetReps": "10-15",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 4,
-          "targetReps": "10-15",
-          "exerciseId": "8ozhUIZ"
-        },
-        {
-          "exerciseName": "barbell deadlift",
-          "targetSets": 3,
-          "targetReps": "6-10",
-          "exerciseId": "ila4NZS"
+          "name": "Legs",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 4,
+              "targetReps": "8-12",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 4,
+              "targetReps": "10-15",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever leg extension",
+              "targetSets": 4,
+              "targetReps": "10-15",
+              "exerciseId": "my33uHU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 4,
+              "targetReps": "10-15",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 4,
+              "targetReps": "10-15",
+              "exerciseId": "8ozhUIZ"
+            },
+            {
+              "exerciseName": "barbell deadlift",
+              "targetSets": 3,
+              "targetReps": "6-10",
+              "exerciseId": "ila4NZS"
+            }
+          ]
         }
       ]
     },
@@ -1257,114 +1442,129 @@
       "description": "Arnold's muscle definition program focusing on higher rep ranges and volume for fat loss and muscle detail. 6-day split with each muscle group trained twice per week. Includes advanced techniques for maximum definition.",
       "difficulty": "advanced",
       "durationWeeks": 6,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "EIeI8Vf"
+          "name": "Chest & Back",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "cable middle fly",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "xLYSdtg"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "cable seated row",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "fUBheHs"
+            },
+            {
+              "exerciseName": "lever t bar row",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "aaXr7ld"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "ns0SIbU"
+          "name": "Shoulders & Arms",
+          "exercises": [
+            {
+              "exerciseName": "dumbbell seated shoulder press",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "znQUdHY"
+            },
+            {
+              "exerciseName": "dumbbell lateral raise",
+              "targetSets": 4,
+              "targetReps": "15-20",
+              "exerciseId": "DsgkuIt"
+            },
+            {
+              "exerciseName": "cable cross-over revers fly",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "aqvSOQE"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "25GPyDY"
+            },
+            {
+              "exerciseName": "dumbbell hammer curl",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "slDvUAU"
+            },
+            {
+              "exerciseName": "cable pushdown",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "3ZflifB"
+            },
+            {
+              "exerciseName": "cable overhead triceps extension (rope attachment)",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "2IxROQ1"
+            }
+          ]
         },
         {
-          "exerciseName": "cable middle fly",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "xLYSdtg"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "cable seated row",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "fUBheHs"
-        },
-        {
-          "exerciseName": "lever t bar row",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "aaXr7ld"
-        },
-        {
-          "exerciseName": "dumbbell seated shoulder press",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "znQUdHY"
-        },
-        {
-          "exerciseName": "dumbbell lateral raise",
-          "targetSets": 4,
-          "targetReps": "15-20",
-          "exerciseId": "DsgkuIt"
-        },
-        {
-          "exerciseName": "cable cross-over revers fly",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "aqvSOQE"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "dumbbell hammer curl",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "slDvUAU"
-        },
-        {
-          "exerciseName": "cable pushdown",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "3ZflifB"
-        },
-        {
-          "exerciseName": "cable overhead triceps extension (rope attachment)",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "2IxROQ1"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 4,
-          "targetReps": "15-20",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever leg extension",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "my33uHU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 4,
-          "targetReps": "20-25",
-          "exerciseId": "8ozhUIZ"
+          "name": "Legs",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 4,
+              "targetReps": "15-20",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever leg extension",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "my33uHU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 4,
+              "targetReps": "20-25",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         }
       ]
     },
@@ -1374,114 +1574,129 @@
       "description": "A 4-day intermediate version of Arnold's cutting program. Higher rep ranges for fat loss and muscle definition with more recovery time between sessions. Perfect for those who want definition-focused training without the 6-day commitment.",
       "difficulty": "intermediate",
       "durationWeeks": 6,
-      "exercises": [
+      "workouts": [
         {
-          "exerciseName": "barbell bench press",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "EIeI8Vf"
+          "name": "Chest & Back",
+          "exercises": [
+            {
+              "exerciseName": "barbell bench press",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "EIeI8Vf"
+            },
+            {
+              "exerciseName": "dumbbell incline bench press",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "ns0SIbU"
+            },
+            {
+              "exerciseName": "cable middle fly",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "xLYSdtg"
+            },
+            {
+              "exerciseName": "pull-up",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "lBDjFxJ"
+            },
+            {
+              "exerciseName": "cable seated row",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "fUBheHs"
+            },
+            {
+              "exerciseName": "lever t bar row",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "aaXr7ld"
+            }
+          ]
         },
         {
-          "exerciseName": "dumbbell incline bench press",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "ns0SIbU"
+          "name": "Shoulders & Arms",
+          "exercises": [
+            {
+              "exerciseName": "dumbbell seated shoulder press",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "znQUdHY"
+            },
+            {
+              "exerciseName": "dumbbell lateral raise",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "DsgkuIt"
+            },
+            {
+              "exerciseName": "cable cross-over revers fly",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "aqvSOQE"
+            },
+            {
+              "exerciseName": "barbell curl",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "25GPyDY"
+            },
+            {
+              "exerciseName": "dumbbell hammer curl",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "slDvUAU"
+            },
+            {
+              "exerciseName": "cable pushdown",
+              "targetSets": 3,
+              "targetReps": "12-15",
+              "exerciseId": "3ZflifB"
+            },
+            {
+              "exerciseName": "cable overhead triceps extension (rope attachment)",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "2IxROQ1"
+            }
+          ]
         },
         {
-          "exerciseName": "cable middle fly",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "xLYSdtg"
-        },
-        {
-          "exerciseName": "pull-up",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "lBDjFxJ"
-        },
-        {
-          "exerciseName": "cable seated row",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "fUBheHs"
-        },
-        {
-          "exerciseName": "lever t bar row",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "aaXr7ld"
-        },
-        {
-          "exerciseName": "dumbbell seated shoulder press",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "znQUdHY"
-        },
-        {
-          "exerciseName": "dumbbell lateral raise",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "DsgkuIt"
-        },
-        {
-          "exerciseName": "cable cross-over revers fly",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "aqvSOQE"
-        },
-        {
-          "exerciseName": "barbell curl",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "25GPyDY"
-        },
-        {
-          "exerciseName": "dumbbell hammer curl",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "slDvUAU"
-        },
-        {
-          "exerciseName": "cable pushdown",
-          "targetSets": 3,
-          "targetReps": "12-15",
-          "exerciseId": "3ZflifB"
-        },
-        {
-          "exerciseName": "cable overhead triceps extension (rope attachment)",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "2IxROQ1"
-        },
-        {
-          "exerciseName": "barbell high bar squat",
-          "targetSets": 4,
-          "targetReps": "12-15",
-          "exerciseId": "Gnfo4FM"
-        },
-        {
-          "exerciseName": "sled 45в° leg press",
-          "targetSets": 4,
-          "targetReps": "15-20",
-          "exerciseId": "10Z2DXU"
-        },
-        {
-          "exerciseName": "lever leg extension",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "my33uHU"
-        },
-        {
-          "exerciseName": "lever lying leg curl",
-          "targetSets": 3,
-          "targetReps": "15-20",
-          "exerciseId": "17lJ1kr"
-        },
-        {
-          "exerciseName": "barbell standing calf raise",
-          "targetSets": 4,
-          "targetReps": "20-25",
-          "exerciseId": "8ozhUIZ"
+          "name": "Legs",
+          "exercises": [
+            {
+              "exerciseName": "barbell high bar squat",
+              "targetSets": 4,
+              "targetReps": "12-15",
+              "exerciseId": "Gnfo4FM"
+            },
+            {
+              "exerciseName": "sled 45в° leg press",
+              "targetSets": 4,
+              "targetReps": "15-20",
+              "exerciseId": "10Z2DXU"
+            },
+            {
+              "exerciseName": "lever leg extension",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "my33uHU"
+            },
+            {
+              "exerciseName": "lever lying leg curl",
+              "targetSets": 3,
+              "targetReps": "15-20",
+              "exerciseId": "17lJ1kr"
+            },
+            {
+              "exerciseName": "barbell standing calf raise",
+              "targetSets": 4,
+              "targetReps": "20-25",
+              "exerciseId": "8ozhUIZ"
+            }
+          ]
         }
       ]
     }

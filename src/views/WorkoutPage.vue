@@ -34,9 +34,16 @@
             @repeat-workout="handleRepeatWorkout"
           />
 
+          <!-- My Workout Programs -->
+          <MyWorkoutProgramsSection
+            :programs="programs"
+            @add-program="showAddProgramModal = true"
+            @start-workout="handleStartWorkoutFromProgram"
+            @remove-program="handleRemoveProgram"
+          />
+
           <!-- Quick Start Buttons -->
           <WorkoutStartButtons
-            @start-from-routine="handleStartFromRoutine"
             @start-regular="handleStartRegular"
             @start-interval="handleStartInterval"
           />
@@ -121,6 +128,13 @@
         @select-routine="handleSelectRoutine"
         @select-template="handleSelectTemplate"
       />
+
+      <!-- Add Program Modal -->
+      <AddProgramModal
+        :is-open="showAddProgramModal"
+        @close="showAddProgramModal = false"
+        @select-template="handleAddProgramFromTemplate"
+      />
     </ion-content>
   </ion-page>
 </template>
@@ -138,10 +152,12 @@ import {
 } from "@ionic/vue";
 import { useWorkout } from "@/features/workouts/composables/useWorkout";
 import { useRoutine } from "@/features/workouts/composables/useRoutine";
+import { useProgram } from "@/features/workouts/composables/useProgram";
 import type { Exercise } from "@/features/exercises/types/exercise.types";
 import type {
   Workout,
   WorkoutStatistics,
+  WorkoutTemplate,
 } from "@/features/workouts/types/workout.types";
 import type { IntervalConfig } from "@/features/workouts/types/interval.types";
 import { useExerciseLibrary } from "@/features/exercises/composables/useExerciseLibrary";
@@ -158,6 +174,8 @@ import WorkoutStatsDashboard from "@/features/workouts/components/WorkoutStatsDa
 import RecentWorkoutsSection from "@/features/workouts/components/RecentWorkoutsSection.vue";
 import ActiveWorkoutResumeCard from "@/features/workouts/components/ActiveWorkoutResumeCard.vue";
 import FavoriteRoutinesSection from "@/features/workouts/components/FavoriteRoutinesSection.vue";
+import MyWorkoutProgramsSection from "@/features/workouts/components/MyWorkoutProgramsSection.vue";
+import AddProgramModal from "@/features/workouts/components/AddProgramModal.vue";
 import type { WorkoutRoutine } from "@/features/workouts/types/workout.types";
 
 const {
@@ -178,6 +196,12 @@ const {
 
 const { exercises, loadExercises } = useExerciseLibrary();
 const { createRoutineFromTemplate } = useRoutine();
+const {
+  programs,
+  loadPrograms,
+  createProgramFromTemplate,
+  deleteProgram,
+} = useProgram();
 
 // Modal states
 const showExerciseModal = ref(false);
@@ -185,6 +209,7 @@ const showFinishModal = ref(false);
 const showStartRegularModal = ref(false);
 const showStartIntervalModal = ref(false);
 const showRoutineSelector = ref(false);
+const showAddProgramModal = ref(false);
 const intervalModalRef = ref<InstanceType<
   typeof StartIntervalWorkoutModal
 > | null>(null);
@@ -303,6 +328,7 @@ const workoutState = computed<"empty" | "active" | "completed">(() => {
 onMounted(async () => {
   await loadActiveWorkout();
   await loadExercises();
+  await loadPrograms();
 });
 
 // Routine Handlers
@@ -320,6 +346,24 @@ async function handleSelectTemplate(template: any) {
   const routine = await createRoutineFromTemplate(template);
   await createWorkoutFromRoutine(routine);
   showRoutineSelector.value = false;
+}
+
+// Program Handlers
+async function handleAddProgramFromTemplate(template: WorkoutTemplate) {
+  try {
+    await createProgramFromTemplate(template);
+    showAddProgramModal.value = false;
+  } catch (error) {
+    console.error("Failed to add program:", error);
+  }
+}
+
+async function handleStartWorkoutFromProgram(routine: WorkoutRoutine) {
+  await createWorkoutFromRoutine(routine);
+}
+
+async function handleRemoveProgram(program: any) {
+  await deleteProgram(program.id);
 }
 
 // Regular Workout Handlers

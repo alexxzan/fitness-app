@@ -6,6 +6,7 @@
 import type {
   Workout,
   WorkoutRoutine,
+  WorkoutProgram,
 } from "@/features/workouts/types/workout.types";
 import type {
   Exercise,
@@ -35,6 +36,14 @@ export interface IDatabaseAdapter {
     getAll(): Promise<WorkoutRoutine[]>;
     getById(id: string): Promise<WorkoutRoutine | null>;
     save(routine: WorkoutRoutine): Promise<string>;
+    delete(id: string): Promise<void>;
+  };
+
+  // Workout Programs
+  workoutPrograms: {
+    getAll(): Promise<WorkoutProgram[]>;
+    getById(id: string): Promise<WorkoutProgram | null>;
+    save(program: WorkoutProgram): Promise<string>;
     delete(id: string): Promise<void>;
   };
 

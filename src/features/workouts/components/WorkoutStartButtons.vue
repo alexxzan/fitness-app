@@ -26,28 +26,15 @@
           <span class="button-description">HIIT training</span>
         </span>
       </button>
-      <button
-        class="start-button start-button--routine"
-        @click="emit('startFromRoutine')"
-      >
-        <div class="button-icon">
-          <ion-icon :icon="list" />
-        </div>
-        <span class="button-text">
-          <span class="button-title">From Routine</span>
-          <span class="button-description">Use saved program</span>
-        </span>
-      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { IonIcon } from '@ionic/vue'
-import { barbell, flash, list } from 'ionicons/icons'
+import { barbell, flash } from 'ionicons/icons'
 
 const emit = defineEmits<{
-  startFromRoutine: [];
   startRegular: [];
   startInterval: [];
 }>();

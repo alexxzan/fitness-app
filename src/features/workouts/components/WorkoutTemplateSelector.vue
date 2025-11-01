@@ -42,7 +42,7 @@
           </div>
           <p class="template-description">{{ template.description }}</p>
           <p class="template-exercises">
-            {{ template.exercises.length }} exercises
+            {{ getTotalExercises(template) }} exercises across {{ template.workouts.length }} workout{{ template.workouts.length !== 1 ? 's' : '' }}
           </p>
         </ion-label>
       </ion-item>
@@ -132,6 +132,10 @@ function selectTemplate(template: WorkoutTemplate) {
 
 function handleClear() {
   searchQuery.value = ''
+}
+
+function getTotalExercises(template: WorkoutTemplate): number {
+  return template.workouts.reduce((total, workout) => total + workout.exercises.length, 0)
 }
 </script>
 

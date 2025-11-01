@@ -80,11 +80,19 @@ export function useRoutine() {
 
   /**
    * Create a routine from a template
+   * Note: If template has multiple workouts, this creates a routine from the first workout only.
+   * For templates with multiple workouts, use createProgramFromTemplate instead.
    */
   async function createRoutineFromTemplate(
-    template: WorkoutTemplate
+    template: WorkoutTemplate,
+    workoutIndex: number = 0
   ): Promise<WorkoutRoutine> {
-    const exercises: RoutineExercise[] = template.exercises.map(
+    const selectedWorkout = template.workouts[workoutIndex];
+    if (!selectedWorkout) {
+      throw new Error("Workout index out of range");
+    }
+
+    const exercises: RoutineExercise[] = selectedWorkout.exercises.map(
       (ex, index) => ({
         id: generateId(),
         exerciseId: ex.exerciseId,
@@ -97,7 +105,7 @@ export function useRoutine() {
 
     const routine: WorkoutRoutine = {
       id: generateId(),
-      name: template.name,
+      name: `${template.name} - ${selectedWorkout.name}`,
       description: template.description,
       exercises,
       type: "template",

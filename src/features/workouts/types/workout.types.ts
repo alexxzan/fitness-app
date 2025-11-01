@@ -9,7 +9,13 @@ import type { IntervalConfig, IntervalProgress } from "./interval.types";
  */
 export type WorkoutType = "regular" | "interval";
 
-export type SetType = 'working' | 'warmup' | 'dropset' | 'superset' | 'failure' | 'rpe';
+export type SetType =
+  | "working"
+  | "warmup"
+  | "dropset"
+  | "superset"
+  | "failure"
+  | "rpe";
 
 export interface WorkoutSet {
   id: string;
@@ -99,12 +105,29 @@ export interface WorkoutTemplate {
   description: string;
   difficulty: "beginner" | "intermediate" | "advanced";
   durationWeeks: number;
-  exercises: Array<{
-    exerciseId: string; // Reference to exercises.json
-    exerciseName: string; // Human-readable name for display
-    targetSets?: number;
-    targetReps?: string;
+  workouts: Array<{
+    name: string; // e.g., "Push", "Pull", "Legs", "Upper", "Lower"
+    exercises: Array<{
+      exerciseId: string; // Reference to exercises.json
+      exerciseName: string; // Human-readable name for display
+      targetSets?: number;
+      targetReps?: string;
+    }>;
   }>;
+}
+
+/**
+ * Workout Program
+ * A program contains multiple workout routines (e.g., PPL contains Push, Pull, Legs)
+ */
+export interface WorkoutProgram {
+  id: string;
+  name: string;
+  description?: string;
+  templateId?: string; // Reference to workout-templates.json
+  workouts: WorkoutRoutine[]; // Array of routines in the program
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 /**

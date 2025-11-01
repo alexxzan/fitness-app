@@ -15,6 +15,7 @@ import * as schema from "../schema";
 import type {
   Workout,
   WorkoutRoutine,
+  WorkoutProgram,
 } from "@/features/workouts/types/workout.types";
 import type {
   Exercise,
@@ -275,6 +276,48 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     delete: async (id: string): Promise<void> => {
       const db = this.getDb();
       await db.delete(schema.routines).where(eq(schema.routines.id, id));
+    },
+  };
+
+  // Workout Programs
+  workoutPrograms = {
+    getAll: async (): Promise<WorkoutProgram[]> => {
+      const db = this.getDb();
+      const results = await db
+        .select()
+        .from(schema.workoutPrograms)
+        .orderBy(desc(schema.workoutPrograms.createdAt));
+      return results.map((r) => this.parseProgram(r));
+    },
+
+    getById: async (id: string): Promise<WorkoutProgram | null> => {
+      const db = this.getDb();
+      const results = await db
+        .select()
+        .from(schema.workoutPrograms)
+        .where(eq(schema.workoutPrograms.id, id))
+        .limit(1);
+      return results.length > 0 ? this.parseProgram(results[0]) : null;
+    },
+
+    save: async (program: WorkoutProgram): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeProgram(program);
+      await db
+        .insert(schema.workoutPrograms)
+        .values(serialized)
+        .onConflictDoUpdate({
+          target: schema.workoutPrograms.id,
+          set: serialized,
+        });
+      return program.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db
+        .delete(schema.workoutPrograms)
+        .where(eq(schema.workoutPrograms.id, id));
     },
   };
 
@@ -593,6 +636,36 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         typeof routine.updatedAt === "string"
           ? routine.updatedAt
           : routine.updatedAt.toISOString(),
+    };
+  }
+
+  private parseProgram(row: any): WorkoutProgram {
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description || undefined,
+      templateId: row.templateId || undefined,
+      workouts: JSON.parse(row.workouts),
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeProgram(program: WorkoutProgram): any {
+    return {
+      id: program.id,
+      name: program.name,
+      description: program.description || undefined,
+      templateId: program.templateId || undefined,
+      workouts: JSON.stringify(program.workouts),
+      createdAt:
+        typeof program.createdAt === "string"
+          ? program.createdAt
+          : program.createdAt.toISOString(),
+      updatedAt:
+        typeof program.updatedAt === "string"
+          ? program.updatedAt
+          : program.updatedAt.toISOString(),
     };
   }
 

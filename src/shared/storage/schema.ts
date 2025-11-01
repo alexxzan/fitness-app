@@ -102,6 +102,20 @@ export const muscles = sqliteTable("muscles", {
 });
 
 /**
+ * Workout programs table
+ * Stores workout programs that contain multiple routines (e.g., PPL contains Push, Pull, Legs)
+ */
+export const workoutPrograms = sqliteTable("workout_programs", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  templateId: text("template_id"), // Reference to workout-templates.json
+  workouts: text("workouts").notNull(), // JSON string of WorkoutRoutine[]
+  createdAt: text("created_at").notNull(), // ISO date string
+  updatedAt: text("updated_at").notNull(), // ISO date string
+});
+
+/**
  * App settings table
  * Stores key-value pairs for app configuration
  */
@@ -125,5 +139,7 @@ export type Equipment = typeof equipment.$inferSelect;
 export type EquipmentInsert = typeof equipment.$inferInsert;
 export type Muscle = typeof muscles.$inferSelect;
 export type MuscleInsert = typeof muscles.$inferInsert;
+export type WorkoutProgram = typeof workoutPrograms.$inferSelect;
+export type WorkoutProgramInsert = typeof workoutPrograms.$inferInsert;
 export type AppSetting = typeof appSettings.$inferSelect;
 export type AppSettingInsert = typeof appSettings.$inferInsert;

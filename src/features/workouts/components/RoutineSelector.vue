@@ -75,7 +75,7 @@
           >
             <ion-label>
               <h2>{{ template.name }}</h2>
-              <p>{{ template.exercises.length }} exercises</p>
+              <p>{{ getTotalExercises(template) }} exercises across {{ template.workouts.length }} workout{{ template.workouts.length !== 1 ? 's' : '' }}</p>
               <p>{{ template.description }}</p>
               <div class="template-meta">
                 <ion-badge :color="getDifficultyColor(template.difficulty)">
@@ -169,6 +169,10 @@ function getDifficultyColor(difficulty: string) {
     default:
       return "medium";
   }
+}
+
+function getTotalExercises(template: WorkoutTemplate): number {
+  return template.workouts.reduce((total, workout) => total + workout.exercises.length, 0);
 }
 </script>
 
