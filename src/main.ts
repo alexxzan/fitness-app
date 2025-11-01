@@ -2,27 +2,26 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import { pinia } from "./stores";
-import { dbManager } from "./shared/storage/database";
+import { dbAdapter } from "./shared/storage/database-adapter";
 import { DatabaseReset } from "./shared/storage/database-reset";
 import { Capacitor } from "@capacitor/core";
 
 import { IonicVue } from "@ionic/vue";
 
 // Initialize database (async, must complete before router is ready)
+// Automatically uses Dexie (IndexedDB) for web, SQLite for native
 async function initializeDatabase() {
-  // Only initialize SQLite on native platforms (iOS/Android)
-  if (Capacitor.isNativePlatform()) {
-    try {
-      await dbManager.initialize();
-      console.log("✅ Database initialized successfully");
-    } catch (err) {
-      console.error("❌ Failed to initialize database:", err);
-      throw err;
+  try {
+    await dbAdapter.initialize();
+
+    if (Capacitor.isNativePlatform()) {
+      console.log("✅ SQLite database initialized for native platform");
+    } else {
+      console.log("✅ Dexie (IndexedDB) initialized for web development");
     }
-  } else {
-    console.warn("⚠️ Running on web platform - SQLite not available. This app requires a native platform (iOS/Android).");
-    // For development on web, we could show a warning page
-    // For now, we'll just log a warning
+  } catch (err) {
+    console.error("❌ Failed to initialize database:", err);
+    throw err;
   }
 }
 

@@ -1,80 +1,48 @@
-import { getDb, schema } from "@/shared/storage/database";
-import { eq, asc } from "drizzle-orm";
+import { getDatabase } from "@/shared/storage/database-adapter";
 import type { Exercise, ExerciseFilters } from "../types/exercise.types";
-import type { ExerciseInsert } from "@/shared/storage/schema";
 
 /**
- * Repository for exercise data access using Drizzle ORM with SQLite
- * Handles CRUD operations for exercises with performance-optimized queries
+ * Repository for exercise data access using database adapter
+ * Works with both Dexie (web) and SQLite (native)
  */
 export class ExerciseRepository {
   /**
    * Get all exercises
    */
   static async getAll(): Promise<Exercise[]> {
-    const db = getDb();
-    const results = await db
-      .select()
-      .from(schema.exercises)
-      .orderBy(asc(schema.exercises.name));
-
-    return results.map((row) => this.parseExerciseFromDb(row));
+    const db = getDatabase();
+    return await db.exercises.getAll();
   }
 
   /**
    * Get an exercise by ID (exerciseId)
    */
   static async getById(exerciseId: string): Promise<Exercise | null> {
-    const db = getDb();
-    const results = await db
-      .select()
-      .from(schema.exercises)
-      .where(eq(schema.exercises.exerciseId, exerciseId))
-      .limit(1);
-
-    if (results.length === 0) {
-      return null;
-    }
-
-    return this.parseExerciseFromDb(results[0]);
+    const db = getDatabase();
+    return await db.exercises.getById(exerciseId);
   }
 
   /**
    * Save an exercise (create or update)
    */
   static async save(exercise: Exercise): Promise<string> {
-    const db = getDb();
-    const serialized = this.serializeExerciseForDb(exercise);
-
-    await db
-      .insert(schema.exercises)
-      .values(serialized)
-      .onConflictDoUpdate({
-        target: schema.exercises.exerciseId,
-        set: serialized,
-      });
-
-    return exercise.exerciseId;
+    const db = getDatabase();
+    return await db.exercises.save(exercise);
   }
 
   /**
    * Delete an exercise
    */
   static async delete(exerciseId: string): Promise<void> {
-    const db = getDb();
-    await db
-      .delete(schema.exercises)
-      .where(eq(schema.exercises.exerciseId, exerciseId));
+    const db = getDatabase();
+    await db.exercises.delete(exerciseId);
   }
 
   /**
    * Search exercises with filters
-   * Note: SQLite doesn't support array operations, so we filter in memory
    */
   static async search(filters: ExerciseFilters): Promise<Exercise[]> {
-    // Get all exercises and filter in memory
     const allExercises = await this.getAll();
-
     let exercises = allExercises;
 
     // Apply search query filter
@@ -166,37 +134,5 @@ export class ExerciseRepository {
     return allExercises
       .filter((exercise) => exercise.name.toLowerCase().includes(lowerQuery))
       .sort((a, b) => a.name.localeCompare(b.name));
-  }
-
-  /**
-   * Parse exercise from database row
-   */
-  private static parseExerciseFromDb(row: Record<string, any>): Exercise {
-    return {
-      exerciseId: row.exerciseId,
-      name: row.name,
-      gifUrl: row.gifUrl,
-      equipments: JSON.parse(row.equipments),
-      bodyParts: JSON.parse(row.bodyParts),
-      targetMuscles: JSON.parse(row.targetMuscles),
-      secondaryMuscles: JSON.parse(row.secondaryMuscles),
-      instructions: JSON.parse(row.instructions),
-    };
-  }
-
-  /**
-   * Serialize exercise for database storage
-   */
-  private static serializeExerciseForDb(exercise: Exercise): ExerciseInsert {
-    return {
-      exerciseId: exercise.exerciseId,
-      name: exercise.name,
-      gifUrl: exercise.gifUrl,
-      equipments: JSON.stringify(exercise.equipments),
-      bodyParts: JSON.stringify(exercise.bodyParts),
-      targetMuscles: JSON.stringify(exercise.targetMuscles),
-      secondaryMuscles: JSON.stringify(exercise.secondaryMuscles),
-      instructions: JSON.stringify(exercise.instructions),
-    };
   }
 }

@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from "@ionic/vue-router";
 import { RouteRecordRaw } from "vue-router";
 import { AppState } from "@/shared/storage/app.state";
-import { Capacitor } from "@capacitor/core";
 import TabsPage from "../views/TabsPage.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -51,14 +50,8 @@ const router = createRouter({
 });
 
 // Navigation guard to check initialization status
+// Works on both web (Dexie) and native (SQLite)
 router.beforeEach(async (to, from, next) => {
-  // Skip database checks on web (not supported)
-  if (!Capacitor.isNativePlatform()) {
-    console.warn("⚠️ Running on web - skipping database initialization checks");
-    next();
-    return;
-  }
-
   try {
     // Check if app is initialized
     const isInitialized = await AppState.isInitialized();
