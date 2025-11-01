@@ -1,6 +1,11 @@
 import { db } from "@/shared/storage/database";
 import { AppState } from "@/shared/storage/app.state";
-import type { Exercise, BodyPart, Equipment, Muscle } from "../types/exercise.types";
+import type {
+  Exercise,
+  BodyPart,
+  Equipment,
+  Muscle,
+} from "../types/exercise.types";
 
 // Import JSON data files
 import exercisesData from "../data/exercises.json";
@@ -24,7 +29,9 @@ export class ExerciseInitialization {
    * Load all exercises and reference data into the database
    * @param onProgress Optional callback for progress updates (0-100)
    */
-  static async initialize(onProgress?: (progress: number) => void): Promise<void> {
+  static async initialize(
+    onProgress?: (progress: number) => void
+  ): Promise<void> {
     try {
       // Check if already initialized
       if (await this.isInitialized()) {
@@ -39,7 +46,7 @@ export class ExerciseInitialization {
       // Step 2: Load exercises in batches (80% of progress)
       await this.loadExercises((batchProgress) => {
         // Map batch progress (0-100) to overall progress (20-100)
-        onProgress?.(20 + (batchProgress * 0.8));
+        onProgress?.(20 + batchProgress * 0.8);
       });
 
       // Step 3: Mark as initialized
@@ -48,7 +55,9 @@ export class ExerciseInitialization {
     } catch (error) {
       console.error("Failed to initialize exercise library:", error);
       throw new Error(
-        `Failed to initialize exercise library: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to initialize exercise library: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
       );
     }
   }
@@ -80,9 +89,11 @@ export class ExerciseInitialization {
    * Load exercises into database in batches for UI responsiveness
    * @param onProgress Optional callback for batch progress (0-100)
    */
-  private static async loadExercises(onProgress?: (progress: number) => void): Promise<void> {
+  private static async loadExercises(
+    onProgress?: (progress: number) => void
+  ): Promise<void> {
     const exercises: Exercise[] = exercisesData as Exercise[];
-    const BATCH_SIZE = 500; // Process 500 exercises at a time
+    const BATCH_SIZE = 100; // Process 500 exercises at a time
     const totalBatches = Math.ceil(exercises.length / BATCH_SIZE);
 
     for (let i = 0; i < totalBatches; i++) {
@@ -115,4 +126,3 @@ export class ExerciseInitialization {
     await AppState.resetInitialization();
   }
 }
-
