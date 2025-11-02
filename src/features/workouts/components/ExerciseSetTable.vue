@@ -1,245 +1,202 @@
 <template>
-  <div class="exercise-set-table">
-    <div class="exercise-header">
-      <h3 class="exercise-name">{{ exercise.exerciseName }}</h3>
-    </div>
-
-    <div class="sets-container">
-      <div
-        v-for="(set, index) in exercise.sets"
-        :key="set.id"
-        class="set-card-wrapper"
-      >
-        <div
-          class="swipeable-card-container"
-          @touchstart="handleTouchStart($event, set.id)"
-          @touchmove="handleTouchMove($event, set.id)"
-          @touchend="handleTouchEnd($event, set.id)"
-          @mousedown="handleMouseDown($event, set.id)"
-          @mousemove="handleMouseMove($event, set.id)"
-          @mouseup="handleMouseUp($event, set.id)"
-          @mouseleave="handleMouseLeave($event, set.id)"
-        >
-          <div
-            :class="{
-              'swipeable-card': true,
-              'set-card': true,
-              'set-card--completed': set.completed,
-            }"
-            :style="getRowStyle(set.id)"
-            @click="handleCardClick(set.id, $event)"
-          >
-            <div class="set-card-content">
-              <!-- Set Number and Type -->
-              <div class="set-header">
-                <div class="set-number-section">
-                  <button
-                    v-if="!set.completed"
-                    class="set-type-pill"
-                    :class="`set-type-pill--${set.setType || 'working'}`"
-                    @click.stop="
-                      handleSetTypeClick(set.id, set.setType || 'working')
-                    "
-                  >
-                    <span class="set-number">{{ index + 1 }}</span>
-                    <span class="set-type-label">
-                      {{ getSetTypeLabel(set.setType || "working") }}
-                    </span>
-                  </button>
-                  <div v-else class="set-number-display">
-                    <span class="set-number">{{ index + 1 }}</span>
-                    <span
-                      v-if="set.setType && set.setType !== 'working'"
-                      class="set-type-badge"
-                      :class="`set-type-badge--${set.setType}`"
-                    >
-                      {{ getSetTypeLabel(set.setType) }}
-                    </span>
-                  </div>
-                </div>
-
-                <div class="set-actions">
-                  <button
-                    v-if="set.notes"
-                    class="notes-indicator"
-                    @click.stop="toggleNotes(set.id)"
-                    :aria-label="'Notes'"
-                  >
-                    <ion-icon :icon="documentText" />
-                  </button>
-                  <button
-                    v-if="!set.notes && !set.completed"
-                    class="notes-button"
-                    @click.stop="toggleNotes(set.id)"
-                    :aria-label="'Add notes'"
-                  >
-                    <ion-icon :icon="documentTextOutline" />
-                  </button>
-                  <ion-checkbox
-                    :checked="set.completed"
-                    @ion-change="handleToggleCompleted(set.id)"
-                    @click.stop
-                    class="set-checkbox"
-                  />
-                </div>
-              </div>
-
-              <!-- Previous Performance -->
-              <div
-                v-if="previousPerformance && index === 0"
-                class="previous-performance"
-              >
-                <span class="previous-label">Previous:</span>
-                <span class="previous-value">
-                  <span
-                    v-if="
-                      previousPerformance.weight !== undefined &&
-                      previousPerformance.reps !== undefined
-                    "
-                  >
-                    {{ previousPerformance.weight }}kg ×
-                    {{ previousPerformance.reps }}
-                  </span>
-                  <span v-else-if="previousPerformance.weight !== undefined">
-                    {{ previousPerformance.weight }}kg
-                  </span>
-                  <span v-else-if="previousPerformance.reps !== undefined">
-                    {{ previousPerformance.reps }} reps
-                  </span>
-                  <span v-else>—</span>
-                </span>
-              </div>
-
-              <!-- Weight Input -->
-              <div class="input-group">
-                <label class="input-label">Weight (kg)</label>
-                <div class="input-with-buttons">
-                  <button
-                    class="increment-button"
-                    @click.stop="adjustWeight(set.id, -2.5)"
-                    :disabled="set.completed"
-                    aria-label="Decrease weight"
-                  >
-                    <ion-icon :icon="remove" />
-                  </button>
-                  <ion-input
-                    :ref="(el) => setInputRefs(`weight-${set.id}`, el)"
-                    type="number"
-                    :value="set.weight ?? ''"
-                    placeholder="—"
-                    :disabled="set.completed"
-                    @ion-input="handleWeightChange(set.id, $event)"
-                    @keydown.enter="focusNextInput(set.id, 'reps')"
-                    @click.stop
-                    class="set-input"
-                    step="0.5"
-                    min="0"
-                  />
-                  <button
-                    class="increment-button"
-                    @click.stop="adjustWeight(set.id, 2.5)"
-                    :disabled="set.completed"
-                    aria-label="Increase weight"
-                  >
-                    <ion-icon :icon="add" />
-                  </button>
-                </div>
-              </div>
-
-              <!-- Reps Input -->
-              <div class="input-group">
-                <label class="input-label">Reps</label>
-                <div class="input-with-buttons">
-                  <button
-                    class="increment-button"
-                    @click.stop="adjustReps(set.id, -1)"
-                    :disabled="set.completed"
-                    aria-label="Decrease reps"
-                  >
-                    <ion-icon :icon="remove" />
-                  </button>
-                  <ion-input
-                    :ref="(el) => setInputRefs(`reps-${set.id}`, el)"
-                    type="number"
-                    :value="set.reps ?? ''"
-                    placeholder="—"
-                    :disabled="set.completed"
-                    @ion-input="handleRepsChange(set.id, $event)"
-                    @keydown.enter="focusNextInput(set.id, 'next')"
-                    @click.stop
-                    class="set-input"
-                    min="0"
-                  />
-                  <button
-                    class="increment-button"
-                    @click.stop="adjustReps(set.id, 1)"
-                    :disabled="set.completed"
-                    aria-label="Increase reps"
-                  >
-                    <ion-icon :icon="add" />
-                  </button>
-                </div>
-              </div>
-
-              <!-- Quick Actions -->
-              <div v-if="!set.completed && index > 0" class="quick-actions">
-                <button
-                  class="quick-action-button"
-                  @click.stop="copyPreviousSet(set.id, index)"
-                  aria-label="Copy previous set"
-                >
-                  <ion-icon :icon="copyOutline" />
-                  <span>Copy Previous</span>
-                </button>
-              </div>
-
-              <!-- Rest Timer -->
-              <div
-                v-if="set.completed && set.restTime && restTimers[set.id]"
-                class="rest-timer"
-              >
-                <button
-                  class="rest-timer-button"
-                  :class="{
-                    'rest-timer-button--running': restTimers[set.id].isRunning,
-                  }"
-                  @click.stop="toggleRestTimer(set.id)"
-                >
-                  <ion-icon
-                    :icon="restTimers[set.id].isRunning ? pause : play"
-                  />
-                  <span class="rest-timer-text">
-                    {{ formatTime(restTimers[set.id].timeRemaining) }}
-                  </span>
-                </button>
-              </div>
-
-              <!-- Notes Section -->
-              <div v-if="expandedNotes[set.id]" class="notes-section">
-                <ion-textarea
-                  :value="set.notes ?? ''"
-                  placeholder="Add notes for this set..."
-                  @ion-input="handleNotesChange(set.id, $event)"
-                  @click.stop
-                  class="notes-input"
-                  :rows="2"
-                  auto-grow
-                />
-              </div>
+  <div class="exercise-card">
+    <!-- Exercise Header -->
+    <div
+      class="exercise-header"
+      :class="{
+        'exercise-header--collapsed': isCollapsed,
+        'exercise-header--completed': isExerciseComplete,
+      }"
+      @click="toggleCollapse"
+    >
+      <div class="header-left">
+        <div class="exercise-image-container">
+          <ion-icon :icon="barbell" class="exercise-image-icon" />
+        </div>
+        <div class="exercise-name-section">
+          <div class="exercise-name-row">
+            <h3 class="exercise-name">{{ exercise.exerciseName }}</h3>
+            <div
+              v-if="isCollapsed && isExerciseComplete"
+              class="completion-badge"
+            >
+              <ion-icon :icon="checkmarkCircle" />
+              <span>{{ completedSetsCount }}/{{ totalSetsCount }}</span>
             </div>
           </div>
+          <div class="exercise-summary-row" v-if="exerciseSummary">
+            <div class="exercise-summary">{{ exerciseSummary }}</div>
+            <button
+              class="rest-time-button"
+              @click.stop="openRestTimePicker"
+              :aria-label="`Rest time: ${exerciseRestTime}s`"
+            >
+              <ion-icon :icon="timeOutline" />
+              <span class="rest-time-value">{{ exerciseRestTime }}s</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="header-right">
+        <button
+          class="collapse-button"
+          :aria-label="isCollapsed ? 'Expand' : 'Collapse'"
+        >
+          <ion-icon
+            :icon="isCollapsed ? chevronDown : chevronUp"
+            :class="{ 'rotate-180': isCollapsed }"
+          />
+        </button>
+      </div>
+    </div>
 
-          <!-- Delete Action -->
+    <!-- Previous Performance Hint -->
+    <div
+      v-if="!isCollapsed && previousPerformance && exercise.sets.length > 0"
+      class="previous-hint"
+    >
+      <span class="previous-label">Previous:</span>
+      <span class="previous-value">
+        <span
+          v-if="
+            previousPerformance.weight !== undefined &&
+            previousPerformance.reps !== undefined
+          "
+        >
+          {{ previousPerformance.weight }}kg ×
+          {{ previousPerformance.reps }}
+        </span>
+        <span v-else-if="previousPerformance.weight !== undefined">
+          {{ previousPerformance.weight }}kg
+        </span>
+        <span v-else-if="previousPerformance.reps !== undefined">
+          {{ previousPerformance.reps }} reps
+        </span>
+        <span v-else>—</span>
+      </span>
+    </div>
+
+    <!-- Sets Table -->
+    <div v-if="!isCollapsed" class="sets-table-wrapper">
+      <div class="delete-actions-container" ref="deleteContainerRef">
+        <template
+          v-for="(set, index) in exercise.sets"
+          :key="`delete-${set.id}`"
+        >
           <div
             class="delete-action"
             :class="{ 'delete-action--visible': isSwiped(set.id) }"
             @click.stop="handleDeleteSet(set.id)"
+            :style="getDeleteButtonStyle(index)"
           >
             <ion-icon :icon="trash" />
             <span>Delete</span>
           </div>
-        </div>
+        </template>
       </div>
+      <table class="sets-table" ref="tableRef">
+        <thead>
+          <tr>
+            <th class="col-set-number">#</th>
+            <th class="col-prev-weight">Prev</th>
+            <th class="col-weight">Weight</th>
+            <th class="col-reps">Reps</th>
+            <th class="col-completed">✓</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template v-for="(set, index) in exercise.sets" :key="set.id">
+            <tr
+              :class="{
+                'set-row': true,
+                'set-row--completed': set.completed,
+                'swipeable-row': true,
+              }"
+              @touchstart="handleTouchStart($event, set.id)"
+              @touchmove="handleTouchMove($event, set.id)"
+              @touchend="handleTouchEnd($event, set.id)"
+              @mousedown="handleMouseDown($event, set.id)"
+              @mousemove="handleMouseMove($event, set.id)"
+              @mouseup="handleMouseUp($event, set.id)"
+              @mouseleave="handleMouseLeave($event, set.id)"
+              :style="getRowStyle(set.id)"
+            >
+              <!-- Set Number with Type Badge -->
+              <td class="col-set-number">
+                <button
+                  class="set-number-container"
+                  @click.stop="openSetTypePicker(set.id)"
+                  :disabled="set.completed"
+                  :aria-label="`Set ${index + 1}${
+                    set.setType && set.setType !== 'working'
+                      ? ` - ${getSetTypeLabel(set.setType)}`
+                      : ''
+                  }`"
+                >
+                  <span class="set-number">{{ index + 1 }}</span>
+                  <span
+                    v-if="set.setType && set.setType !== 'working'"
+                    class="set-type-indicator"
+                    :class="`set-type-indicator--${set.setType}`"
+                  >
+                    {{ getSetTypeShortLabel(set.setType) }}
+                  </span>
+                </button>
+              </td>
+
+              <!-- Previous Weight -->
+              <td class="col-prev-weight">
+                <span class="prev-weight-value">
+                  {{ getPreviousWeight(index) }}
+                </span>
+              </td>
+
+              <!-- Weight -->
+              <td class="col-weight">
+                <ion-input
+                  :ref="(el) => setInputRefs(`weight-${set.id}`, el)"
+                  type="number"
+                  :value="set.weight ?? ''"
+                  placeholder="—"
+                  :disabled="set.completed"
+                  @ion-input="handleWeightChange(set.id, $event)"
+                  @keydown.enter="focusNextInput(set.id, 'reps')"
+                  @click.stop
+                  class="set-input"
+                  step="0.5"
+                  min="0"
+                />
+              </td>
+
+              <!-- Reps -->
+              <td class="col-reps">
+                <ion-input
+                  :ref="(el) => setInputRefs(`reps-${set.id}`, el)"
+                  type="number"
+                  :value="set.reps ?? ''"
+                  placeholder="—"
+                  :disabled="set.completed"
+                  @ion-input="handleRepsChange(set.id, $event)"
+                  @keydown.enter="focusNextInput(set.id, 'next')"
+                  @click.stop
+                  class="set-input"
+                  min="0"
+                />
+              </td>
+
+              <!-- Completed Checkbox -->
+              <td class="col-completed">
+                <ion-checkbox
+                  :checked="set.completed"
+                  @ion-change="handleToggleCompleted(set.id)"
+                  @click.stop
+                  class="set-checkbox"
+                />
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
 
       <!-- Add Set Button -->
       <button class="add-set-button" @click="handleAddSet">
@@ -247,21 +204,103 @@
         <span>Add Set</span>
       </button>
     </div>
+
+    <!-- Rest Time Picker Modal -->
+    <ion-modal
+      :is-open="showRestTimePicker"
+      @did-dismiss="showRestTimePicker = false"
+    >
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Rest Time</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="showRestTimePicker = false">Done</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="picker-content">
+        <div class="picker-wrapper">
+          <div class="picker-values">
+            <button
+              v-for="(option, index) in restTimeOptionsList"
+              :key="option.value"
+              class="picker-option"
+              :class="{
+                'picker-option--selected': option.value === exerciseRestTime,
+              }"
+              @click="handleRestTimeChange(index)"
+            >
+              {{ option.text }}
+            </button>
+          </div>
+        </div>
+      </ion-content>
+    </ion-modal>
+
+    <!-- Set Type Picker Modal -->
+    <ion-modal
+      :is-open="showSetTypePicker"
+      @did-dismiss="showSetTypePicker = false"
+    >
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Set Type</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="showSetTypePicker = false">Done</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="picker-content">
+        <div class="picker-wrapper">
+          <div class="picker-values">
+            <button
+              v-for="setType in SET_TYPES"
+              :key="setType"
+              class="picker-option"
+              :class="{
+                'picker-option--selected': selectedSetType === setType,
+              }"
+              @click="handleSetTypeChange(setType)"
+            >
+              {{ getSetTypeLabel(setType) }}
+            </button>
+          </div>
+        </div>
+      </ion-content>
+    </ion-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onUnmounted, nextTick } from "vue";
-import { IonInput, IonCheckbox, IonIcon, IonTextarea } from "@ionic/vue";
+import {
+  ref,
+  reactive,
+  computed,
+  onUnmounted,
+  nextTick,
+  onMounted,
+  watch,
+} from "vue";
+import {
+  IonInput,
+  IonCheckbox,
+  IonIcon,
+  IonModal,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButtons,
+  IonButton,
+  IonContent,
+} from "@ionic/vue";
 import {
   add,
-  remove,
   trash,
-  documentText,
-  documentTextOutline,
-  copyOutline,
-  play,
-  pause,
+  timeOutline,
+  chevronUp,
+  chevronDown,
+  checkmarkCircle,
+  barbell,
 } from "ionicons/icons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import type { WorkoutExercise } from "../types/workout.types";
@@ -280,21 +319,20 @@ const emit = defineEmits<{
   updateSet: [setId: string, field: string, value: number | string | null];
   toggleCompleted: [setId: string];
   deleteSet: [setId: string];
+  startRestTimer: [exerciseName: string, duration: number];
 }>();
 
 // State management
+const isCollapsed = ref(false);
 const inputRefs = ref<Record<string, any>>({});
 const expandedNotes = reactive<Record<string, boolean>>({});
-const restTimers = reactive<
-  Record<
-    string,
-    {
-      timeRemaining: number;
-      isRunning: boolean;
-      intervalId?: number;
-    }
-  >
->({});
+const showRestTimePicker = ref(false);
+const showSetTypePicker = ref(false);
+const exerciseRestTime = ref(60); // Default 60 seconds
+const selectedSetId = ref<string | null>(null);
+const selectedSetType = ref<SetType>("working");
+const deleteContainerRef = ref<HTMLElement | null>(null);
+const tableRef = ref<HTMLTableElement | null>(null);
 
 // Set type cycling
 const SET_TYPES: SetType[] = [
@@ -318,10 +356,51 @@ const swipeState = reactive<
     }
   >
 >({});
-const SWIPE_THRESHOLD = 50; // More forgiving threshold
+const SWIPE_THRESHOLD = 50;
 const DELETE_BUTTON_WIDTH = 80;
 
-// Haptic feedback helper (optional)
+// Rest time options (15-second increments)
+const restTimeOptionsList = computed(() => {
+  const options = [];
+  for (let i = 15; i <= 300; i += 15) {
+    options.push({
+      text: `${i}s`,
+      value: i,
+    });
+  }
+  return options;
+});
+
+// Computed properties
+const totalSetsCount = computed(() => props.exercise.sets.length);
+const completedSetsCount = computed(
+  () => props.exercise.sets.filter((s) => s.completed).length
+);
+const isExerciseComplete = computed(
+  () =>
+    totalSetsCount.value > 0 &&
+    completedSetsCount.value === totalSetsCount.value
+);
+const totalVolume = computed(() => {
+  return props.exercise.sets.reduce((sum, set) => {
+    if (set.completed && set.weight && set.reps) {
+      return sum + set.weight * set.reps;
+    }
+    return sum;
+  }, 0);
+});
+
+const exerciseSummary = computed(() => {
+  if (totalSetsCount.value === 0) return null;
+  const parts: string[] = [];
+  parts.push(`${completedSetsCount.value}/${totalSetsCount.value} sets`);
+  if (totalVolume.value > 0) {
+    parts.push(`${Math.round(totalVolume.value)}kg`);
+  }
+  return parts.join(" • ");
+});
+
+// Haptic feedback helper
 async function triggerHaptic(style: ImpactStyle = ImpactStyle.Light) {
   try {
     await Haptics.impact({ style });
@@ -336,6 +415,11 @@ function setInputRefs(key: string, el: any) {
   }
 }
 
+function toggleCollapse() {
+  isCollapsed.value = !isCollapsed.value;
+  triggerHaptic(ImpactStyle.Light);
+}
+
 function getSetTypeLabel(setType: SetType): string {
   const labels: Record<SetType, string> = {
     working: "Work",
@@ -348,12 +432,49 @@ function getSetTypeLabel(setType: SetType): string {
   return labels[setType] || setType;
 }
 
-function handleSetTypeClick(setId: string, currentType: SetType) {
-  const currentIndex = SET_TYPES.indexOf(currentType);
-  const nextIndex = (currentIndex + 1) % SET_TYPES.length;
-  const nextType = SET_TYPES[nextIndex];
-  emit("updateSet", setId, "setType", nextType);
+function getSetTypeShortLabel(setType: SetType): string {
+  const labels: Record<SetType, string> = {
+    working: "W",
+    warmup: "W",
+    dropset: "D",
+    superset: "S",
+    failure: "F",
+    rpe: "R",
+  };
+  return labels[setType] || setType.charAt(0).toUpperCase();
+}
+
+function getPreviousWeight(index: number): string {
+  if (index === 0 && props.previousPerformance?.weight) {
+    return `${props.previousPerformance.weight}kg`;
+  }
+  // For subsequent sets, show previous set's weight
+  if (index > 0) {
+    const previousSet = props.exercise.sets[index - 1];
+    if (previousSet.weight) {
+      return `${previousSet.weight}kg`;
+    }
+  }
+  return "—";
+}
+
+function openSetTypePicker(setId: string) {
+  const set = props.exercise.sets.find((s) => s.id === setId);
+  if (!set || set.completed) return;
+
+  selectedSetId.value = setId;
+  selectedSetType.value = set.setType || "working";
+  showSetTypePicker.value = true;
   triggerHaptic(ImpactStyle.Light);
+}
+
+function handleSetTypeChange(setType: SetType) {
+  if (selectedSetId.value) {
+    emit("updateSet", selectedSetId.value, "setType", setType);
+    showSetTypePicker.value = false;
+    selectedSetId.value = null;
+    triggerHaptic(ImpactStyle.Light);
+  }
 }
 
 function handleWeightChange(setId: string, event: Event) {
@@ -368,51 +489,11 @@ function handleRepsChange(setId: string, event: Event) {
   emit("updateSet", setId, "reps", value ? Number(value) : null);
 }
 
-function handleNotesChange(setId: string, event: Event) {
-  const target = event.target as HTMLIonTextareaElement;
-  const value = target.value as string;
-  emit("updateSet", setId, "notes", value || null);
-}
-
-function adjustWeight(setId: string, delta: number) {
-  const set = props.exercise.sets.find((s) => s.id === setId);
-  if (!set || set.completed) return;
-
-  const currentWeight = set.weight ?? 0;
-  const newWeight = Math.max(0, currentWeight + delta);
-  emit("updateSet", setId, "weight", newWeight);
-  triggerHaptic(ImpactStyle.Light);
-}
-
-function adjustReps(setId: string, delta: number) {
-  const set = props.exercise.sets.find((s) => s.id === setId);
-  if (!set || set.completed) return;
-
-  const currentReps = set.reps ?? 0;
-  const newReps = Math.max(0, currentReps + delta);
-  emit("updateSet", setId, "reps", newReps);
-  triggerHaptic(ImpactStyle.Light);
-}
-
-function copyPreviousSet(setId: string, currentIndex: number) {
-  if (currentIndex === 0) return;
-
-  const previousSet = props.exercise.sets[currentIndex - 1];
-  if (previousSet.weight !== undefined) {
-    emit("updateSet", setId, "weight", previousSet.weight);
-  }
-  if (previousSet.reps !== undefined) {
-    emit("updateSet", setId, "reps", previousSet.reps);
-  }
-  triggerHaptic(ImpactStyle.Medium);
-}
-
 function focusNextInput(setId: string, target: "reps" | "next") {
   const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
   if (setIndex === -1) return;
 
   if (target === "reps") {
-    // Focus reps input of same set
     nextTick(() => {
       const repsInput = inputRefs.value[`reps-${setId}`];
       if (repsInput && repsInput.$el) {
@@ -421,7 +502,6 @@ function focusNextInput(setId: string, target: "reps" | "next") {
       }
     });
   } else if (target === "next") {
-    // Focus weight input of next set
     const nextSetIndex = setIndex + 1;
     if (nextSetIndex < props.exercise.sets.length) {
       const nextSet = props.exercise.sets[nextSetIndex];
@@ -439,14 +519,18 @@ function focusNextInput(setId: string, target: "reps" | "next") {
 function handleToggleCompleted(setId: string) {
   emit("toggleCompleted", setId);
 
-  // Start rest timer if set is completed and has rest time
+  // Auto-focus next set's weight if completed
   nextTick(() => {
     const set = props.exercise.sets.find((s) => s.id === setId);
-    if (set?.completed && set.restTime) {
-      startRestTimer(setId, set.restTime);
+    if (set?.completed && exerciseRestTime.value > 0) {
+      // Start global rest timer
+      emit(
+        "startRestTimer",
+        props.exercise.exerciseName,
+        exerciseRestTime.value
+      );
     }
 
-    // Auto-focus next set's weight if completed
     const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
     if (setIndex < props.exercise.sets.length - 1) {
       const nextSet = props.exercise.sets[setIndex + 1];
@@ -472,22 +556,9 @@ function handleAddSet() {
   emit("addSet");
   triggerHaptic(ImpactStyle.Light);
 
-  // Auto-focus the new set's weight input after it's added
   nextTick(() => {
     const lastSet = props.exercise.sets[props.exercise.sets.length - 1];
     if (lastSet) {
-      // Copy previous set values if available
-      if (props.exercise.sets.length > 1) {
-        const previousSet = props.exercise.sets[props.exercise.sets.length - 2];
-        if (previousSet.weight !== undefined) {
-          emit("updateSet", lastSet.id, "weight", previousSet.weight);
-        }
-        if (previousSet.reps !== undefined) {
-          emit("updateSet", lastSet.id, "reps", previousSet.reps);
-        }
-      }
-
-      // Focus weight input
       setTimeout(() => {
         const weightInput = inputRefs.value[`weight-${lastSet.id}`];
         if (weightInput && weightInput.$el) {
@@ -499,69 +570,21 @@ function handleAddSet() {
   });
 }
 
-// Rest timer functions
-function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
-}
-
-function startRestTimer(setId: string, duration: number) {
-  if (restTimers[setId]?.intervalId) {
-    clearInterval(restTimers[setId].intervalId);
-  }
-
-  restTimers[setId] = {
-    timeRemaining: duration,
-    isRunning: true,
-  };
-
-  restTimers[setId].intervalId = window.setInterval(() => {
-    if (restTimers[setId]) {
-      restTimers[setId].timeRemaining--;
-      if (restTimers[setId].timeRemaining <= 0) {
-        stopRestTimer(setId);
-        triggerHaptic(ImpactStyle.Heavy);
-      }
-    }
-  }, 1000);
-}
-
-function stopRestTimer(setId: string) {
-  if (restTimers[setId]?.intervalId) {
-    clearInterval(restTimers[setId].intervalId);
-  }
-  if (restTimers[setId]) {
-    restTimers[setId].isRunning = false;
-    restTimers[setId].intervalId = undefined;
-  }
-}
-
-function toggleRestTimer(setId: string) {
-  const timer = restTimers[setId];
-  if (!timer) return;
-
-  const set = props.exercise.sets.find((s) => s.id === setId);
-  if (!set?.restTime) return;
-
-  if (timer.isRunning) {
-    stopRestTimer(setId);
-  } else {
-    startRestTimer(setId, timer.timeRemaining || set.restTime);
-  }
+function openRestTimePicker() {
+  showRestTimePicker.value = true;
   triggerHaptic(ImpactStyle.Light);
 }
 
-// Cleanup timers on unmount
-onUnmounted(() => {
-  Object.values(restTimers).forEach((timer) => {
-    if (timer.intervalId) {
-      clearInterval(timer.intervalId);
-    }
-  });
-});
+function handleRestTimeChange(selectedIndex: number) {
+  const selectedOption = restTimeOptionsList.value[selectedIndex];
+  if (selectedOption) {
+    exerciseRestTime.value = selectedOption.value;
+    showRestTimePicker.value = false;
+    triggerHaptic(ImpactStyle.Light);
+  }
+}
 
-// Swipe handlers for touch
+// Swipe handlers
 function handleTouchStart(event: TouchEvent, setId: string) {
   const touch = event.touches[0];
   if (!touch) return;
@@ -589,7 +612,6 @@ function handleTouchMove(event: TouchEvent, setId: string) {
     swipeState[setId].currentX = touch.clientX;
     event.preventDefault();
 
-    // Haptic feedback when threshold is reached
     if (Math.abs(deltaX) >= SWIPE_THRESHOLD && !isSwiped(setId)) {
       triggerHaptic(ImpactStyle.Light);
     }
@@ -601,7 +623,6 @@ function handleTouchEnd(event: TouchEvent, setId: string) {
   finishSwipe(setId);
 }
 
-// Swipe handlers for mouse (desktop)
 function handleMouseDown(event: MouseEvent, setId: string) {
   if (event.button !== 0) return;
 
@@ -687,34 +708,97 @@ function isSwiped(setId: string): boolean {
   return deltaX < -SWIPE_THRESHOLD;
 }
 
-function handleCardClick(setId: string, event: MouseEvent) {
-  if (swipeState[setId] && swipeState[setId].isSwiping) {
-    return;
-  }
+function getDeleteButtonStyle(index: number): string {
+  // Calculate position based on header height and row index
+  // The delete container is positioned at top: 0 relative to sets-table-wrapper
+  // We need to account for the table header height
+  let headerHeight = 0;
 
-  if (isSwiped(setId)) {
-    const target = event.target as HTMLElement;
-    if (!target.closest(".set-type-pill") && !target.closest(".set-actions")) {
-      resetSwipe(setId);
+  if (tableRef.value) {
+    const thead = tableRef.value.querySelector("thead");
+    if (thead) {
+      const theadRect = thead.getBoundingClientRect();
+      const tableRect = tableRef.value.getBoundingClientRect();
+      headerHeight = theadRect.height;
     }
   }
+
+  // Fallback if DOM not ready yet
+  if (headerHeight === 0) {
+    headerHeight = 40; // Approximate based on padding
+  }
+
+  // Calculate row height - approximate based on cell padding
+  const rowHeight = 60; // Based on min-height of inputs and padding
+  const top = headerHeight + index * rowHeight;
+
+  return `top: ${top}px;`;
 }
+
+// Update delete button positions when table changes
+watch(
+  () => props.exercise.sets.length,
+  () => {
+    nextTick(() => {
+      // Recalculate positions after DOM updates
+      if (tableRef.value && deleteContainerRef.value) {
+        const tbody = tableRef.value.querySelector("tbody");
+        const containerRect = deleteContainerRef.value.getBoundingClientRect();
+        if (tbody && containerRect) {
+          const rows = tbody.querySelectorAll("tr");
+          rows.forEach((row, index) => {
+            const rowElement = row as HTMLElement;
+            const rowRect = rowElement.getBoundingClientRect();
+            const top = rowRect.top - containerRect.top;
+            const deleteAction = deleteContainerRef.value?.children[
+              index
+            ] as HTMLElement;
+            if (deleteAction) {
+              deleteAction.style.top = `${top}px`;
+            }
+          });
+        }
+      }
+    });
+  }
+);
+
+// Also update on mount
+onMounted(() => {
+  nextTick(() => {
+    if (tableRef.value && deleteContainerRef.value) {
+      const tbody = tableRef.value.querySelector("tbody");
+      const containerRect = deleteContainerRef.value.getBoundingClientRect();
+      if (tbody && containerRect) {
+        const rows = tbody.querySelectorAll("tr");
+        rows.forEach((row, index) => {
+          const rowElement = row as HTMLElement;
+          const rowRect = rowElement.getBoundingClientRect();
+          const top = rowRect.top - containerRect.top;
+          const deleteAction = deleteContainerRef.value?.children[
+            index
+          ] as HTMLElement;
+          if (deleteAction) {
+            deleteAction.style.top = `${top}px`;
+          }
+        });
+      }
+    }
+  });
+});
 
 function handleDeleteSet(setId: string) {
   emit("deleteSet", setId);
   triggerHaptic(ImpactStyle.Heavy);
   setTimeout(() => {
     delete swipeState[setId];
-    if (restTimers[setId]?.intervalId) {
-      clearInterval(restTimers[setId].intervalId);
-    }
-    delete restTimers[setId];
+    delete expandedNotes[setId];
   }, 100);
 }
 </script>
 
 <style scoped>
-.exercise-set-table {
+.exercise-card {
   background: var(--card-background);
   border-radius: var(--radius-card);
   border: var(--card-border-width) solid var(--card-border-color);
@@ -724,9 +808,69 @@ function handleDeleteSet(setId: string) {
 }
 
 .exercise-header {
-  padding: var(--spacing-base);
+  padding: var(--spacing-sm);
   background: var(--color-background-elevated);
   border-bottom: var(--border-width-thin) solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exercise-header:hover {
+  background: var(
+    --color-background-elevated-hover,
+    var(--color-background-elevated)
+  );
+}
+
+.exercise-header--completed {
+  background: var(--color-success-50);
+}
+
+.header-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+
+.exercise-image-container {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-background-elevated);
+  border: var(--border-width-thin) solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exercise-image-icon {
+  font-size: 32px;
+  color: var(--color-primary-500);
+}
+
+.exercise-name-section {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.exercise-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  min-width: 0;
 }
 
 .exercise-name {
@@ -734,158 +878,327 @@ function handleDeleteSet(setId: string) {
   font-weight: var(--typography-body-weight-semibold);
   color: var(--color-text-primary);
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  text-transform: capitalize;
 }
 
-.sets-container {
+.exercise-summary-row {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  min-width: 0;
 }
 
-.set-card-wrapper {
+.exercise-summary {
+  font-size: var(--typography-small-size);
+  color: var(--color-text-secondary);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.completion-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-success-600);
+  font-size: var(--typography-small-size);
+  font-weight: var(--typography-body-weight-semibold);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.rest-time-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--typography-small-size);
+  font-weight: var(--typography-body-weight-normal);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+  min-height: 32px;
+  opacity: 0.75;
+}
+
+.rest-time-button:hover {
+  color: var(--color-primary-500);
+  opacity: 1;
+  background: rgba(29, 185, 84, 0.08);
+}
+
+.rest-time-button:active {
+  transform: scale(0.95);
+}
+
+.rest-time-button ion-icon {
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.rest-time-value {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+}
+
+.collapse-button {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.collapse-button:hover {
+  background: var(--color-background-elevated);
+}
+
+.previous-hint {
+  padding: var(--spacing-xs) var(--spacing-base);
+  background: var(--color-background-elevated);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+  font-size: var(--typography-small-size);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.previous-label {
+  color: var(--color-text-tertiary);
+  font-weight: var(--typography-body-weight-medium);
+}
+
+.previous-value {
+  color: var(--color-text-secondary);
+}
+
+.sets-table-wrapper {
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius-md);
+  /* Disable horizontal scroll - table should fit viewport */
 }
 
-.set-card {
-  background: var(--card-background);
-  border-radius: var(--radius-md);
-  border: var(--border-width-thin) solid var(--color-border);
-  transition: all 0.2s ease;
+.sets-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  /* Remove min-width to allow table to fit viewport */
 }
 
-.set-card--completed {
-  background: var(--color-success-50);
-  opacity: 0.85;
+.sets-table thead {
+  background: var(--color-background-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.swipeable-card-container {
-  position: relative;
-  display: flex;
-  min-height: 100%;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: pan-y;
-}
-
-.swipeable-card {
-  position: relative;
-  z-index: 1;
-  will-change: transform;
-  flex: 1;
-  min-width: 100%;
-  border-radius: var(--radius-md);
-}
-
-.set-card-content {
-  padding: var(--spacing-base);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.set-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--spacing-sm);
-}
-
-.set-number-section {
-  display: flex;
-  align-items: center;
-}
-
-.set-type-pill {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-full);
-  border: 2px solid transparent;
-  background: var(--color-primary-100);
-  color: var(--color-primary-700);
-  font-weight: var(--typography-body-weight-semibold);
+.sets-table th {
+  padding: var(--spacing-sm) var(--spacing-xs);
+  text-align: left;
   font-size: var(--typography-small-size);
+  font-weight: var(--typography-body-weight-semibold);
+  color: var(--color-text-secondary);
+  letter-spacing: 0.5px;
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.col-set-number {
+  text-align: center !important;
+  width: 20px;
+  position: sticky;
+  left: 0;
+  background: var(--color-background-elevated);
+  z-index: 5;
+}
+
+.set-number-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
   cursor: pointer;
+  width: 100%;
+  min-height: 40px;
   transition: all 0.2s ease;
-  min-height: 44px; /* Touch target */
 }
 
-.set-type-pill:hover {
-  background: var(--color-primary-200);
-  transform: scale(1.05);
+.set-number-container:hover:not(:disabled) {
+  opacity: 0.7;
 }
 
-.set-type-pill--warmup {
-  background: var(--color-warning-100);
-  color: var(--color-warning-700);
-  border-color: var(--color-warning-300);
+.set-number-container:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.set-type-pill--warmup:hover {
-  background: var(--color-warning-200);
+.col-prev-weight {
+  width: 15%;
+  text-align: center !important;
 }
 
-.set-type-pill--dropset {
-  background: var(--color-error-100);
-  color: var(--color-error-700);
-  border-color: var(--color-error-300);
+.col-weight {
+  width: 25%;
+  text-align: center !important;
 }
 
-.set-type-pill--dropset:hover {
-  background: var(--color-error-200);
+.col-reps {
+  width: 25%;
+  text-align: center !important;
 }
 
-.set-type-pill--superset {
-  background: var(--color-info-100);
-  color: var(--color-info-700);
-  border-color: var(--color-info-300);
+.col-completed {
+  width: 50px;
+  text-align: center;
+  position: relative;
+  z-index: 3;
+  background: var(--card-background);
 }
 
-.set-type-pill--superset:hover {
-  background: var(--color-info-200);
+.col-completed th,
+.col-completed td {
+  background: var(--card-background) !important;
 }
 
-.set-type-pill--failure {
-  background: var(--color-primary-100);
-  color: var(--color-primary-700);
-  border-color: var(--color-primary-300);
+.set-row--completed .col-completed {
+  background: rgba(22, 163, 74, 0.12) !important;
 }
 
-.set-type-pill--rpe {
-  background: var(--color-primary-100);
-  color: var(--color-primary-700);
-  border-color: var(--color-primary-300);
+.set-row--completed .col-completed td {
+  background: rgba(22, 163, 74, 0.12) !important;
+}
+
+.prev-weight-value {
+  font-size: var(--typography-small-size);
+  color: var(--color-text-tertiary);
+  font-weight: var(--typography-body-weight-medium);
+}
+
+.sets-table tbody tr {
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+  transition: background-color 0.2s ease;
+}
+
+.sets-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.sets-table tbody tr:hover {
+  background: var(--color-background-elevated);
+}
+
+.set-row--completed {
+  background: rgba(22, 163, 74, 0.12);
+  border-left: 3px solid var(--color-success-500);
+}
+
+.set-row--completed td {
+  background: rgba(22, 163, 74, 0.12);
+}
+
+.set-row--completed .set-number {
+  color: var(--color-success-600);
+  font-weight: var(--typography-body-weight-semibold);
+}
+
+.set-row--completed .set-input {
+  opacity: 0.7;
+}
+
+.set-row--completed .prev-weight-value {
+  opacity: 0.6;
+}
+
+.sets-table td {
+  padding: var(--spacing-sm) var(--spacing-xs);
+  vertical-align: middle;
+  position: relative;
+  z-index: 2;
+  background: inherit;
 }
 
 .set-number {
+  font-weight: var(--typography-body-weight-bold);
+  color: var(--color-text-primary);
+  font-size: var(--typography-body-size);
+}
+
+.set-type-indicator {
   font-size: var(--typography-body-size);
   font-weight: var(--typography-body-weight-bold);
+  display: inline-block;
+  line-height: 1;
 }
 
-.set-type-label {
-  font-size: var(--typography-small-size);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.set-type-indicator--warmup {
+  color: #f59e0b; /* Orange for warmup */
 }
 
-.set-number-display {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
+.set-type-indicator--dropset {
+  color: #3b82f6; /* Blue for dropset */
+}
+
+.set-type-indicator--superset {
+  color: #8b5cf6; /* Purple for superset */
+}
+
+.set-type-indicator--failure {
+  color: #ef4444; /* Red for failure */
+}
+
+.set-type-indicator--rpe {
+  color: #10b981; /* Green for RPE */
 }
 
 .set-type-badge {
-  font-size: 9px;
-  font-weight: var(--font-weight-semibold);
-  padding: 2px 6px;
+  padding: 4px 8px;
   border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: var(--typography-body-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  line-height: 1;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 32px;
+  min-width: 44px;
+}
+
+.set-type-badge:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.set-type-badge--working {
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
 }
 
 .set-type-badge--warmup {
@@ -909,120 +1222,13 @@ function handleDeleteSet(setId: string) {
   color: var(--color-primary-700);
 }
 
-.set-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.notes-indicator,
-.notes-button {
-  background: transparent;
-  border: none;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  padding: var(--spacing-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
-}
-
-.notes-indicator {
-  color: var(--color-primary-600);
-}
-
-.notes-button:hover,
-.notes-indicator:hover {
-  background: var(--color-background-elevated);
-  color: var(--color-primary-600);
-}
-
-.set-checkbox {
-  min-width: 44px;
-  min-height: 44px;
-}
-
-.previous-performance {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs);
-  background: var(--color-background-elevated);
-  border-radius: var(--radius-sm);
-  font-size: var(--typography-small-size);
-}
-
-.previous-label {
-  color: var(--color-text-tertiary);
-  font-weight: var(--typography-body-weight-medium);
-}
-
-.previous-value {
-  color: var(--color-text-secondary);
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.input-label {
-  font-size: var(--typography-small-size);
-  font-weight: var(--typography-body-weight-medium);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.input-with-buttons {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-}
-
-.increment-button {
-  background: var(--color-background-elevated);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-primary);
-  cursor: pointer;
-  padding: var(--spacing-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  min-height: 44px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.increment-button:hover:not(:disabled) {
-  background: var(--color-primary-100);
-  border-color: var(--color-primary-300);
-  color: var(--color-primary-700);
-}
-
-.increment-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.increment-button ion-icon {
-  font-size: 20px;
-}
-
 .set-input {
-  flex: 1;
-  --padding-start: var(--spacing-sm);
-  --padding-end: var(--spacing-sm);
-  --padding-top: var(--spacing-sm);
-  --padding-bottom: var(--spacing-sm);
-  min-height: 44px;
+  width: 100%;
+  --padding-start: var(--spacing-xs);
+  --padding-end: var(--spacing-xs);
+  --padding-top: var(--spacing-xs);
+  --padding-bottom: var(--spacing-xs);
+  min-height: 40px;
   font-size: var(--typography-body-size);
   font-weight: var(--typography-body-weight-medium);
 }
@@ -1031,108 +1237,58 @@ function handleDeleteSet(setId: string) {
   text-align: center;
 }
 
-.quick-actions {
-  display: flex;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-xs);
-}
-
-.quick-action-button {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-background-elevated);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
-  font-size: var(--typography-small-size);
-  cursor: pointer;
-  transition: all 0.2s ease;
+.set-checkbox {
+  min-width: 44px;
   min-height: 44px;
+  margin: 0 auto;
+  display: block;
+  position: relative;
+  z-index: 4;
+  --checkbox-size: 24px;
+  --checkbox-background-checked: var(--color-primary-500);
+  --checkbox-border-color: var(--color-border);
+  --checkbox-border-width: 2px;
 }
 
-.quick-action-button:hover {
-  background: var(--color-primary-100);
-  border-color: var(--color-primary-300);
-  color: var(--color-primary-700);
+.sets-table-wrapper {
+  position: relative;
+  overflow: hidden;
 }
 
-.quick-action-button ion-icon {
-  font-size: 16px;
-}
-
-.rest-timer {
-  margin-top: var(--spacing-xs);
-}
-
-.rest-timer-button {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-base);
-  background: var(--color-success-100);
-  border: 2px solid var(--color-success-300);
-  border-radius: var(--radius-md);
-  color: var(--color-success-700);
-  font-weight: var(--typography-body-weight-semibold);
-  font-size: var(--typography-body-size);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
-  justify-content: center;
-  min-height: 44px;
-}
-
-.rest-timer-button:hover {
-  background: var(--color-success-200);
-  border-color: var(--color-success-400);
-}
-
-.rest-timer-button--running {
-  background: var(--color-success-200);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.rest-timer-button ion-icon {
-  font-size: 20px;
-}
-
-.rest-timer-text {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.05em;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-.notes-section {
-  margin-top: var(--spacing-xs);
-}
-
-.notes-input {
-  --padding-start: var(--spacing-sm);
-  --padding-end: var(--spacing-sm);
-  --padding-top: var(--spacing-sm);
-  --padding-bottom: var(--spacing-sm);
-  font-size: var(--typography-small-size);
-  border: var(--border-width-thin) solid var(--color-border);
-  border-radius: var(--radius-sm);
-}
-
-.delete-action {
+.delete-actions-container {
   position: absolute;
   right: 0;
   top: 0;
   bottom: 0;
   width: 80px;
+  z-index: 1;
+  pointer-events: none;
+  /* Ensure container starts at same position as tbody */
+  padding-top: 0;
+  /* Don't cover the table content when not swiping */
+  overflow: hidden;
+}
+
+.swipeable-row {
+  position: relative;
+  will-change: transform;
+  background: var(--card-background);
+  z-index: 2;
+}
+
+.swipeable-row td {
+  background: var(--card-background);
+}
+
+.swipeable-row.set-row--completed td {
+  background: rgba(22, 163, 74, 0.12);
+}
+
+.delete-action {
+  position: absolute;
+  right: 0;
+  width: 80px;
+  height: 60px; /* Approximate row height */
   background: var(--color-error-500);
   color: white;
   display: flex;
@@ -1141,18 +1297,27 @@ function handleDeleteSet(setId: string) {
   justify-content: center;
   gap: 4px;
   cursor: pointer;
-  z-index: 0;
   opacity: 0;
   transition: opacity 0.2s ease;
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .delete-action--visible {
   opacity: 1;
+  pointer-events: all;
+  z-index: 10;
 }
 
 .delete-action ion-icon {
-  font-size: 24px;
+  font-size: 20px;
+}
+
+.delete-action span {
+  font-size: 10px;
+  font-weight: var(--typography-body-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .delete-action span {
@@ -1180,7 +1345,8 @@ function handleDeleteSet(setId: string) {
   cursor: pointer;
   transition: all 0.2s ease;
   min-height: 48px;
-  margin-top: var(--spacing-xs);
+  margin: var(--spacing-sm);
+  width: calc(100% - var(--spacing-sm) * 2);
 }
 
 .add-set-button:hover {
@@ -1193,45 +1359,54 @@ function handleDeleteSet(setId: string) {
   box-shadow: var(--shadow-card);
 }
 
-.add-set-button ion-icon {
-  font-size: 20px;
+.picker-content {
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
 }
 
-/* Desktop: Keep table layout for larger screens */
-@media (min-width: 768px) {
-  .sets-container {
-    padding: var(--spacing-base);
-  }
-
-  .set-card-content {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--spacing-base);
-  }
-
-  .input-group {
-    flex: 1;
-    max-width: 150px;
-  }
-
-  .set-header {
-    min-width: 120px;
-  }
-
-  .previous-performance {
-    margin-right: auto;
-    margin-left: var(--spacing-base);
-  }
+.picker-wrapper {
+  padding: var(--spacing-base);
 }
 
-/* Mobile optimizations */
-@media (max-width: 767px) {
-  .sets-container {
-    gap: var(--spacing-sm);
-  }
+.picker-values {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  max-height: 400px;
+  overflow-y: auto;
+}
 
-  .set-card-content {
-    gap: var(--spacing-base);
-  }
+.picker-option {
+  padding: var(--spacing-base);
+  background: var(--color-background-elevated);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--typography-body-size);
+  font-weight: var(--typography-body-weight-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-height: 44px;
+}
+
+.picker-option:hover {
+  background: var(--color-primary-100);
+  border-color: var(--color-primary-300);
+  color: var(--color-primary-700);
+}
+
+.picker-option--selected {
+  background: var(--color-primary-500);
+  border-color: var(--color-primary-600);
+  color: white;
+  font-weight: var(--typography-body-weight-semibold);
+}
+
+.picker-option--selected:hover {
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-700);
 }
 </style>
