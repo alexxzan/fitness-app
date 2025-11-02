@@ -67,9 +67,11 @@ export class DatabaseReset {
     clearUserData: boolean = false,
     onProgress?: (progress: number) => void
   ): Promise<void> {
+    console.log("🔄 Starting database reset and reinitialization...");
     await this.resetToCleanState(clearUserData);
+    console.log("✅ Database cleared, now reinitializing...");
     await ExerciseInitialization.initialize(onProgress);
-    console.log("✅ Database reset and re-initialized");
+    console.log("✅ Database reset and re-initialized successfully");
   }
 
   /**

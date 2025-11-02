@@ -68,23 +68,30 @@ export class ExerciseInitialization {
   private static async loadReferenceData(): Promise<void> {
     const db = getDatabase();
 
+    console.log("📚 Loading reference data...");
+
     // Load body parts
     const bodyParts: BodyPart[] = bodyPartsData.map((item) => ({
       name: item.name,
     }));
+    console.log(`  Loading ${bodyParts.length} body parts...`);
     await db.bodyParts.bulkInsert(bodyParts);
 
     // Load equipment
     const equipment: Equipment[] = equipmentData.map((item) => ({
       name: item.name,
     }));
+    console.log(`  Loading ${equipment.length} equipment types...`);
     await db.equipment.bulkInsert(equipment);
 
     // Load muscles
     const muscles: Muscle[] = musclesData.map((item) => ({
       name: item.name,
     }));
+    console.log(`  Loading ${muscles.length} muscles...`);
     await db.muscles.bulkInsert(muscles);
+
+    console.log("✅ Reference data loaded successfully");
   }
 
   /**
@@ -99,6 +106,10 @@ export class ExerciseInitialization {
     const BATCH_SIZE = 100; // Process 100 exercises at a time
     const totalBatches = Math.ceil(exercises.length / BATCH_SIZE);
 
+    console.log(
+      `💪 Loading ${exercises.length} exercises in ${totalBatches} batches...`
+    );
+
     for (let i = 0; i < totalBatches; i++) {
       const start = i * BATCH_SIZE;
       const end = Math.min(start + BATCH_SIZE, exercises.length);
@@ -111,11 +122,22 @@ export class ExerciseInitialization {
       const batchProgress = ((i + 1) / totalBatches) * 100;
       onProgress?.(batchProgress);
 
+      // Log progress every 10 batches
+      if ((i + 1) % 10 === 0 || i === totalBatches - 1) {
+        console.log(
+          `  Loaded ${end}/${exercises.length} exercises (${Math.round(
+            batchProgress
+          )}%)`
+        );
+      }
+
       // Small delay to keep UI responsive (only if not the last batch)
       if (i < totalBatches - 1) {
         await new Promise((resolve) => setTimeout(resolve, 10));
       }
     }
+
+    console.log("✅ All exercises loaded successfully");
   }
 
   /**

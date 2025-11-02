@@ -63,16 +63,29 @@ import { fitness, alertCircle, refresh } from "ionicons/icons";
 import { ExerciseInitialization } from "@/features/exercises/services/exercise.initialization";
 
 const router = useRouter();
-const loadingMessage = ref("Loading exercise library...");
+const loadingMessage = ref("Checking initialization...");
 const progress = ref(0);
 const showProgress = ref(true);
 const error = ref<string | null>(null);
 
-const initialize = async () => {
+const checkAndInitialize = async () => {
   try {
     error.value = null;
     progress.value = 0;
+    loadingMessage.value = "Checking initialization...";
 
+    // Check if already initialized
+    const isInitialized = await ExerciseInitialization.isInitialized();
+
+    if (isInitialized) {
+      // Already initialized, redirect to home
+      console.log("✅ Exercises already initialized, redirecting...");
+      router.replace("/home");
+      return;
+    }
+
+    // Not initialized, run initialization
+    loadingMessage.value = "Loading exercise library...";
     await ExerciseInitialization.initialize((currentProgress) => {
       progress.value = currentProgress;
 
@@ -100,11 +113,11 @@ const initialize = async () => {
 };
 
 const retry = () => {
-  initialize();
+  checkAndInitialize();
 };
 
 onMounted(() => {
-  initialize();
+  checkAndInitialize();
 });
 </script>
 

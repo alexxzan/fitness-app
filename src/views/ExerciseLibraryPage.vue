@@ -4,6 +4,14 @@
       <ion-toolbar>
         <ion-title>Exercise Library</ion-title>
         <ion-buttons slot="end">
+          <ion-button
+            v-if="isDev"
+            color="danger"
+            fill="outline"
+            @click="handleDebugReset"
+          >
+            <ion-icon :icon="refresh" slot="icon-only" />
+          </ion-button>
           <ion-button @click="showAddModal = true">
             <ion-icon :icon="add" slot="icon-only" />
           </ion-button>
@@ -485,6 +493,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useRouter } from "vue-router";
 import {
   IonPage,
   IonHeader,
@@ -522,6 +531,7 @@ import {
   filter,
   close,
   trashOutline,
+  refresh,
 } from "ionicons/icons";
 import { useExerciseLibrary } from "@/features/exercises/composables/useExerciseLibrary";
 import { useExercise } from "@/features/exercises/composables/useExercise";
@@ -545,6 +555,13 @@ import type {
   Equipment,
   Muscle,
 } from "@/features/exercises/types/exercise.types";
+import { DatabaseReset } from "@/shared/storage/database-reset";
+
+// Router
+const router = useRouter();
+
+// Check if we're in development mode
+const isDev = import.meta.env.DEV;
 
 // Composables
 const {
@@ -911,6 +928,27 @@ async function handleAddExercise() {
     showAddModal.value = false;
   } catch (error) {
     console.error("Failed to create exercise:", error);
+  }
+}
+
+async function handleDebugReset() {
+  if (!confirm("Reset and reload all exercises? This will reload the page.")) {
+    return;
+  }
+
+  try {
+    console.log("🔄 Starting debug reset from Exercise Library...");
+
+    // Perform reset and reinitialization
+    await DatabaseReset.resetAndReinitialize();
+
+    // Reload the page to trigger reinitialization flow
+    console.log("✅ Debug reset complete, reloading page...");
+    window.location.reload();
+  } catch (error) {
+    console.error("❌ Failed to reset database:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    alert(`Failed to reset database: ${errorMessage}`);
   }
 }
 

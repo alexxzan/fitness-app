@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from "@ionic/vue-router";
 import { RouteRecordRaw } from "vue-router";
-import { AppState } from "@/shared/storage/app.state";
 import TabsPage from "../views/TabsPage.vue";
 
 const routes: Array<RouteRecordRaw> = [
@@ -49,38 +48,7 @@ const router = createRouter({
   routes,
 });
 
-// Navigation guard to check initialization status
-// Works on both web (Dexie) and native (SQLite)
-router.beforeEach(async (to, from, next) => {
-  try {
-    // Check if app is initialized
-    const isInitialized = await AppState.isInitialized();
-
-    // If trying to access splash screen
-    if (to.path === "/splash") {
-      // If already initialized, redirect to home
-      if (isInitialized) {
-        next("/home");
-      } else {
-        // Allow navigation to splash if not initialized
-        next();
-      }
-      return;
-    }
-
-    // For all other routes, check initialization
-    if (!isInitialized) {
-      // Redirect to splash screen if not initialized
-      next("/splash");
-    } else {
-      // Allow navigation if initialized
-      next();
-    }
-  } catch (error) {
-    console.error("Error in navigation guard:", error);
-    // On error, allow navigation to prevent blocking the app
-    next();
-  }
-});
+// No navigation guard needed - initialization happens on app startup in main.ts
+// The splash screen is still available as a fallback/error recovery route
 
 export default router;

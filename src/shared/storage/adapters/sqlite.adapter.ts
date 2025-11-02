@@ -25,6 +25,12 @@ import type {
 } from "@/features/exercises/types/exercise.types";
 
 export class SQLiteAdapter implements IDatabaseAdapter {
+  private static readonly DB_NAME = "fitness-db";
+  private static readonly DB_ENCRYPTED = false;
+  private static readonly DB_MODE = "no-encryption";
+  private static readonly DB_VERSION = 1;
+  private static readonly DB_READONLY = false;
+
   private sqliteConnection: SQLiteConnection;
   private dbConnection: SQLiteDBConnection | null = null;
   private drizzleDb: ReturnType<typeof drizzle> | null = null;
@@ -40,13 +46,28 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     try {
       console.log("🗄️ Initializing SQLite database...");
 
-      this.dbConnection = await this.sqliteConnection.createConnection(
-        "fitness-db",
-        false,
-        "no-encryption",
-        1,
-        false
+      // Check if connection already exists
+      const isConnection = await this.sqliteConnection.isConnection(
+        SQLiteAdapter.DB_NAME,
+        SQLiteAdapter.DB_ENCRYPTED
       );
+
+      if (isConnection.result) {
+        // Retrieve existing connection
+        this.dbConnection = await this.sqliteConnection.retrieveConnection(
+          SQLiteAdapter.DB_NAME,
+          SQLiteAdapter.DB_ENCRYPTED
+        );
+      } else {
+        // Create new connection
+        this.dbConnection = await this.sqliteConnection.createConnection(
+          SQLiteAdapter.DB_NAME,
+          SQLiteAdapter.DB_ENCRYPTED,
+          SQLiteAdapter.DB_MODE,
+          SQLiteAdapter.DB_VERSION,
+          SQLiteAdapter.DB_READONLY
+        );
+      }
 
       await this.dbConnection.open();
 
@@ -173,10 +194,33 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   }
 
   async deleteDatabase(): Promise<void> {
-    await this.close();
-    await this.sqliteConnection.closeConnection("fitness-db", false);
-    await CapacitorSQLite.deleteDatabase({ database: "fitness-db" });
-    await this.initialize();
+    try {
+      // Clear our references first
+      this.dbConnection = null;
+      this.drizzleDb = null;
+      this.isInitialized = false;
+
+      // Check if connection exists in the pool and close it
+      const isConnection = await this.sqliteConnection.isConnection(
+        SQLiteAdapter.DB_NAME,
+        SQLiteAdapter.DB_ENCRYPTED
+      );
+      if (isConnection.result) {
+        await this.sqliteConnection.closeConnection(
+          SQLiteAdapter.DB_NAME,
+          SQLiteAdapter.DB_ENCRYPTED
+        );
+      }
+
+      // Delete the database
+      await CapacitorSQLite.deleteDatabase({ database: SQLiteAdapter.DB_NAME });
+
+      // Reinitialize
+      await this.initialize();
+    } catch (error) {
+      console.error("Failed to delete database:", error);
+      throw error;
+    }
   }
 
   private getDb() {
@@ -358,12 +402,26 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
     bulkInsert: async (exercises: Exercise[]): Promise<void> => {
       const db = this.getDb();
-      for (const exercise of exercises) {
-        const serialized = this.serializeExercise(exercise);
-        await db
-          .insert(schema.exercises)
-          .values(serialized)
-          .onConflictDoNothing();
+      if (exercises.length === 0) return;
+
+      // Batch insert in chunks of 100 for better performance
+      const BATCH_SIZE = 100;
+      for (let i = 0; i < exercises.length; i += BATCH_SIZE) {
+        const batch = exercises.slice(i, i + BATCH_SIZE);
+        const serialized = batch.map((ex) => this.serializeExercise(ex));
+
+        try {
+          await db
+            .insert(schema.exercises)
+            .values(serialized)
+            .onConflictDoNothing();
+        } catch (error) {
+          console.error(
+            `Failed to insert exercise batch ${i}-${i + batch.length}:`,
+            error
+          );
+          throw error;
+        }
       }
     },
 
@@ -406,8 +464,16 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
     bulkInsert: async (bodyParts: BodyPart[]): Promise<void> => {
       const db = this.getDb();
-      for (const bp of bodyParts) {
-        await db.insert(schema.bodyParts).values(bp).onConflictDoNothing();
+      if (bodyParts.length === 0) return;
+
+      try {
+        await db
+          .insert(schema.bodyParts)
+          .values(bodyParts)
+          .onConflictDoNothing();
+      } catch (error) {
+        console.error("Failed to bulk insert body parts:", error);
+        throw error;
       }
     },
 
@@ -450,8 +516,16 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
     bulkInsert: async (equipment: Equipment[]): Promise<void> => {
       const db = this.getDb();
-      for (const eq of equipment) {
-        await db.insert(schema.equipment).values(eq).onConflictDoNothing();
+      if (equipment.length === 0) return;
+
+      try {
+        await db
+          .insert(schema.equipment)
+          .values(equipment)
+          .onConflictDoNothing();
+      } catch (error) {
+        console.error("Failed to bulk insert equipment:", error);
+        throw error;
       }
     },
 
@@ -494,8 +568,13 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
     bulkInsert: async (muscles: Muscle[]): Promise<void> => {
       const db = this.getDb();
-      for (const m of muscles) {
-        await db.insert(schema.muscles).values(m).onConflictDoNothing();
+      if (muscles.length === 0) return;
+
+      try {
+        await db.insert(schema.muscles).values(muscles).onConflictDoNothing();
+      } catch (error) {
+        console.error("Failed to bulk insert muscles:", error);
+        throw error;
       }
     },
 
@@ -514,7 +593,29 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         .from(schema.appSettings)
         .where(eq(schema.appSettings.key, key))
         .limit(1);
-      return results.length > 0 ? JSON.parse(results[0].value) : null;
+
+      if (results.length === 0 || !results[0].value) {
+        return null;
+      }
+
+      try {
+        const value = results[0].value;
+        // Handle string "undefined" or "null" cases
+        if (
+          typeof value === "string" &&
+          (value === "undefined" || value === "null")
+        ) {
+          return null;
+        }
+        return JSON.parse(value);
+      } catch (error) {
+        console.error(
+          `Failed to parse settings value for key "${key}":`,
+          error
+        );
+        console.error("Raw value:", results[0].value);
+        return null;
+      }
     },
 
     set: async (key: string, value: any): Promise<void> => {
