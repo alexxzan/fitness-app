@@ -11,7 +11,14 @@
     >
       <div class="header-left">
         <div class="exercise-image-container">
-          <ion-icon :icon="barbell" class="exercise-image-icon" />
+          <ion-img
+            v-if="exerciseImageUrl"
+            :src="exerciseImageUrl"
+            :alt="exercise.exerciseName"
+            class="exercise-image"
+            loading="lazy"
+          />
+          <ion-icon v-else :icon="barbell" class="exercise-image-icon" />
         </div>
         <div class="exercise-name-section">
           <div class="exercise-name-row">
@@ -292,6 +299,7 @@ import {
   IonButtons,
   IonButton,
   IonContent,
+  IonImg,
 } from "@ionic/vue";
 import {
   add,
@@ -306,6 +314,7 @@ import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import type { WorkoutExercise } from "../types/workout.types";
 import type { PreviousExercisePerformance } from "../types/workout.types";
 import type { SetType } from "../types/workout.types";
+import { ExerciseRepository } from "@/features/exercises/repositories/exercise.repository";
 
 interface Props {
   exercise: WorkoutExercise;
@@ -333,6 +342,7 @@ const selectedSetId = ref<string | null>(null);
 const selectedSetType = ref<SetType>("working");
 const deleteContainerRef = ref<HTMLElement | null>(null);
 const tableRef = ref<HTMLTableElement | null>(null);
+const exerciseImageUrl = ref<string | null>(null);
 
 // Set type cycling
 const SET_TYPES: SetType[] = [
@@ -795,6 +805,33 @@ function handleDeleteSet(setId: string) {
     delete expandedNotes[setId];
   }, 100);
 }
+
+// Load exercise image URL
+async function loadExerciseImage() {
+  if (!props.exercise.exerciseId) {
+    exerciseImageUrl.value = null;
+    return;
+  }
+
+  try {
+    const exercise = await ExerciseRepository.getById(
+      props.exercise.exerciseId
+    );
+    exerciseImageUrl.value = exercise?.gifUrl || null;
+  } catch (error) {
+    console.error("Failed to load exercise image:", error);
+    exerciseImageUrl.value = null;
+  }
+}
+
+// Watch for changes to exerciseId and load image
+watch(
+  () => props.exercise.exerciseId,
+  () => {
+    loadExerciseImage();
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
@@ -855,6 +892,12 @@ function handleDeleteSet(setId: string) {
 .exercise-image-icon {
   font-size: 32px;
   color: var(--color-primary-500);
+}
+
+.exercise-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .exercise-name-section {
