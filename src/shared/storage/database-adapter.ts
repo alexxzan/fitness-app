@@ -74,6 +74,8 @@ class DatabaseAdapterFactory {
   async close(): Promise<void> {
     if (this.adapter) {
       await this.adapter.close();
+      this.adapter = null;
+      this.initPromise = null;
     }
   }
 

@@ -11,7 +11,9 @@ export class ExerciseRepository {
    */
   static async getAll(): Promise<Exercise[]> {
     const db = getDatabase();
-    return await db.exercises.getAll();
+    const exercises = await db.exercises.getAll();
+    console.log(`📚 ExerciseRepository.getAll() retrieved ${exercises.length} exercises`);
+    return exercises;
   }
 
   /**

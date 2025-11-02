@@ -13,7 +13,9 @@ export class AppState {
   static async isInitialized(): Promise<boolean> {
     const db = getDatabase();
     const value = await db.settings.get(INITIALIZED_KEY);
-    return value === true;
+    const isInit = value === true;
+    console.log(`📊 App initialization status: ${isInit ? 'initialized' : 'not initialized'}`);
+    return isInit;
   }
 
   /**
@@ -22,6 +24,7 @@ export class AppState {
   static async markAsInitialized(): Promise<void> {
     const db = getDatabase();
     await db.settings.set(INITIALIZED_KEY, true);
+    console.log("✅ App marked as initialized");
   }
 
   /**
@@ -30,5 +33,6 @@ export class AppState {
   static async resetInitialization(): Promise<void> {
     const db = getDatabase();
     await db.settings.delete(INITIALIZED_KEY);
+    console.log("🔄 Initialization flag reset (app will reinitialize on next load)");
   }
 }

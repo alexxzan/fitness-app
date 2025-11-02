@@ -46,28 +46,47 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     try {
       console.log("🗄️ Initializing SQLite database...");
 
-      // Create or retrieve connection
+      // Check if connection exists in the pool
       const isConnection = await this.sqliteConnection.isConnection(
         SQLiteAdapter.DB_NAME,
         SQLiteAdapter.DB_ENCRYPTED
       );
 
       if (isConnection.result) {
+        console.log("📌 Retrieving existing connection...");
         this.dbConnection = await this.sqliteConnection.retrieveConnection(
           SQLiteAdapter.DB_NAME,
           SQLiteAdapter.DB_ENCRYPTED
         );
       } else {
-        this.dbConnection = await this.sqliteConnection.createConnection(
-          SQLiteAdapter.DB_NAME,
-          SQLiteAdapter.DB_ENCRYPTED,
-          SQLiteAdapter.DB_MODE,
-          SQLiteAdapter.DB_VERSION,
-          SQLiteAdapter.DB_READONLY
-        );
+        try {
+          console.log("📌 Creating new connection...");
+          this.dbConnection = await this.sqliteConnection.createConnection(
+            SQLiteAdapter.DB_NAME,
+            SQLiteAdapter.DB_ENCRYPTED,
+            SQLiteAdapter.DB_MODE,
+            SQLiteAdapter.DB_VERSION,
+            SQLiteAdapter.DB_READONLY
+          );
+        } catch (createError: any) {
+          // If creation fails because connection exists, try to retrieve it
+          if (createError?.message?.includes("already exists")) {
+            console.log("⚠️ Connection already exists, retrieving...");
+            this.dbConnection = await this.sqliteConnection.retrieveConnection(
+              SQLiteAdapter.DB_NAME,
+              SQLiteAdapter.DB_ENCRYPTED
+            );
+          } else {
+            throw createError;
+          }
+        }
       }
 
-      await this.dbConnection.open();
+      // Check if connection is already open
+      const isOpen = await this.dbConnection.isDBOpen();
+      if (!isOpen.result) {
+        await this.dbConnection.open();
+      }
 
       // Initialize Drizzle with the connection
       this.drizzleDb = drizzle(
@@ -98,7 +117,10 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       console.log("✅ SQLite database initialized successfully");
     } catch (error) {
       console.error("❌ Failed to initialize SQLite database:", error);
-      console.error("Error details:", error instanceof Error ? error.stack : error);
+      console.error(
+        "Error details:",
+        error instanceof Error ? error.stack : error
+      );
       throw error;
     }
   }
@@ -188,10 +210,31 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
   async close(): Promise<void> {
     if (this.dbConnection) {
-      await this.dbConnection.close();
-      this.dbConnection = null;
-      this.drizzleDb = null;
-      this.isInitialized = false;
+      try {
+        // Check if connection is open before closing
+        const isOpen = await this.dbConnection.isDBOpen();
+        if (isOpen.result) {
+          await this.dbConnection.close();
+        }
+
+        // Close the connection in the pool
+        const isConnection = await this.sqliteConnection.isConnection(
+          SQLiteAdapter.DB_NAME,
+          SQLiteAdapter.DB_ENCRYPTED
+        );
+        if (isConnection.result) {
+          await this.sqliteConnection.closeConnection(
+            SQLiteAdapter.DB_NAME,
+            SQLiteAdapter.DB_ENCRYPTED
+          );
+        }
+      } catch (error) {
+        console.warn("⚠️ Error closing SQLite connection:", error);
+      } finally {
+        this.dbConnection = null;
+        this.drizzleDb = null;
+        this.isInitialized = false;
+      }
     }
   }
 
