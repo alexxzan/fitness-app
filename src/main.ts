@@ -54,11 +54,7 @@ async function initializeExercises() {
 // Expose database reset utilities globally in development (handy for testing)
 if (import.meta.env.DEV) {
   (window as any).__FITNESS_APP_DEBUG__ = {
-    resetDatabase: DatabaseReset.resetToCleanState.bind(DatabaseReset),
-    deleteDatabase: DatabaseReset.deleteDatabase.bind(DatabaseReset),
-    resetAndReinitialize:
-      DatabaseReset.resetAndReinitialize.bind(DatabaseReset),
-    getStateInfo: DatabaseReset.getStateInfo.bind(DatabaseReset),
+    resetExerciseData: DatabaseReset.resetExerciseData.bind(DatabaseReset),
   };
 
   console.log(
@@ -70,21 +66,12 @@ if (import.meta.env.DEV) {
     "color: #2196F3; font-weight: bold;"
   );
   console.log(
-    "  - window.__FITNESS_APP_DEBUG__.resetDatabase() - Reset to clean state"
-  );
-  console.log(
-    "  - window.__FITNESS_APP_DEBUG__.deleteDatabase() - Delete entire database"
-  );
-  console.log(
-    "  - window.__FITNESS_APP_DEBUG__.resetAndReinitialize() - Reset and reload exercises"
-  );
-  console.log(
-    "  - window.__FITNESS_APP_DEBUG__.getStateInfo() - Get current database state"
+    "  - window.__FITNESS_APP_DEBUG__.resetExerciseData() - Reset and reload exercise data"
   );
   console.log("");
   console.log("%c💡 Tip:", "color: #FF9800; font-weight: bold;");
   console.log(
-    "Run resetDatabase() then refresh to see the splash screen again!"
+    "Run resetExerciseData() then refresh to see the splash screen again!"
   );
 }
 

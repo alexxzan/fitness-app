@@ -937,18 +937,15 @@ async function handleDebugReset() {
   }
 
   try {
-    console.log("🔄 Starting debug reset from Exercise Library...");
-
-    // Perform reset and reinitialization
-    await DatabaseReset.resetAndReinitialize();
-
-    // Reload the page to trigger reinitialization flow
-    console.log("✅ Debug reset complete, reloading page...");
+    await DatabaseReset.resetExerciseData();
     window.location.reload();
   } catch (error) {
     console.error("❌ Failed to reset database:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    alert(`Failed to reset database: ${errorMessage}`);
+    alert(
+      `Failed to reset: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
 }
 

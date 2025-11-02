@@ -46,20 +46,18 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     try {
       console.log("🗄️ Initializing SQLite database...");
 
-      // Check if connection already exists
+      // Create or retrieve connection
       const isConnection = await this.sqliteConnection.isConnection(
         SQLiteAdapter.DB_NAME,
         SQLiteAdapter.DB_ENCRYPTED
       );
 
       if (isConnection.result) {
-        // Retrieve existing connection
         this.dbConnection = await this.sqliteConnection.retrieveConnection(
           SQLiteAdapter.DB_NAME,
           SQLiteAdapter.DB_ENCRYPTED
         );
       } else {
-        // Create new connection
         this.dbConnection = await this.sqliteConnection.createConnection(
           SQLiteAdapter.DB_NAME,
           SQLiteAdapter.DB_ENCRYPTED,
@@ -71,6 +69,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
       await this.dbConnection.open();
 
+      // Initialize Drizzle with the connection
       this.drizzleDb = drizzle(
         async (sql, params, method) => {
           try {
@@ -85,7 +84,9 @@ export class SQLiteAdapter implements IDatabaseAdapter {
             }
             return { rows: result.values || [] };
           } catch (error) {
-            console.error("SQL Error:", error);
+            console.error("❌ SQL Query Error:", error);
+            console.error("SQL:", sql);
+            console.error("Params:", params);
             throw error;
           }
         },
@@ -97,6 +98,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       console.log("✅ SQLite database initialized successfully");
     } catch (error) {
       console.error("❌ Failed to initialize SQLite database:", error);
+      console.error("Error details:", error instanceof Error ? error.stack : error);
       throw error;
     }
   }
