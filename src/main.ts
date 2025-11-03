@@ -55,6 +55,8 @@ async function initializeExercises() {
 if (import.meta.env.DEV) {
   (window as any).__FITNESS_APP_DEBUG__ = {
     resetExerciseData: DatabaseReset.resetExerciseData.bind(DatabaseReset),
+    completeAllUnfinishedWorkouts:
+      DatabaseReset.completeAllUnfinishedWorkouts.bind(DatabaseReset),
     debugWorkouts: async () => {
       const { debugWorkoutData } = await import("@/features/workouts/composables/useWorkoutDebug");
       return debugWorkoutData();
@@ -71,6 +73,9 @@ if (import.meta.env.DEV) {
   );
   console.log(
     "  - window.__FITNESS_APP_DEBUG__.resetExerciseData() - Reset and reload exercise data"
+  );
+  console.log(
+    "  - window.__FITNESS_APP_DEBUG__.completeAllUnfinishedWorkouts() - Complete all unfinished workouts"
   );
   console.log(
     "  - window.__FITNESS_APP_DEBUG__.debugWorkouts() - Inspect workout data in database"

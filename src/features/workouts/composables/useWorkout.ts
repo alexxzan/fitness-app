@@ -858,8 +858,16 @@ export function useWorkout() {
     isLoading.value = true;
     error.value = null;
     try {
+      // Delete the workout from database instead of just clearing active flag
+      if (currentWorkout.value) {
+        await WorkoutRepository.delete(currentWorkout.value.id);
+      }
       await WorkoutRepository.setActiveWorkout(null);
       currentWorkout.value = null;
+      // Clear change tracking
+      exercisesReplaced.value = [];
+      exercisesDeleted.value = [];
+      exercisesLinkedAsSuperset.value = [];
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Failed to discard workout";

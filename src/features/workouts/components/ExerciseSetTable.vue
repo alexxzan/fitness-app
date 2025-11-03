@@ -137,15 +137,20 @@
                   class="set-number-container"
                   @click.stop="openSetTypePicker(set.id)"
                   :disabled="set.completed"
-                  :aria-label="`Set ${index + 1}${
+                  :aria-label="`Set ${getWorkingSetNumber(index)}${
                     set.setType && set.setType !== 'working'
                       ? ` - ${getSetTypeLabel(set.setType)}`
                       : ''
                   }`"
                 >
-                  <span class="set-number">{{ index + 1 }}</span>
                   <span
-                    v-if="set.setType && set.setType !== 'working'"
+                    v-if="!set.setType || set.setType === 'working'"
+                    class="set-number"
+                  >
+                    {{ getWorkingSetNumber(index) }}
+                  </span>
+                  <span
+                    v-else
                     class="set-type-indicator"
                     :class="`set-type-indicator--${set.setType}`"
                   >
@@ -590,6 +595,23 @@ function getSetTypeShortLabel(setType: SetType): string {
   return labels[setType] || setType.charAt(0).toUpperCase();
 }
 
+/**
+ * Get the working set number for a given set index
+ * Warmup sets don't count, so working sets restart from 1
+ * All other set types (working, dropset, superset, failure, rpe) count as working sets
+ */
+function getWorkingSetNumber(setIndex: number): number {
+  let workingSetCount = 0;
+  for (let i = 0; i <= setIndex; i++) {
+    const set = props.exercise.sets[i];
+    // Only warmup sets don't count - all other sets count as working sets
+    if (set && set.setType !== "warmup") {
+      workingSetCount++;
+    }
+  }
+  return workingSetCount;
+}
+
 function getPreviousWeight(index: number): string {
   // First try to get from previous workout's set at same index
   if (previousSetsData.value[index]?.weight !== undefined) {
@@ -814,10 +836,10 @@ function handleWeightChange(setId: string, event: Event) {
   const value = target.value;
   const numValue = value ? Number(value) : null;
   emit("updateSet", setId, "weight", numValue);
-  
+
   // Check if we should show fill remaining prompt
   checkFillRemainingPrompt(setId, numValue, null);
-  
+
   // Auto-dismiss prompt if user starts typing in second set
   const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
   if (setIndex === 1 && showFillRemainingPrompt.value) {
@@ -830,10 +852,10 @@ function handleRepsChange(setId: string, event: Event) {
   const value = target.value;
   const numValue = value ? Number(value) : null;
   emit("updateSet", setId, "reps", numValue);
-  
+
   // Check if we should show fill remaining prompt
   checkFillRemainingPrompt(setId, null, numValue);
-  
+
   // Auto-dismiss prompt if user starts typing in second set
   const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
   if (setIndex === 1 && showFillRemainingPrompt.value) {
@@ -849,17 +871,17 @@ function checkFillRemainingPrompt(
   // Only check for first set
   const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
   if (setIndex !== 0) return;
-  
+
   const firstSet = props.exercise.sets[0];
-  
+
   // Get current values
   const currentWeight = weight !== null ? weight : firstSet.weight;
   const currentReps = reps !== null ? reps : firstSet.reps;
-  
+
   // Check if first set has both weight and reps
   const hasWeight = currentWeight !== null && currentWeight !== undefined;
   const hasReps = currentReps !== null && currentReps !== undefined;
-  
+
   // Show prompt if:
   // - First set has both weight and reps
   // - Exercise has more than 1 set
@@ -872,7 +894,7 @@ function checkFillRemainingPrompt(
           (set.weight === null || set.weight === undefined) &&
           (set.reps === null || set.reps === undefined)
       );
-    
+
     if (remainingSetsEmpty) {
       firstSetWeight.value = currentWeight;
       firstSetReps.value = currentReps;
@@ -893,7 +915,7 @@ function handleFillAllRemainingSets() {
   ) {
     return;
   }
-  
+
   // Fill all remaining sets with first set's values
   props.exercise.sets.slice(1).forEach((set) => {
     // Only fill if set is empty
@@ -906,7 +928,7 @@ function handleFillAllRemainingSets() {
       emit("updateSet", set.id, "reps", firstSetReps.value);
     }
   });
-  
+
   dismissFillRemainingPrompt();
   triggerHaptic(ImpactStyle.Light);
 }
@@ -1025,8 +1047,9 @@ function handleSetCompletionFlow(setId: string) {
   // Auto-focus next set's weight if completed
   nextTick(() => {
     const updatedSet = props.exercise.sets.find((s) => s.id === setId);
-    const willStartRestTimer = updatedSet?.completed && exerciseRestTime.value > 0;
-    
+    const willStartRestTimer =
+      updatedSet?.completed && exerciseRestTime.value > 0;
+
     if (willStartRestTimer) {
       // Start global rest timer
       emit(

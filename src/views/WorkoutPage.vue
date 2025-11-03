@@ -130,7 +130,12 @@
         :exercises="exercises"
         :title="exerciseToReplaceId ? 'Replace Exercise' : 'Add Exercise'"
         @select="handleAddExercise"
-        @close="() => { showExerciseModal = false; exerciseToReplaceId = null; }"
+        @close="
+          () => {
+            showExerciseModal = false;
+            exerciseToReplaceId = null;
+          }
+        "
       />
 
       <!-- Superset Selector Modal -->
@@ -139,7 +144,12 @@
         :exercises="currentWorkout?.exercises || []"
         :current-exercise-id="exerciseToLinkId || ''"
         @select="handleSelectSupersetExercise"
-        @close="() => { showSupersetSelectorModal = false; exerciseToLinkId = null; }"
+        @close="
+          () => {
+            showSupersetSelectorModal = false;
+            exerciseToLinkId = null;
+          }
+        "
       />
 
       <!-- Finish Workout Modal -->
@@ -178,7 +188,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
+import { useRouter } from "vue-router";
 import {
   IonPage,
   IonHeader,
@@ -220,10 +231,10 @@ import FavoriteRoutinesSection from "@/features/workouts/components/FavoriteRout
 import MyWorkoutProgramsSection from "@/features/workouts/components/MyWorkoutProgramsSection.vue";
 import AddProgramModal from "@/features/workouts/components/AddProgramModal.vue";
 import type { WorkoutRoutine } from "@/features/workouts/types/workout.types";
-import {
-  mockFavoriteRoutines as mockFavoriteRoutinesData,
-} from "@/features/workouts/mocks/mock";
+import { mockFavoriteRoutines as mockFavoriteRoutinesData } from "@/features/workouts/mocks/mock";
 import { WorkoutRepository } from "@/features/workouts/repositories/workout.repository";
+
+const router = useRouter();
 
 const {
   currentWorkout,
@@ -311,7 +322,22 @@ onMounted(async () => {
   await loadExercises();
   await loadPrograms();
   await loadRecentWorkouts();
+
+  // If active workout exists, redirect to full-screen workout page
+  if (currentWorkout.value) {
+    router.replace("/active-workout");
+  }
 });
+
+// Watch for workout creation and navigate to full-screen page
+watch(
+  () => currentWorkout.value,
+  (newWorkout) => {
+    if (newWorkout && workoutState.value === "active") {
+      router.replace("/active-workout");
+    }
+  }
+);
 
 // Routine Handlers
 function handleStartFromRoutine() {
@@ -321,6 +347,7 @@ function handleStartFromRoutine() {
 async function handleSelectRoutine(routine: any) {
   await createWorkoutFromRoutine(routine);
   showRoutineSelector.value = false;
+  // Navigation to full-screen page will happen via watch on currentWorkout
 }
 
 async function handleSelectTemplate(template: any) {
@@ -328,6 +355,7 @@ async function handleSelectTemplate(template: any) {
   const routine = await createRoutineFromTemplate(template);
   await createWorkoutFromRoutine(routine);
   showRoutineSelector.value = false;
+  // Navigation to full-screen page will happen via watch on currentWorkout
 }
 
 // Program Handlers
@@ -360,6 +388,7 @@ async function handleStartWorkoutFromProgram(
   }
 
   await createWorkoutFromRoutine(freshRoutine, programId);
+  // Navigation to full-screen page will happen via watch on currentWorkout
 }
 
 async function handleRemoveProgram(program: any) {
@@ -400,6 +429,7 @@ function handleStartRegular() {
 async function handleStartRegularWorkout(name: string) {
   await createRegularWorkout(name);
   showStartRegularModal.value = false;
+  // Navigation to full-screen page will happen via watch on currentWorkout
 }
 
 // Interval Workout Handlers
@@ -424,6 +454,7 @@ async function handleStartIntervalWorkout(config: {
 
   await createIntervalWorkout(config.name, intervalConfig);
   showStartIntervalModal.value = false;
+  // Navigation to full-screen page will happen via watch on currentWorkout
 }
 
 function openIntervalExerciseSelector() {
@@ -537,14 +568,17 @@ async function handleFinishWorkout(saveToRoutine?: boolean) {
     }
 
     await finishWorkout();
-    console.log('Workout finished successfully');
+    console.log("Workout finished successfully");
     showFinishModal.value = false;
   } catch (error) {
     console.error("Failed to finish workout:", error);
     // Show error to user
     showAlert({
       header: "Failed to Complete Workout",
-      message: error instanceof Error ? error.message : "An error occurred while completing the workout.",
+      message:
+        error instanceof Error
+          ? error.message
+          : "An error occurred while completing the workout.",
       buttons: [{ text: "OK", role: "confirm" }],
     });
   }
@@ -577,7 +611,7 @@ async function handleCompletedDone(notes: string) {
   // Clear completed workout state
   completedWorkout.value = null;
   completedStats.value = null;
-  
+
   // Refresh recent workouts to show the newly completed workout
   await loadRecentWorkouts();
 }
@@ -601,14 +635,16 @@ function handleWorkoutClick(workout: Workout) {
 async function handleRepeatWorkout(workout: Workout) {
   try {
     await repeatWorkout(workout);
+    // Navigation to full-screen page will happen via watch on currentWorkout
   } catch (error) {
     console.error("Failed to repeat workout:", error);
   }
 }
 
-function handleStartFromRoutineSelection(routine: WorkoutRoutine) {
+async function handleStartFromRoutineSelection(routine: WorkoutRoutine) {
   // Create workout from the selected routine
-  createWorkoutFromRoutine(routine);
+  await createWorkoutFromRoutine(routine);
+  // Navigation to full-screen page will happen via watch on currentWorkout
 }
 </script>
 

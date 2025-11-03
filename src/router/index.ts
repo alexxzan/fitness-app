@@ -12,6 +12,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/SplashScreen.vue"),
   },
   {
+    path: "/active-workout",
+    component: () => import("@/views/ActiveWorkoutPage.vue"),
+  },
+  {
     path: "/",
     component: TabsPage,
     children: [
@@ -46,6 +50,35 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
+});
+
+// Navigation guard to redirect to active workout page if active workout exists
+router.beforeEach(async (to, from, next) => {
+  // Don't redirect if already going to active workout page or splash
+  if (to.path === "/active-workout" || to.path === "/splash") {
+    next();
+    return;
+  }
+
+  // Check for active workout
+  try {
+    const { WorkoutRepository } = await import(
+      "@/features/workouts/repositories/workout.repository"
+    );
+    const activeWorkout = await WorkoutRepository.getActiveWorkout();
+
+    // If there's an active workout, always redirect to full-screen workout page
+    // This ensures users see their active workout instead of the empty state
+    if (activeWorkout && to.path !== "/active-workout") {
+      next("/active-workout");
+      return;
+    }
+  } catch (error) {
+    console.error("Error checking for active workout:", error);
+    // Continue with normal navigation on error
+  }
+
+  next();
 });
 
 // No navigation guard needed - initialization happens on app startup in main.ts

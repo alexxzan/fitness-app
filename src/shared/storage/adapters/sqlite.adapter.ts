@@ -303,15 +303,15 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     save: async (workout: Workout): Promise<string> => {
       const db = this.getDb();
       const serialized = this.serializeWorkout(workout);
-      
+
       try {
-        console.log('SQLiteAdapter: Saving workout', {
+        console.log("SQLiteAdapter: Saving workout", {
           id: serialized.id,
           name: serialized.name,
           completed: serialized.completed,
           exercisesLength: serialized.exercises?.length || 0,
         });
-        
+
         await db.query(
           `INSERT INTO workouts (
             id, name, type, exercises, interval_config, interval_progress,
@@ -352,11 +352,11 @@ export class SQLiteAdapter implements IDatabaseAdapter {
             serialized.updatedAt,
           ]
         );
-        
-        console.log('SQLiteAdapter: Workout saved successfully', serialized.id);
+
+        console.log("SQLiteAdapter: Workout saved successfully", serialized.id);
         return workout.id;
       } catch (error) {
-        console.error('SQLiteAdapter: Error saving workout', {
+        console.error("SQLiteAdapter: Error saving workout", {
           error,
           workoutId: serialized.id,
           exercisesJsonLength: serialized.exercises?.length,
@@ -374,7 +374,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     getActive: async (): Promise<Workout | null> => {
       const db = this.getDb();
       const result = await db.query(
-        "SELECT * FROM workouts WHERE end_time IS NULL OR end_time = '' LIMIT 1",
+        "SELECT * FROM workouts WHERE (end_time IS NULL OR end_time = '') AND (completed = 0 OR completed IS NULL) LIMIT 1",
         []
       );
       if (result.values && result.values.length > 0) {

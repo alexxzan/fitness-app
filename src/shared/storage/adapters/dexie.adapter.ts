@@ -126,7 +126,9 @@ export class DexieAdapter implements IDatabaseAdapter {
       const allWorkouts = await this.db.workouts.toArray();
       return (
         allWorkouts.find(
-          (w) => !w.endTime || w.endTime === "" || w.endTime === null
+          (w) =>
+            (!w.endTime || w.endTime === "" || w.endTime === null) &&
+            (w.completed === undefined || w.completed === false)
         ) ?? null
       );
     },
@@ -161,7 +163,10 @@ export class DexieAdapter implements IDatabaseAdapter {
   // Workout Programs
   workoutPrograms = {
     getAll: async (): Promise<WorkoutProgram[]> => {
-      return await this.db.workoutPrograms.orderBy("createdAt").reverse().toArray();
+      return await this.db.workoutPrograms
+        .orderBy("createdAt")
+        .reverse()
+        .toArray();
     },
 
     getById: async (id: string): Promise<WorkoutProgram | null> => {

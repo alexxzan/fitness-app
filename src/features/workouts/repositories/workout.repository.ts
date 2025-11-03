@@ -58,7 +58,17 @@ export class WorkoutRepository {
   static async setActiveWorkout(workout: Workout | null): Promise<void> {
     if (workout) {
       workout.endTime = undefined;
+      workout.completed = false; // Ensure workout is marked as not completed
       await this.save(workout);
+    } else {
+      // If null, we need to find and clear the active workout
+      // This shouldn't normally be needed, but ensures cleanup
+      const activeWorkout = await this.getActiveWorkout();
+      if (activeWorkout) {
+        activeWorkout.endTime = new Date().toISOString();
+        activeWorkout.completed = true;
+        await this.save(activeWorkout);
+      }
     }
   }
 
