@@ -21,8 +21,8 @@
       </ion-thumbnail>
 
       <ion-label>
-        <h2>{{ exercise.name }}</h2>
-        <div class="badges-row">
+        <h2 class="exercise-name">{{ exercise.name }}</h2>
+        <div v-if="showBadges" class="badges-row">
           <ion-chip
             v-for="bodyPart in exercise.bodyParts.slice(0, 2)"
             :key="bodyPart"
@@ -81,6 +81,7 @@ interface Props {
   exercises: Exercise[];
   favoriteIds?: string[];
   canAddToWorkout?: boolean;
+  showBadges?: boolean;
 }
 
 interface Emits {
@@ -92,6 +93,7 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   favoriteIds: () => [],
   canAddToWorkout: false,
+  showBadges: true,
 });
 
 const emit = defineEmits<Emits>();
@@ -153,6 +155,10 @@ ion-item h2 {
   font-weight: var(--font-weight-semibold);
   margin-bottom: var(--spacing-xs);
   color: var(--color-text-primary);
+}
+
+.exercise-name {
+  text-transform: capitalize;
 }
 
 .badges-row {

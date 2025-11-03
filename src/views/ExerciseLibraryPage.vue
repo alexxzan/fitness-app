@@ -198,35 +198,38 @@
 
         <!-- Exercise Grid/List -->
         <template v-else>
-          <ExerciseGrid
-            v-if="viewMode === 'grid'"
-            :exercises="displayedExercises"
-            :favorite-ids="favoriteIds"
-            :can-add-to-workout="canAddToWorkout"
-            @exercise-click="handleExerciseClick"
-            @toggle-favorite="handleToggleFavorite"
-            @add-to-workout="handleAddToWorkout"
-          />
-          <ExerciseListView
-            v-else
-            :exercises="displayedExercises"
-            :favorite-ids="favoriteIds"
-            :can-add-to-workout="canAddToWorkout"
-            @exercise-click="handleExerciseClick"
-            @toggle-favorite="handleToggleFavorite"
-            @add-to-workout="handleAddToWorkout"
-          />
-
-          <!-- Infinite Scroll -->
-          <ion-infinite-scroll
-            threshold="100px"
-            @ionInfinite="handleInfiniteScroll"
-          >
-            <ion-infinite-scroll-content
-              loading-spinner="bubbles"
-              loading-text="Loading more exercises..."
+          <template v-if="viewMode === 'grid'">
+            <ExerciseGrid
+              :exercises="displayedExercises"
+              :favorite-ids="favoriteIds"
+              :can-add-to-workout="canAddToWorkout"
+              @exercise-click="handleExerciseClick"
+              @toggle-favorite="handleToggleFavorite"
+              @add-to-workout="handleAddToWorkout"
             />
-          </ion-infinite-scroll>
+            <!-- Infinite Scroll for Grid View -->
+            <ion-infinite-scroll
+              threshold="100px"
+              @ionInfinite="handleInfiniteScroll"
+            >
+              <ion-infinite-scroll-content
+                loading-spinner="bubbles"
+                loading-text="Loading more exercises..."
+              />
+            </ion-infinite-scroll>
+          </template>
+          <ExerciseListWithSearch
+            v-else
+            :exercises="exercisesList"
+            :favorite-ids="favoriteIds"
+            :can-add-to-workout="canAddToWorkout"
+            :show-search="false"
+            :show-badges="true"
+            :is-loading="isLoading"
+            @exercise-click="handleExerciseClick"
+            @toggle-favorite="handleToggleFavorite"
+            @add-to-workout="handleAddToWorkout"
+          />
         </template>
       </div>
     </ion-content>
@@ -543,6 +546,7 @@ import ExerciseCard from "@/features/exercises/components/ExerciseCard.vue";
 import ExerciseFiltersModal from "@/features/exercises/components/ExerciseFiltersModal.vue";
 import ExerciseGrid from "@/features/exercises/components/ExerciseGrid.vue";
 import ExerciseListView from "@/features/exercises/components/ExerciseListView.vue";
+import ExerciseListWithSearch from "@/features/exercises/components/ExerciseListWithSearch.vue";
 import ExerciseDetailModal from "@/features/exercises/components/ExerciseDetailModal.vue";
 import FormField from "@/components/molecules/FormField.vue";
 import AppButton from "@/components/atoms/AppButton.vue";
@@ -667,7 +671,8 @@ const activeFilterCount = computed(() => {
   );
 });
 
-const displayedExercises = computed(() => {
+// Full list of exercises (filtered and sorted, but not paginated)
+const exercisesList = computed(() => {
   let exercisesToDisplay: Exercise[] = [];
 
   // Filter by active tab
@@ -723,8 +728,12 @@ const displayedExercises = computed(() => {
       break;
   }
 
-  // Pagination
-  return sorted.slice(0, currentPage.value * itemsPerPage);
+  return sorted;
+});
+
+// For grid view, keep pagination (grid view doesn't use ExerciseListWithSearch)
+const displayedExercises = computed(() => {
+  return exercisesList.value.slice(0, currentPage.value * itemsPerPage);
 });
 
 // Methods
@@ -839,9 +848,12 @@ function handleAddToWorkout(exercise: Exercise) {
   }
 }
 
+// Infinite scroll handler (only used for grid view now)
 function handleInfiniteScroll(event: CustomEvent) {
   setTimeout(() => {
-    currentPage.value++;
+    if (viewMode.value === "grid") {
+      currentPage.value++;
+    }
     (event.target as HTMLIonInfiniteScrollElement).complete();
   }, 500);
 }
