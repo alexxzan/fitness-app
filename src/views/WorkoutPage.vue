@@ -177,6 +177,10 @@ import FavoriteRoutinesSection from "@/features/workouts/components/FavoriteRout
 import MyWorkoutProgramsSection from "@/features/workouts/components/MyWorkoutProgramsSection.vue";
 import AddProgramModal from "@/features/workouts/components/AddProgramModal.vue";
 import type { WorkoutRoutine } from "@/features/workouts/types/workout.types";
+import {
+  mockRecentWorkouts as mockRecentWorkoutsData,
+  mockFavoriteRoutines as mockFavoriteRoutinesData,
+} from "@/features/workouts/mocks/mock";
 
 const {
   currentWorkout,
@@ -185,6 +189,7 @@ const {
   createRegularWorkout,
   createIntervalWorkout,
   createWorkoutFromRoutine,
+  repeatWorkout,
   updateIntervalProgress,
   addExercise,
   addSet,
@@ -196,12 +201,8 @@ const {
 
 const { exercises, loadExercises } = useExerciseLibrary();
 const { createRoutineFromTemplate } = useRoutine();
-const {
-  programs,
-  loadPrograms,
-  createProgramFromTemplate,
-  deleteProgram,
-} = useProgram();
+const { programs, loadPrograms, createProgramFromTemplate, deleteProgram } =
+  useProgram();
 
 // Modal states
 const showExerciseModal = ref(false);
@@ -218,105 +219,9 @@ const intervalModalRef = ref<InstanceType<
 const completedWorkout = ref<Workout | null>(null);
 const completedStats = ref<WorkoutStatistics | null>(null);
 
-// Mock data for empty state
-const mockRecentWorkouts = ref<Workout[]>([
-  {
-    id: "mock-1",
-    name: "Push Day",
-    type: "regular",
-    exercises: [
-      {
-        id: "ex-1",
-        exerciseId: "1",
-        exerciseName: "Bench Press",
-        sets: [
-          { id: "set-1", reps: 8, weight: 80, completed: true },
-          { id: "set-2", reps: 8, weight: 80, completed: true },
-          { id: "set-3", reps: 6, weight: 85, completed: true },
-        ],
-        order: 1,
-      },
-      {
-        id: "ex-2",
-        exerciseId: "2",
-        exerciseName: "Overhead Press",
-        sets: [
-          { id: "set-4", reps: 10, weight: 50, completed: true },
-          { id: "set-5", reps: 8, weight: 55, completed: true },
-        ],
-        order: 2,
-      },
-    ],
-    startTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(
-      Date.now() - 2 * 24 * 60 * 60 * 1000 + 45 * 60 * 1000
-    ).toISOString(),
-    completed: true,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "mock-2",
-    name: "Pull Day",
-    type: "regular",
-    exercises: [
-      {
-        id: "ex-3",
-        exerciseId: "3",
-        exerciseName: "Deadlift",
-        sets: [
-          { id: "set-6", reps: 5, weight: 140, completed: true },
-          { id: "set-7", reps: 5, weight: 145, completed: true },
-        ],
-        order: 1,
-      },
-      {
-        id: "ex-4",
-        exerciseId: "4",
-        exerciseName: "Pull-ups",
-        sets: [
-          { id: "set-8", reps: 10, completed: true },
-          { id: "set-9", reps: 8, completed: true },
-        ],
-        order: 2,
-      },
-    ],
-    startTime: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(
-      Date.now() - 4 * 24 * 60 * 60 * 1000 + 50 * 60 * 1000
-    ).toISOString(),
-    completed: true,
-    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-]);
-
-const mockFavoriteRoutines = ref<WorkoutRoutine[]>([
-  {
-    id: "routine-1",
-    name: "Push Pull Legs",
-    description: "Classic 3-day split for balanced muscle development",
-    exercises: [],
-    type: "custom",
-    isFavorite: true,
-    estimatedDuration: 60,
-    difficulty: "intermediate",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "routine-2",
-    name: "Full Body HIIT",
-    description: "High-intensity interval training for full body conditioning",
-    exercises: [],
-    type: "custom",
-    isFavorite: true,
-    estimatedDuration: 30,
-    difficulty: "advanced",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-]);
+// Mock data for empty state - imported from mocks
+const mockRecentWorkouts = ref<Workout[]>(mockRecentWorkoutsData);
+const mockFavoriteRoutines = ref<WorkoutRoutine[]>(mockFavoriteRoutinesData);
 
 // Workout state machine
 const workoutState = computed<"empty" | "active" | "completed">(() => {
@@ -487,15 +392,11 @@ function handleWorkoutClick(workout: Workout) {
   console.log("Workout clicked:", workout);
 }
 
-function handleRepeatWorkout(workout: Workout) {
-  // TODO: Create new workout based on this one
-  console.log("Repeat workout:", workout);
-  // For now, open routine selector if it was from a routine
-  if (workout.routineId || workout.routineTemplateId) {
-    handleStartFromRoutine();
-  } else {
-    // Otherwise, just create a regular workout with same name
-    createRegularWorkout(`${workout.name} (Repeat)`);
+async function handleRepeatWorkout(workout: Workout) {
+  try {
+    await repeatWorkout(workout);
+  } catch (error) {
+    console.error("Failed to repeat workout:", error);
   }
 }
 

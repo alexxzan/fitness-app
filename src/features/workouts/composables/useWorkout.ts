@@ -30,9 +30,9 @@ export function useWorkout() {
     error.value = null;
     try {
       const activeWorkout = await WorkoutRepository.getActiveWorkout();
-      
+
       // Discard interval workouts on load - they're time-sensitive and can't be restored
-      if (activeWorkout?.type === 'interval') {
+      if (activeWorkout?.type === "interval") {
         await WorkoutRepository.setActiveWorkout(null);
         currentWorkout.value = null;
       } else {
@@ -60,7 +60,7 @@ export function useWorkout() {
     const workout: Workout = {
       id: generateId(),
       name,
-      type: 'regular',
+      type: "regular",
       exercises: [],
       startTime: new Date().toISOString(),
       createdAt: new Date().toISOString(),
@@ -75,18 +75,21 @@ export function useWorkout() {
   /**
    * Create a new interval workout
    */
-  async function createIntervalWorkout(name: string, config: IntervalConfig): Promise<Workout> {
+  async function createIntervalWorkout(
+    name: string,
+    config: IntervalConfig
+  ): Promise<Workout> {
     const workout: Workout = {
       id: generateId(),
       name,
-      type: 'interval',
+      type: "interval",
       exercises: [],
       intervalConfig: config,
       intervalProgress: {
         currentRound: 1,
         currentInterval: 0,
         completedIntervals: 0,
-        currentPhase: 'work',
+        currentPhase: "work",
         phaseStartTime: new Date().toISOString(),
         isPaused: false,
       },
@@ -101,42 +104,104 @@ export function useWorkout() {
   }
 
   /**
+   * Repeat a workout by creating a new workout with the same exercises
+   * Sets are copied but marked as incomplete so user can log new data
+   */
+  async function repeatWorkout(workout: Workout): Promise<Workout> {
+    if (workout.type === "interval") {
+      // For interval workouts, create a new interval workout with the same config
+      if (!workout.intervalConfig) {
+        throw new Error(
+          "Cannot repeat interval workout without interval config"
+        );
+      }
+      return createIntervalWorkout(
+        `${workout.name} (Repeat)`,
+        workout.intervalConfig
+      );
+    }
+
+    // For regular workouts, copy exercises with empty sets
+    const exercises: WorkoutExercise[] = workout.exercises.map((ex) => ({
+      id: generateId(),
+      exerciseId: ex.exerciseId,
+      exerciseName: ex.exerciseName,
+      sets: ex.sets.map((set) => ({
+        id: generateId(),
+        reps: set.reps, // Keep reps as a suggestion
+        weight: set.weight, // Keep weight as a suggestion
+        restTime: set.restTime,
+        completed: false, // Mark all sets as incomplete
+        setType: set.setType || "working",
+        notes: set.notes,
+      })),
+      notes: ex.notes,
+      order: ex.order,
+    }));
+
+    const newWorkout: Workout = {
+      id: generateId(),
+      name: `${workout.name} (Repeat)`,
+      type: "regular",
+      exercises,
+      routineId: workout.routineId,
+      routineTemplateId: workout.routineTemplateId,
+      completed: false,
+      completionPercentage: 0,
+      startTime: new Date().toISOString(),
+      notes: workout.notes,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    currentWorkout.value = newWorkout;
+    await WorkoutRepository.setActiveWorkout(toPlainWorkout(newWorkout));
+    return newWorkout;
+  }
+
+  /**
    * Create a workout from a routine
    */
-  async function createWorkoutFromRoutine(routine: WorkoutRoutine): Promise<Workout> {
+  async function createWorkoutFromRoutine(
+    routine: WorkoutRoutine
+  ): Promise<Workout> {
     // Convert routine exercises to workout exercises with empty sets
-    const exercises: WorkoutExercise[] = routine.exercises.map((routineEx: RoutineExercise) => {
-      const sets: WorkoutSet[] = [];
-      
-      // Pre-populate sets based on targetSets if specified
-      if (routineEx.targetSets && routineEx.targetSets > 0) {
-        for (let i = 0; i < routineEx.targetSets; i++) {
-          sets.push({
-            id: generateId(),
-            reps: undefined,
-            weight: undefined,
-            restTime: routineEx.restTime,
-            completed: false,
-            setType: 'working',
-            notes: routineEx.targetReps ? `Target: ${routineEx.targetReps}` : undefined,
-          });
-        }
-      }
+    const exercises: WorkoutExercise[] = routine.exercises.map(
+      (routineEx: RoutineExercise) => {
+        const sets: WorkoutSet[] = [];
 
-      return {
-        id: generateId(),
-        exerciseId: routineEx.exerciseId,
-        exerciseName: routineEx.exerciseName,
-        sets,
-        notes: routineEx.notes,
-        order: routineEx.order,
-      };
-    });
+        // Pre-populate sets based on targetSets if specified
+        if (routineEx.targetSets && routineEx.targetSets > 0) {
+          for (let i = 0; i < routineEx.targetSets; i++) {
+            sets.push({
+              id: generateId(),
+              reps: undefined,
+              weight: undefined,
+              restTime: routineEx.restTime,
+              completed: false,
+              setType: "working",
+              notes: routineEx.targetReps
+                ? `Target: ${routineEx.targetReps}`
+                : undefined,
+            });
+          }
+        }
+
+        return {
+          id: generateId(),
+          exerciseId: routineEx.exerciseId,
+          exerciseName: routineEx.exerciseName,
+          sets,
+          notes: routineEx.notes,
+          order: routineEx.order,
+        };
+      }
+    );
 
     const workout: Workout = {
       id: generateId(),
       name: routine.name,
-      type: 'regular',
+      type: "regular",
       exercises,
       routineId: routine.id,
       routineTemplateId: routine.templateId,
@@ -157,7 +222,7 @@ export function useWorkout() {
    * Update interval progress
    */
   function updateIntervalProgress(progress: IntervalProgress) {
-    if (!currentWorkout.value || currentWorkout.value.type !== 'interval') {
+    if (!currentWorkout.value || currentWorkout.value.type !== "interval") {
       throw new Error("No active interval workout");
     }
 
@@ -224,7 +289,7 @@ export function useWorkout() {
 
     const newSet: WorkoutSet = {
       id: generateId(),
-      setType: set.setType || 'working', // Default to 'working'
+      setType: set.setType || "working", // Default to 'working'
       ...set,
       completed: false,
     };
@@ -308,7 +373,7 @@ export function useWorkout() {
     }
 
     // Regular workout statistics
-    if (currentWorkout.value.type === 'regular') {
+    if (currentWorkout.value.type === "regular") {
       let totalVolume = 0;
       let totalSets = 0;
       let totalReps = 0;
@@ -333,13 +398,17 @@ export function useWorkout() {
     }
 
     // Interval workout statistics
-    if (currentWorkout.value.type === 'interval' && currentWorkout.value.intervalProgress) {
+    if (
+      currentWorkout.value.type === "interval" &&
+      currentWorkout.value.intervalProgress
+    ) {
       return {
         totalVolume: 0, // Not applicable for interval
         totalSets: 0, // Not applicable for interval
         totalReps: 0, // Not applicable for interval
         duration,
-        exercisesCount: currentWorkout.value.intervalConfig?.exercises.length || 0,
+        exercisesCount:
+          currentWorkout.value.intervalConfig?.exercises.length || 0,
       };
     }
 
@@ -351,7 +420,6 @@ export function useWorkout() {
       exercisesCount: 0,
     };
   });
-
 
   /**
    * Helper to convert reactive workout to plain object for storage
@@ -369,7 +437,9 @@ export function useWorkout() {
     isLoading.value = true;
     error.value = null;
     try {
-      await WorkoutRepository.setActiveWorkout(toPlainWorkout(currentWorkout.value));
+      await WorkoutRepository.setActiveWorkout(
+        toPlainWorkout(currentWorkout.value)
+      );
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Failed to save workout";
@@ -389,13 +459,18 @@ export function useWorkout() {
     isLoading.value = true;
     error.value = null;
     try {
-      const { calculateWorkoutCompletionPercentage, updateRoutineAnalyticsAfterWorkout } = useRoutineAnalytics();
+      const {
+        calculateWorkoutCompletionPercentage,
+        updateRoutineAnalyticsAfterWorkout,
+      } = useRoutineAnalytics();
 
       currentWorkout.value.endTime = new Date().toISOString();
       currentWorkout.value.updatedAt = new Date().toISOString();
 
       // Calculate completion percentage
-      const completionPercentage = calculateWorkoutCompletionPercentage(currentWorkout.value);
+      const completionPercentage = calculateWorkoutCompletionPercentage(
+        currentWorkout.value
+      );
       currentWorkout.value.completionPercentage = completionPercentage;
       currentWorkout.value.completed = completionPercentage >= 50; // Consider 50%+ as completed
 
@@ -451,6 +526,7 @@ export function useWorkout() {
     createRegularWorkout,
     createIntervalWorkout,
     createWorkoutFromRoutine,
+    repeatWorkout,
     updateIntervalProgress,
     addExercise,
     removeExercise,
