@@ -2,6 +2,19 @@
   <ion-page>
     <ion-header>
       <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-button
+            v-if="
+              currentWorkout &&
+              workoutState === 'active' &&
+              currentWorkout?.type === 'regular'
+            "
+            @click="handleCancelWorkout"
+            color="danger"
+          >
+            Cancel
+          </ion-button>
+        </ion-buttons>
         <ion-title>Workout</ion-title>
         <ion-buttons slot="end">
           <ion-button
@@ -137,6 +150,15 @@
         @close="showAddProgramModal = false"
         @select-template="handleAddProgramFromTemplate"
       />
+
+      <!-- Cancel Workout Alert -->
+      <AlertDialog
+        :is-open="showCancelAlert"
+        :header="alertOptions.header"
+        :message="alertOptions.message"
+        :buttons="alertOptions.buttons"
+        @dismiss="showCancelAlert = false"
+      />
     </ion-content>
   </ion-page>
 </template>
@@ -151,8 +173,11 @@ import {
   IonContent,
   IonButton,
   IonButtons,
-  alertController,
+  IonIcon,
 } from "@ionic/vue";
+import AlertDialog from "@/components/molecules/AlertDialog.vue";
+import { useAlert } from "@/shared/composables/useAlert";
+import { close } from "ionicons/icons";
 import { useWorkout } from "@/features/workouts/composables/useWorkout";
 import { useRoutine } from "@/features/workouts/composables/useRoutine";
 import { useProgram } from "@/features/workouts/composables/useProgram";
@@ -200,6 +225,7 @@ const {
   toggleSetCompleted,
   deleteSet,
   finishWorkout,
+  discardWorkout,
 } = useWorkout();
 
 const { exercises, loadExercises } = useExerciseLibrary();
@@ -223,6 +249,14 @@ const showAddProgramModal = ref(false);
 const intervalModalRef = ref<InstanceType<
   typeof StartIntervalWorkoutModal
 > | null>(null);
+
+// Alert dialog
+const {
+  isOpen: showCancelAlert,
+  alertOptions,
+  showDestructiveConfirm,
+  showAlert,
+} = useAlert();
 
 // Completed workout state
 const completedWorkout = ref<Workout | null>(null);
@@ -281,38 +315,21 @@ async function handleRemoveProgram(program: any) {
 }
 
 async function handleRenameProgram(program: any) {
-  const alert = await alertController.create({
-    header: "Rename Program",
-    inputs: [
-      {
-        name: "programName",
-        type: "text",
-        value: program.name,
-        placeholder: "Program name",
-      },
-    ],
-    buttons: [
-      {
-        text: "Cancel",
-        role: "cancel",
-      },
-      {
-        text: "Rename",
-        handler: async (data) => {
-          const newName = data.programName?.trim();
-          if (newName && newName.length > 0) {
-            try {
-              await renameProgram(program.id, newName);
-            } catch (error) {
-              console.error("Failed to rename program:", error);
-            }
-          }
-        },
-      },
-    ],
-  });
-
-  await alert.present();
+  // TODO: Replace with a proper input dialog component
+  // For now, using a simple prompt as a workaround
+  const newName = window.prompt("Rename Program", program.name);
+  if (newName && newName.trim().length > 0) {
+    try {
+      await renameProgram(program.id, newName.trim());
+    } catch (error) {
+      console.error("Failed to rename program:", error);
+      showAlert({
+        header: "Error",
+        message: "Failed to rename program. Please try again.",
+        buttons: [{ text: "OK", role: "confirm" }],
+      });
+    }
+  }
 }
 
 async function handleCopyProgram(program: any) {
@@ -414,6 +431,23 @@ async function handleFinishWorkout() {
   } catch (error) {
     console.error("Failed to finish workout:", error);
   }
+}
+
+async function handleCancelWorkout() {
+  showDestructiveConfirm({
+    header: "Cancel Workout",
+    message:
+      "Are you sure you want to cancel this workout? All progress will be lost.",
+    confirmText: "Cancel Workout",
+    cancelText: "Keep Working Out",
+    onConfirm: async () => {
+      try {
+        await discardWorkout();
+      } catch (error) {
+        console.error("Failed to cancel workout:", error);
+      }
+    },
+  });
 }
 
 async function handleCompletedDone(notes: string) {

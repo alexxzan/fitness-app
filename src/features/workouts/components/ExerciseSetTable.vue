@@ -104,8 +104,8 @@
       <table class="sets-table" ref="tableRef">
         <thead>
           <tr>
-            <th class="col-set-number">#</th>
-            <th class="col-prev-weight">Prev</th>
+            <th class="col-set-number">Set</th>
+            <th class="col-prev-weight">Previous</th>
             <th class="col-weight">Weight</th>
             <th class="col-reps">Reps</th>
             <th class="col-completed">✓</th>
@@ -193,11 +193,14 @@
 
               <!-- Completed Checkbox -->
               <td class="col-completed">
-                <ion-checkbox
+                <AppCheckbox
                   :checked="set.completed"
-                  @ion-change="handleToggleCompleted(set.id)"
+                  @update:checked="
+                    (checked) => {
+                      handleToggleCompleted(set.id);
+                    }
+                  "
                   @click.stop
-                  class="set-checkbox"
                 />
               </td>
             </tr>
@@ -290,7 +293,6 @@ import {
 } from "vue";
 import {
   IonInput,
-  IonCheckbox,
   IonIcon,
   IonModal,
   IonHeader,
@@ -301,6 +303,7 @@ import {
   IonContent,
   IonImg,
 } from "@ionic/vue";
+import AppCheckbox from "@/components/atoms/AppCheckbox.vue";
 import {
   add,
   trash,
@@ -808,6 +811,7 @@ function handleDeleteSet(setId: string) {
 
 // Load exercise image URL
 async function loadExerciseImage() {
+  console.log("Loading exercise image for:", props.exercise);
   if (!props.exercise.exerciseId) {
     exerciseImageUrl.value = null;
     return;
@@ -1070,7 +1074,7 @@ watch(
 
 .col-set-number {
   text-align: center !important;
-  width: 20px;
+  width: 10%;
   position: sticky;
   left: 0;
   background: var(--color-background-elevated);
@@ -1103,7 +1107,7 @@ watch(
 }
 
 .col-prev-weight {
-  width: 15%;
+  width: 25%;
   text-align: center !important;
 }
 
@@ -1119,7 +1123,7 @@ watch(
 
 .col-completed {
   width: 50px;
-  text-align: center;
+  text-align: center !important;
   position: relative;
   z-index: 3;
   background: var(--card-background);
@@ -1128,6 +1132,15 @@ watch(
 .col-completed th,
 .col-completed td {
   background: var(--card-background) !important;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.col-completed td {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs);
 }
 
 .set-row--completed .col-completed {
@@ -1159,7 +1172,6 @@ watch(
 
 .set-row--completed {
   background: rgba(22, 163, 74, 0.12);
-  border-left: 3px solid var(--color-success-500);
 }
 
 .set-row--completed td {
@@ -1167,8 +1179,8 @@ watch(
 }
 
 .set-row--completed .set-number {
-  color: var(--color-success-600);
-  font-weight: var(--typography-body-weight-semibold);
+  color: var(--color-success-500);
+  font-weight: var(--font-weight-bold);
 }
 
 .set-row--completed .set-input {
@@ -1278,19 +1290,6 @@ watch(
 
 .set-input input {
   text-align: center;
-}
-
-.set-checkbox {
-  min-width: 44px;
-  min-height: 44px;
-  margin: 0 auto;
-  display: block;
-  position: relative;
-  z-index: 4;
-  --checkbox-size: 24px;
-  --checkbox-background-checked: var(--color-primary-500);
-  --checkbox-border-color: var(--color-border);
-  --checkbox-border-width: 2px;
 }
 
 .sets-table-wrapper {

@@ -99,7 +99,7 @@ import { ref, computed } from "vue";
 import type { WorkoutProgram, WorkoutRoutine } from "../types/workout.types";
 import ContentMenu, {
   type ContentMenuItem,
-} from "@/shared/components/ContentMenu.vue";
+} from "@/components/molecules/ContentMenu.vue";
 
 interface Props {
   programs?: WorkoutProgram[];
