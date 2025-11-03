@@ -112,6 +112,70 @@ export function useProgram() {
     }
   }
 
+  /**
+   * Rename a program
+   */
+  async function renameProgram(id: string, newName: string): Promise<void> {
+    try {
+      const program = await WorkoutRepository.getProgramById(id);
+      if (!program) {
+        throw new Error("Program not found");
+      }
+
+      program.name = newName.trim();
+      program.updatedAt = new Date().toISOString();
+
+      await WorkoutRepository.saveProgram(program);
+      await loadPrograms(); // Refresh list
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : "Failed to rename program";
+      throw err;
+    }
+  }
+
+  /**
+   * Copy a program
+   * Creates a duplicate with " (Copy)" appended to the name
+   */
+  async function copyProgram(program: WorkoutProgram): Promise<WorkoutProgram> {
+    try {
+      // Generate new IDs for all routines in the program
+      const copiedRoutines: WorkoutRoutine[] = program.workouts.map((routine) => {
+        // Generate new IDs for all exercises in the routine
+        const copiedExercises = routine.exercises.map((exercise) => ({
+          ...exercise,
+          id: generateId(),
+        }));
+
+        return {
+          ...routine,
+          id: generateId(),
+          exercises: copiedExercises,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      });
+
+      const copiedProgram: WorkoutProgram = {
+        ...program,
+        id: generateId(),
+        name: `${program.name} (Copy)`,
+        workouts: copiedRoutines,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      await WorkoutRepository.saveProgram(copiedProgram);
+      await loadPrograms(); // Refresh list
+      return copiedProgram;
+    } catch (err) {
+      error.value =
+        err instanceof Error ? err.message : "Failed to copy program";
+      throw err;
+    }
+  }
+
   return {
     programs,
     isLoading,
@@ -120,6 +184,8 @@ export function useProgram() {
     getProgramById,
     createProgramFromTemplate,
     deleteProgram,
+    renameProgram,
+    copyProgram,
   };
 }
 

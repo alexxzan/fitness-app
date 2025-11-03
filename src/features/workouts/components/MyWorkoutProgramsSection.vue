@@ -43,9 +43,10 @@
                 slot="end"
                 fill="clear"
                 size="small"
-                @click.stop="$emit('removeProgram', program)"
+                :id="`program-menu-${program.id}`"
+                @click.stop="openMenu($event, program)"
               >
-                <ion-icon :icon="close" />
+                <ion-icon :icon="ellipsisVertical" />
               </ion-button>
             </ion-item>
 
@@ -74,6 +75,14 @@
         </ion-accordion-group>
       </div>
     </div>
+
+    <!-- Program Menu -->
+    <ContentMenu
+      :is-open="menuOpen"
+      header="Program Options"
+      :items="menuItems"
+      @dismiss="closeMenu"
+    />
   </div>
 </template>
 
@@ -85,8 +94,12 @@ import {
   IonAccordion,
   IonAccordionGroup,
 } from "@ionic/vue";
-import { add, close, chevronForward } from "ionicons/icons";
+import { add, ellipsisVertical, chevronForward } from "ionicons/icons";
+import { ref, computed } from "vue";
 import type { WorkoutProgram, WorkoutRoutine } from "../types/workout.types";
+import ContentMenu, {
+  type ContentMenuItem,
+} from "@/shared/components/ContentMenu.vue";
 
 interface Props {
   programs?: WorkoutProgram[];
@@ -100,7 +113,53 @@ const emit = defineEmits<{
   addProgram: [];
   startWorkout: [routine: WorkoutRoutine];
   removeProgram: [program: WorkoutProgram];
+  renameProgram: [program: WorkoutProgram];
+  copyProgram: [program: WorkoutProgram];
 }>();
+
+// Menu state
+const menuOpen = ref(false);
+const selectedProgram = ref<WorkoutProgram | null>(null);
+
+const menuItems = computed<ContentMenuItem[]>(() => [
+  {
+    text: "Rename",
+    handler: () => {
+      if (selectedProgram.value) {
+        emit("renameProgram", selectedProgram.value);
+      }
+    },
+  },
+  {
+    text: "Copy",
+    handler: () => {
+      if (selectedProgram.value) {
+        emit("copyProgram", selectedProgram.value);
+      }
+    },
+  },
+  {
+    text: "Delete",
+    role: "destructive",
+    handler: () => {
+      if (selectedProgram.value) {
+        emit("removeProgram", selectedProgram.value);
+      }
+    },
+  },
+]);
+
+function openMenu(event: Event, program: WorkoutProgram) {
+  event.stopPropagation();
+  event.preventDefault();
+  selectedProgram.value = program;
+  menuOpen.value = true;
+}
+
+function closeMenu() {
+  menuOpen.value = false;
+  selectedProgram.value = null;
+}
 </script>
 
 <style scoped>
@@ -326,5 +385,9 @@ const emit = defineEmits<{
 .workout-item ion-icon {
   font-size: 18px;
   color: var(--color-text-tertiary);
+}
+
+.delete-item ion-label {
+  --color: var(--ion-color-danger);
 }
 </style>

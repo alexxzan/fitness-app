@@ -40,6 +40,8 @@
             @add-program="showAddProgramModal = true"
             @start-workout="handleStartWorkoutFromProgram"
             @remove-program="handleRemoveProgram"
+            @rename-program="handleRenameProgram"
+            @copy-program="handleCopyProgram"
           />
 
           <!-- Quick Start Buttons -->
@@ -149,6 +151,7 @@ import {
   IonContent,
   IonButton,
   IonButtons,
+  alertController,
 } from "@ionic/vue";
 import { useWorkout } from "@/features/workouts/composables/useWorkout";
 import { useRoutine } from "@/features/workouts/composables/useRoutine";
@@ -201,8 +204,14 @@ const {
 
 const { exercises, loadExercises } = useExerciseLibrary();
 const { createRoutineFromTemplate } = useRoutine();
-const { programs, loadPrograms, createProgramFromTemplate, deleteProgram } =
-  useProgram();
+const {
+  programs,
+  loadPrograms,
+  createProgramFromTemplate,
+  deleteProgram,
+  renameProgram,
+  copyProgram,
+} = useProgram();
 
 // Modal states
 const showExerciseModal = ref(false);
@@ -269,6 +278,49 @@ async function handleStartWorkoutFromProgram(routine: WorkoutRoutine) {
 
 async function handleRemoveProgram(program: any) {
   await deleteProgram(program.id);
+}
+
+async function handleRenameProgram(program: any) {
+  const alert = await alertController.create({
+    header: "Rename Program",
+    inputs: [
+      {
+        name: "programName",
+        type: "text",
+        value: program.name,
+        placeholder: "Program name",
+      },
+    ],
+    buttons: [
+      {
+        text: "Cancel",
+        role: "cancel",
+      },
+      {
+        text: "Rename",
+        handler: async (data) => {
+          const newName = data.programName?.trim();
+          if (newName && newName.length > 0) {
+            try {
+              await renameProgram(program.id, newName);
+            } catch (error) {
+              console.error("Failed to rename program:", error);
+            }
+          }
+        },
+      },
+    ],
+  });
+
+  await alert.present();
+}
+
+async function handleCopyProgram(program: any) {
+  try {
+    await copyProgram(program);
+  } catch (error) {
+    console.error("Failed to copy program:", error);
+  }
 }
 
 // Regular Workout Handlers
