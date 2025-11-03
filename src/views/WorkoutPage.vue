@@ -41,7 +41,7 @@
 
           <!-- Recent Workouts -->
           <RecentWorkoutsSection
-            :workouts="mockRecentWorkouts"
+            :workouts="recentWorkouts"
             @view-all="handleViewAllWorkouts"
             @workout-click="handleWorkoutClick"
             @repeat-workout="handleRepeatWorkout"
@@ -221,9 +221,9 @@ import MyWorkoutProgramsSection from "@/features/workouts/components/MyWorkoutPr
 import AddProgramModal from "@/features/workouts/components/AddProgramModal.vue";
 import type { WorkoutRoutine } from "@/features/workouts/types/workout.types";
 import {
-  mockRecentWorkouts as mockRecentWorkoutsData,
   mockFavoriteRoutines as mockFavoriteRoutinesData,
 } from "@/features/workouts/mocks/mock";
+import { WorkoutRepository } from "@/features/workouts/repositories/workout.repository";
 
 const {
   currentWorkout,
@@ -286,8 +286,8 @@ const {
 const completedWorkout = ref<Workout | null>(null);
 const completedStats = ref<WorkoutStatistics | null>(null);
 
-// Mock data for empty state - imported from mocks
-const mockRecentWorkouts = ref<Workout[]>(mockRecentWorkoutsData);
+// Real data for empty state
+const recentWorkouts = ref<Workout[]>([]);
 const mockFavoriteRoutines = ref<WorkoutRoutine[]>(mockFavoriteRoutinesData);
 
 // Workout state machine
@@ -297,10 +297,20 @@ const workoutState = computed<"empty" | "active" | "completed">(() => {
   return "empty";
 });
 
+async function loadRecentWorkouts() {
+  try {
+    recentWorkouts.value = await WorkoutRepository.getRecentWorkouts(10);
+  } catch (error) {
+    console.error("Failed to load recent workouts:", error);
+    recentWorkouts.value = [];
+  }
+}
+
 onMounted(async () => {
   await loadActiveWorkout();
   await loadExercises();
   await loadPrograms();
+  await loadRecentWorkouts();
 });
 
 // Routine Handlers
@@ -567,6 +577,9 @@ async function handleCompletedDone(notes: string) {
   // Clear completed workout state
   completedWorkout.value = null;
   completedStats.value = null;
+  
+  // Refresh recent workouts to show the newly completed workout
+  await loadRecentWorkouts();
 }
 
 // New empty state handlers

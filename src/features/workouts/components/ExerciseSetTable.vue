@@ -211,6 +211,34 @@
                 />
               </td>
             </tr>
+            <!-- Fill Remaining Sets Prompt (after first set) -->
+            <tr
+              v-if="index === 0 && showFillRemainingPrompt"
+              class="fill-remaining-prompt-row"
+            >
+              <td colspan="5" class="fill-remaining-prompt">
+                <div class="fill-prompt-content">
+                  <span class="fill-prompt-text">
+                    Fill remaining sets with
+                    {{ firstSetWeight }}kg × {{ firstSetReps }}?
+                  </span>
+                  <div class="fill-prompt-buttons">
+                    <button
+                      class="fill-prompt-button fill-all-button"
+                      @click.stop="handleFillAllRemainingSets"
+                    >
+                      Fill All
+                    </button>
+                    <button
+                      class="fill-prompt-button dismiss-button"
+                      @click.stop="dismissFillRemainingPrompt"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              </td>
+            </tr>
           </template>
         </tbody>
       </table>
@@ -394,6 +422,11 @@ const showWarningModal = ref(false);
 const currentWarning = ref("");
 const currentWarningSetId = ref<string | null>(null);
 const previousSetsData = ref<Array<{ weight?: number; reps?: number }>>([]);
+
+// Fill remaining sets prompt
+const showFillRemainingPrompt = ref(false);
+const firstSetWeight = ref<number | null>(null);
+const firstSetReps = ref<number | null>(null);
 
 // Load previous sets data for the exercise
 async function loadPreviousSetsData() {
@@ -781,6 +814,15 @@ function handleWeightChange(setId: string, event: Event) {
   const value = target.value;
   const numValue = value ? Number(value) : null;
   emit("updateSet", setId, "weight", numValue);
+  
+  // Check if we should show fill remaining prompt
+  checkFillRemainingPrompt(setId, numValue, null);
+  
+  // Auto-dismiss prompt if user starts typing in second set
+  const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
+  if (setIndex === 1 && showFillRemainingPrompt.value) {
+    dismissFillRemainingPrompt();
+  }
 }
 
 function handleRepsChange(setId: string, event: Event) {
@@ -788,6 +830,89 @@ function handleRepsChange(setId: string, event: Event) {
   const value = target.value;
   const numValue = value ? Number(value) : null;
   emit("updateSet", setId, "reps", numValue);
+  
+  // Check if we should show fill remaining prompt
+  checkFillRemainingPrompt(setId, null, numValue);
+  
+  // Auto-dismiss prompt if user starts typing in second set
+  const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
+  if (setIndex === 1 && showFillRemainingPrompt.value) {
+    dismissFillRemainingPrompt();
+  }
+}
+
+function checkFillRemainingPrompt(
+  setId: string,
+  weight: number | null,
+  reps: number | null
+) {
+  // Only check for first set
+  const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
+  if (setIndex !== 0) return;
+  
+  const firstSet = props.exercise.sets[0];
+  
+  // Get current values
+  const currentWeight = weight !== null ? weight : firstSet.weight;
+  const currentReps = reps !== null ? reps : firstSet.reps;
+  
+  // Check if first set has both weight and reps
+  const hasWeight = currentWeight !== null && currentWeight !== undefined;
+  const hasReps = currentReps !== null && currentReps !== undefined;
+  
+  // Show prompt if:
+  // - First set has both weight and reps
+  // - Exercise has more than 1 set
+  // - All remaining sets are empty
+  if (hasWeight && hasReps && props.exercise.sets.length > 1) {
+    const remainingSetsEmpty = props.exercise.sets
+      .slice(1)
+      .every(
+        (set) =>
+          (set.weight === null || set.weight === undefined) &&
+          (set.reps === null || set.reps === undefined)
+      );
+    
+    if (remainingSetsEmpty) {
+      firstSetWeight.value = currentWeight;
+      firstSetReps.value = currentReps;
+      showFillRemainingPrompt.value = true;
+    } else {
+      showFillRemainingPrompt.value = false;
+    }
+  } else {
+    showFillRemainingPrompt.value = false;
+  }
+}
+
+function handleFillAllRemainingSets() {
+  if (
+    firstSetWeight.value === null ||
+    firstSetReps.value === null ||
+    props.exercise.sets.length <= 1
+  ) {
+    return;
+  }
+  
+  // Fill all remaining sets with first set's values
+  props.exercise.sets.slice(1).forEach((set) => {
+    // Only fill if set is empty
+    if (
+      (set.weight === null || set.weight === undefined) &&
+      (set.reps === null || set.reps === undefined) &&
+      !set.completed
+    ) {
+      emit("updateSet", set.id, "weight", firstSetWeight.value);
+      emit("updateSet", set.id, "reps", firstSetReps.value);
+    }
+  });
+  
+  dismissFillRemainingPrompt();
+  triggerHaptic(ImpactStyle.Light);
+}
+
+function dismissFillRemainingPrompt() {
+  showFillRemainingPrompt.value = false;
 }
 
 function focusNextInput(setId: string, target: "reps" | "next") {
@@ -900,13 +1025,17 @@ function handleSetCompletionFlow(setId: string) {
   // Auto-focus next set's weight if completed
   nextTick(() => {
     const updatedSet = props.exercise.sets.find((s) => s.id === setId);
-    if (updatedSet?.completed && exerciseRestTime.value > 0) {
+    const willStartRestTimer = updatedSet?.completed && exerciseRestTime.value > 0;
+    
+    if (willStartRestTimer) {
       // Start global rest timer
       emit(
         "startRestTimer",
         props.exercise.exerciseName,
         exerciseRestTime.value
       );
+      // Skip auto-focus if rest timer is active - user is resting
+      return;
     }
 
     const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
@@ -1234,6 +1363,29 @@ watch(
     loadPreviousSetsData();
   },
   { immediate: true }
+);
+
+// Watch for changes to first set values to show/hide fill prompt
+watch(
+  () => {
+    const firstSet = props.exercise.sets[0];
+    return firstSet
+      ? [firstSet.weight, firstSet.reps, props.exercise.sets.length]
+      : [null, null, 0];
+  },
+  () => {
+    if (props.exercise.sets.length > 0 && props.exercise.sets[0]) {
+      const firstSet = props.exercise.sets[0];
+      checkFillRemainingPrompt(
+        firstSet.id,
+        firstSet.weight ?? null,
+        firstSet.reps ?? null
+      );
+    } else {
+      showFillRemainingPrompt.value = false;
+    }
+  },
+  { deep: true }
 );
 
 // Load previous sets data on mount
@@ -2039,5 +2191,69 @@ onMounted(() => {
 .picker-option--selected:hover {
   background: var(--color-primary-600);
   border-color: var(--color-primary-700);
+}
+
+/* Fill Remaining Sets Prompt */
+.fill-remaining-prompt-row {
+  background: var(--color-background-elevated);
+}
+
+.fill-remaining-prompt {
+  padding: var(--spacing-sm) var(--spacing-base) !important;
+  border-top: none;
+  border-bottom: var(--border-width-thin) solid var(--color-border);
+}
+
+.fill-prompt-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.fill-prompt-text {
+  font-size: var(--typography-small-size);
+  color: var(--color-text-secondary);
+  flex: 1;
+  min-width: 200px;
+}
+
+.fill-prompt-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.fill-prompt-button {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--typography-small-size);
+  font-weight: var(--typography-body-weight-medium);
+  border: var(--border-width-thin) solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 32px;
+}
+
+.fill-all-button {
+  background: var(--color-primary-500);
+  color: white;
+  border-color: var(--color-primary-600);
+}
+
+.fill-all-button:hover {
+  background: var(--color-primary-600);
+  border-color: var(--color-primary-700);
+}
+
+.dismiss-button {
+  background: var(--color-background-elevated);
+  color: var(--color-text-secondary);
+}
+
+.dismiss-button:hover {
+  background: var(--color-background);
+  color: var(--color-text-primary);
 }
 </style>
