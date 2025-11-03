@@ -62,7 +62,7 @@ if (import.meta.env.DEV) {
     "color: #4CAF50; font-weight: bold; font-size: 14px;"
   );
   console.log(
-    "%cDatabase reset utilities available:",
+    "%cDatabase utilities available:",
     "color: #2196F3; font-weight: bold;"
   );
   console.log(

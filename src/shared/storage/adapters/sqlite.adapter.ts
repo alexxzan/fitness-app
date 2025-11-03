@@ -1,17 +1,14 @@
 /**
  * SQLite Database Adapter (for Native iOS/Android)
- * Uses Capacitor SQLite plugin with Drizzle ORM
+ * Uses Capacitor SQLite plugin with raw SQL queries
  */
 
-import { drizzle } from "drizzle-orm/sqlite-proxy";
 import {
   CapacitorSQLite,
   SQLiteConnection,
   SQLiteDBConnection,
 } from "@capacitor-community/sqlite";
-import { eq, desc, isNull, or, sql } from "drizzle-orm";
 import type { IDatabaseAdapter } from "./types";
-import * as schema from "../schema";
 import type {
   Workout,
   WorkoutRoutine,
@@ -33,7 +30,6 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
   private sqliteConnection: SQLiteConnection;
   private dbConnection: SQLiteDBConnection | null = null;
-  private drizzleDb: ReturnType<typeof drizzle> | null = null;
   private isInitialized = false;
 
   constructor() {
@@ -41,7 +37,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   }
 
   async initialize(): Promise<void> {
-    if (this.isInitialized && this.drizzleDb) return;
+    if (this.isInitialized && this.dbConnection) return;
 
     try {
       console.log("🗄️ Initializing SQLite database...");
@@ -87,30 +83,6 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       if (!isOpen.result) {
         await this.dbConnection.open();
       }
-
-      // Initialize Drizzle with the connection
-      this.drizzleDb = drizzle(
-        async (sql, params, method) => {
-          try {
-            const result = await this.dbConnection!.query(sql, params || []);
-            if (method === "get") {
-              return {
-                rows:
-                  result.values && result.values.length > 0
-                    ? [result.values[0]]
-                    : [],
-              };
-            }
-            return { rows: result.values || [] };
-          } catch (error) {
-            console.error("❌ SQL Query Error:", error);
-            console.error("SQL:", sql);
-            console.error("Params:", params);
-            throw error;
-          }
-        },
-        { schema }
-      );
 
       await this.createTables();
       this.isInitialized = true;
@@ -192,6 +164,15 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       CREATE TABLE IF NOT EXISTS body_parts (name TEXT PRIMARY KEY);
       CREATE TABLE IF NOT EXISTS equipment (name TEXT PRIMARY KEY);
       CREATE TABLE IF NOT EXISTS muscles (name TEXT PRIMARY KEY);
+      CREATE TABLE IF NOT EXISTS workout_programs (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        template_id TEXT,
+        workouts TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
       CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 
       CREATE INDEX IF NOT EXISTS idx_workouts_created_at ON workouts(created_at);
@@ -232,7 +213,6 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         console.warn("⚠️ Error closing SQLite connection:", error);
       } finally {
         this.dbConnection = null;
-        this.drizzleDb = null;
         this.isInitialized = false;
       }
     }
@@ -242,7 +222,6 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     try {
       // Clear our references first
       this.dbConnection = null;
-      this.drizzleDb = null;
       this.isInitialized = false;
 
       // Check if connection exists in the pool and close it
@@ -268,59 +247,117 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     }
   }
 
-  private getDb() {
-    if (!this.drizzleDb || !this.isInitialized) {
+  private getDb(): SQLiteDBConnection {
+    if (!this.dbConnection || !this.isInitialized) {
       throw new Error("Database not initialized");
     }
-    return this.drizzleDb;
+    return this.dbConnection;
+  }
+
+  // Helper to convert snake_case to camelCase
+  private mapSnakeToCamel(row: any): any {
+    if (!row || typeof row !== "object") return row;
+    const mapped: any = {};
+    for (const key in row) {
+      if (row.hasOwnProperty(key)) {
+        const camelKey = key.replace(/_([a-z])/g, (_, letter) =>
+          letter.toUpperCase()
+        );
+        mapped[camelKey] = row[key];
+      }
+    }
+    return mapped;
+  }
+
+  // Helper to escape SQL strings
+  private escapeString(str: string): string {
+    return str.replace(/'/g, "''");
   }
 
   // Workouts
   workouts = {
     getAll: async (): Promise<Workout[]> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.workouts)
-        .orderBy(desc(schema.workouts.createdAt));
-      return results.map((r) => this.parseWorkout(r));
+      const result = await db.query(
+        "SELECT * FROM workouts ORDER BY created_at DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseWorkout(this.mapSnakeToCamel(r))
+      );
     },
 
     getById: async (id: string): Promise<Workout | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.workouts)
-        .where(eq(schema.workouts.id, id))
-        .limit(1);
-      return results.length > 0 ? this.parseWorkout(results[0]) : null;
+      const result = await db.query(
+        "SELECT * FROM workouts WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseWorkout(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
     },
 
     save: async (workout: Workout): Promise<string> => {
       const db = this.getDb();
       const serialized = this.serializeWorkout(workout);
-      await db.insert(schema.workouts).values(serialized).onConflictDoUpdate({
-        target: schema.workouts.id,
-        set: serialized,
-      });
+      await db.query(
+        `INSERT INTO workouts (
+          id, name, type, exercises, interval_config, interval_progress,
+          start_time, end_time, notes, routine_id, routine_template_id,
+          completed, completion_percentage, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          type = excluded.type,
+          exercises = excluded.exercises,
+          interval_config = excluded.interval_config,
+          interval_progress = excluded.interval_progress,
+          start_time = excluded.start_time,
+          end_time = excluded.end_time,
+          notes = excluded.notes,
+          routine_id = excluded.routine_id,
+          routine_template_id = excluded.routine_template_id,
+          completed = excluded.completed,
+          completion_percentage = excluded.completion_percentage,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.name,
+          serialized.type,
+          serialized.exercises,
+          serialized.intervalConfig || null,
+          serialized.intervalProgress || null,
+          serialized.startTime || null,
+          serialized.endTime || null,
+          serialized.notes || null,
+          serialized.routineId || null,
+          serialized.routineTemplateId || null,
+          serialized.completed,
+          serialized.completionPercentage || null,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
       return workout.id;
     },
 
     delete: async (id: string): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.workouts).where(eq(schema.workouts.id, id));
+      await db.query("DELETE FROM workouts WHERE id = ?", [id]);
     },
 
     getActive: async (): Promise<Workout | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.workouts)
-        .where(
-          or(isNull(schema.workouts.endTime), eq(schema.workouts.endTime, ""))
-        )
-        .limit(1);
-      return results.length > 0 ? this.parseWorkout(results[0]) : null;
+      const result = await db.query(
+        "SELECT * FROM workouts WHERE end_time IS NULL OR end_time = '' LIMIT 1",
+        []
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseWorkout(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
     },
 
     searchByName: async (query: string): Promise<Workout[]> => {
@@ -335,36 +372,68 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   routines = {
     getAll: async (): Promise<WorkoutRoutine[]> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.routines)
-        .orderBy(desc(schema.routines.createdAt));
-      return results.map((r) => this.parseRoutine(r));
+      const result = await db.query(
+        "SELECT * FROM routines ORDER BY created_at DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseRoutine(this.mapSnakeToCamel(r))
+      );
     },
 
     getById: async (id: string): Promise<WorkoutRoutine | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.routines)
-        .where(eq(schema.routines.id, id))
-        .limit(1);
-      return results.length > 0 ? this.parseRoutine(results[0]) : null;
+      const result = await db.query(
+        "SELECT * FROM routines WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseRoutine(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
     },
 
     save: async (routine: WorkoutRoutine): Promise<string> => {
       const db = this.getDb();
       const serialized = this.serializeRoutine(routine);
-      await db.insert(schema.routines).values(serialized).onConflictDoUpdate({
-        target: schema.routines.id,
-        set: serialized,
-      });
+      await db.query(
+        `INSERT INTO routines (
+          id, name, description, exercises, type, template_id,
+          is_favorite, tags, estimated_duration, difficulty,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          description = excluded.description,
+          exercises = excluded.exercises,
+          type = excluded.type,
+          template_id = excluded.template_id,
+          is_favorite = excluded.is_favorite,
+          tags = excluded.tags,
+          estimated_duration = excluded.estimated_duration,
+          difficulty = excluded.difficulty,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.name,
+          serialized.description || null,
+          serialized.exercises,
+          serialized.type,
+          serialized.templateId || null,
+          serialized.isFavorite,
+          serialized.tags || null,
+          serialized.estimatedDuration || null,
+          serialized.difficulty || null,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
       return routine.id;
     },
 
     delete: async (id: string): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.routines).where(eq(schema.routines.id, id));
+      await db.query("DELETE FROM routines WHERE id = ?", [id]);
     },
   };
 
@@ -372,41 +441,56 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   workoutPrograms = {
     getAll: async (): Promise<WorkoutProgram[]> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.workoutPrograms)
-        .orderBy(desc(schema.workoutPrograms.createdAt));
-      return results.map((r) => this.parseProgram(r));
+      const result = await db.query(
+        "SELECT * FROM workout_programs ORDER BY created_at DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseProgram(this.mapSnakeToCamel(r))
+      );
     },
 
     getById: async (id: string): Promise<WorkoutProgram | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.workoutPrograms)
-        .where(eq(schema.workoutPrograms.id, id))
-        .limit(1);
-      return results.length > 0 ? this.parseProgram(results[0]) : null;
+      const result = await db.query(
+        "SELECT * FROM workout_programs WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseProgram(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
     },
 
     save: async (program: WorkoutProgram): Promise<string> => {
       const db = this.getDb();
       const serialized = this.serializeProgram(program);
-      await db
-        .insert(schema.workoutPrograms)
-        .values(serialized)
-        .onConflictDoUpdate({
-          target: schema.workoutPrograms.id,
-          set: serialized,
-        });
+      await db.query(
+        `INSERT INTO workout_programs (
+          id, name, description, template_id, workouts, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          description = excluded.description,
+          template_id = excluded.template_id,
+          workouts = excluded.workouts,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.name,
+          serialized.description || null,
+          serialized.templateId || null,
+          serialized.workouts,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
       return program.id;
     },
 
     delete: async (id: string): Promise<void> => {
       const db = this.getDb();
-      await db
-        .delete(schema.workoutPrograms)
-        .where(eq(schema.workoutPrograms.id, id));
+      await db.query("DELETE FROM workout_programs WHERE id = ?", [id]);
     },
   };
 
@@ -414,35 +498,57 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   exercises = {
     getAll: async (): Promise<Exercise[]> => {
       const db = this.getDb();
-      const results = await db.select().from(schema.exercises);
-      return results.map((r) => this.parseExercise(r));
+      const result = await db.query("SELECT * FROM exercises", []);
+      return (result.values || []).map((r: any) =>
+        this.parseExercise(this.mapSnakeToCamel(r))
+      );
     },
 
     getById: async (id: string): Promise<Exercise | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.exercises)
-        .where(eq(schema.exercises.exerciseId, id))
-        .limit(1);
-      return results.length > 0 ? this.parseExercise(results[0]) : null;
+      const result = await db.query(
+        "SELECT * FROM exercises WHERE exercise_id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseExercise(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
     },
 
     save: async (exercise: Exercise): Promise<string> => {
       const db = this.getDb();
       const serialized = this.serializeExercise(exercise);
-      await db.insert(schema.exercises).values(serialized).onConflictDoUpdate({
-        target: schema.exercises.exerciseId,
-        set: serialized,
-      });
+      await db.query(
+        `INSERT INTO exercises (
+          exercise_id, name, gif_url, equipments, body_parts, 
+          target_muscles, secondary_muscles, instructions
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(exercise_id) DO UPDATE SET
+          name = excluded.name,
+          gif_url = excluded.gif_url,
+          equipments = excluded.equipments,
+          body_parts = excluded.body_parts,
+          target_muscles = excluded.target_muscles,
+          secondary_muscles = excluded.secondary_muscles,
+          instructions = excluded.instructions`,
+        [
+          serialized.exerciseId,
+          serialized.name,
+          serialized.gifUrl,
+          serialized.equipments,
+          serialized.bodyParts,
+          serialized.targetMuscles,
+          serialized.secondaryMuscles,
+          serialized.instructions,
+        ]
+      );
       return exercise.exerciseId;
     },
 
     delete: async (id: string): Promise<void> => {
       const db = this.getDb();
-      await db
-        .delete(schema.exercises)
-        .where(eq(schema.exercises.exerciseId, id));
+      await db.query("DELETE FROM exercises WHERE exercise_id = ?", [id]);
     },
 
     bulkInsert: async (exercises: Exercise[]): Promise<void> => {
@@ -455,11 +561,32 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         const batch = exercises.slice(i, i + BATCH_SIZE);
         const serialized = batch.map((ex) => this.serializeExercise(ex));
 
+        // Build batch INSERT with VALUES
+        const values = serialized
+          .map(() => "(?, ?, ?, ?, ?, ?, ?, ?)")
+          .join(", ");
+        const params: any[] = [];
+        serialized.forEach((s) => {
+          params.push(
+            s.exerciseId,
+            s.name,
+            s.gifUrl,
+            s.equipments,
+            s.bodyParts,
+            s.targetMuscles,
+            s.secondaryMuscles,
+            s.instructions
+          );
+        });
+
         try {
-          await db
-            .insert(schema.exercises)
-            .values(serialized)
-            .onConflictDoNothing();
+          await db.query(
+            `INSERT OR IGNORE INTO exercises (
+              exercise_id, name, gif_url, equipments, body_parts, 
+              target_muscles, secondary_muscles, instructions
+            ) VALUES ${values}`,
+            params
+          );
         } catch (error) {
           console.error(
             `Failed to insert exercise batch ${i}-${i + batch.length}:`,
@@ -472,7 +599,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
     clear: async (): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.exercises);
+      await db.query("DELETE FROM exercises", []);
     },
   };
 
@@ -480,42 +607,48 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   bodyParts = {
     getAll: async (): Promise<BodyPart[]> => {
       const db = this.getDb();
-      return await db.select().from(schema.bodyParts);
+      const result = await db.query("SELECT * FROM body_parts", []);
+      return (result.values || []).map((r: any) => ({ name: r.name }));
     },
 
     getByName: async (name: string): Promise<BodyPart | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.bodyParts)
-        .where(eq(schema.bodyParts.name, name))
-        .limit(1);
-      return results.length > 0 ? results[0] : null;
+      const result = await db.query(
+        "SELECT * FROM body_parts WHERE name = ? LIMIT 1",
+        [name]
+      );
+      if (result.values && result.values.length > 0) {
+        return { name: result.values[0].name };
+      }
+      return null;
     },
 
     save: async (bodyPart: BodyPart): Promise<string> => {
       const db = this.getDb();
-      await db
-        .insert(schema.bodyParts)
-        .values(bodyPart)
-        .onConflictDoUpdate({ target: schema.bodyParts.name, set: bodyPart });
+      await db.query(
+        "INSERT INTO body_parts (name) VALUES (?) ON CONFLICT(name) DO UPDATE SET name = excluded.name",
+        [bodyPart.name]
+      );
       return bodyPart.name;
     },
 
     delete: async (name: string): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.bodyParts).where(eq(schema.bodyParts.name, name));
+      await db.query("DELETE FROM body_parts WHERE name = ?", [name]);
     },
 
     bulkInsert: async (bodyParts: BodyPart[]): Promise<void> => {
       const db = this.getDb();
       if (bodyParts.length === 0) return;
 
+      const values = bodyParts.map(() => "(?)").join(", ");
+      const params = bodyParts.map((bp) => bp.name);
+
       try {
-        await db
-          .insert(schema.bodyParts)
-          .values(bodyParts)
-          .onConflictDoNothing();
+        await db.query(
+          `INSERT OR IGNORE INTO body_parts (name) VALUES ${values}`,
+          params
+        );
       } catch (error) {
         console.error("Failed to bulk insert body parts:", error);
         throw error;
@@ -524,7 +657,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
     clear: async (): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.bodyParts);
+      await db.query("DELETE FROM body_parts", []);
     },
   };
 
@@ -532,42 +665,48 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   equipment = {
     getAll: async (): Promise<Equipment[]> => {
       const db = this.getDb();
-      return await db.select().from(schema.equipment);
+      const result = await db.query("SELECT * FROM equipment", []);
+      return (result.values || []).map((r: any) => ({ name: r.name }));
     },
 
     getByName: async (name: string): Promise<Equipment | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.equipment)
-        .where(eq(schema.equipment.name, name))
-        .limit(1);
-      return results.length > 0 ? results[0] : null;
+      const result = await db.query(
+        "SELECT * FROM equipment WHERE name = ? LIMIT 1",
+        [name]
+      );
+      if (result.values && result.values.length > 0) {
+        return { name: result.values[0].name };
+      }
+      return null;
     },
 
     save: async (equipment: Equipment): Promise<string> => {
       const db = this.getDb();
-      await db
-        .insert(schema.equipment)
-        .values(equipment)
-        .onConflictDoUpdate({ target: schema.equipment.name, set: equipment });
+      await db.query(
+        "INSERT INTO equipment (name) VALUES (?) ON CONFLICT(name) DO UPDATE SET name = excluded.name",
+        [equipment.name]
+      );
       return equipment.name;
     },
 
     delete: async (name: string): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.equipment).where(eq(schema.equipment.name, name));
+      await db.query("DELETE FROM equipment WHERE name = ?", [name]);
     },
 
     bulkInsert: async (equipment: Equipment[]): Promise<void> => {
       const db = this.getDb();
       if (equipment.length === 0) return;
 
+      const values = equipment.map(() => "(?)").join(", ");
+      const params = equipment.map((eq) => eq.name);
+
       try {
-        await db
-          .insert(schema.equipment)
-          .values(equipment)
-          .onConflictDoNothing();
+        await db.query(
+          `INSERT OR IGNORE INTO equipment (name) VALUES ${values}`,
+          params
+        );
       } catch (error) {
         console.error("Failed to bulk insert equipment:", error);
         throw error;
@@ -576,7 +715,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
     clear: async (): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.equipment);
+      await db.query("DELETE FROM equipment", []);
     },
   };
 
@@ -584,39 +723,48 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   muscles = {
     getAll: async (): Promise<Muscle[]> => {
       const db = this.getDb();
-      return await db.select().from(schema.muscles);
+      const result = await db.query("SELECT * FROM muscles", []);
+      return (result.values || []).map((r: any) => ({ name: r.name }));
     },
 
     getByName: async (name: string): Promise<Muscle | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.muscles)
-        .where(eq(schema.muscles.name, name))
-        .limit(1);
-      return results.length > 0 ? results[0] : null;
+      const result = await db.query(
+        "SELECT * FROM muscles WHERE name = ? LIMIT 1",
+        [name]
+      );
+      if (result.values && result.values.length > 0) {
+        return { name: result.values[0].name };
+      }
+      return null;
     },
 
     save: async (muscle: Muscle): Promise<string> => {
       const db = this.getDb();
-      await db
-        .insert(schema.muscles)
-        .values(muscle)
-        .onConflictDoUpdate({ target: schema.muscles.name, set: muscle });
+      await db.query(
+        "INSERT INTO muscles (name) VALUES (?) ON CONFLICT(name) DO UPDATE SET name = excluded.name",
+        [muscle.name]
+      );
       return muscle.name;
     },
 
     delete: async (name: string): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.muscles).where(eq(schema.muscles.name, name));
+      await db.query("DELETE FROM muscles WHERE name = ?", [name]);
     },
 
     bulkInsert: async (muscles: Muscle[]): Promise<void> => {
       const db = this.getDb();
       if (muscles.length === 0) return;
 
+      const values = muscles.map(() => "(?)").join(", ");
+      const params = muscles.map((m) => m.name);
+
       try {
-        await db.insert(schema.muscles).values(muscles).onConflictDoNothing();
+        await db.query(
+          `INSERT OR IGNORE INTO muscles (name) VALUES ${values}`,
+          params
+        );
       } catch (error) {
         console.error("Failed to bulk insert muscles:", error);
         throw error;
@@ -625,7 +773,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
     clear: async (): Promise<void> => {
       const db = this.getDb();
-      await db.delete(schema.muscles);
+      await db.query("DELETE FROM muscles", []);
     },
   };
 
@@ -633,18 +781,21 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   settings = {
     get: async (key: string): Promise<any | null> => {
       const db = this.getDb();
-      const results = await db
-        .select()
-        .from(schema.appSettings)
-        .where(eq(schema.appSettings.key, key))
-        .limit(1);
+      const result = await db.query(
+        "SELECT * FROM app_settings WHERE key = ? LIMIT 1",
+        [key]
+      );
 
-      if (results.length === 0 || !results[0].value) {
+      if (
+        !result.values ||
+        result.values.length === 0 ||
+        !result.values[0].value
+      ) {
         return null;
       }
 
       try {
-        const value = results[0].value;
+        const value = result.values[0].value;
         // Handle string "undefined" or "null" cases
         if (
           typeof value === "string" &&
@@ -658,27 +809,22 @@ export class SQLiteAdapter implements IDatabaseAdapter {
           `Failed to parse settings value for key "${key}":`,
           error
         );
-        console.error("Raw value:", results[0].value);
+        console.error("Raw value:", result.values[0].value);
         return null;
       }
     },
 
     set: async (key: string, value: any): Promise<void> => {
       const db = this.getDb();
-      await db
-        .insert(schema.appSettings)
-        .values({ key, value: JSON.stringify(value) })
-        .onConflictDoUpdate({
-          target: schema.appSettings.key,
-          set: { value: JSON.stringify(value) },
-        });
+      await db.query(
+        "INSERT INTO app_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+        [key, JSON.stringify(value)]
+      );
     },
 
     delete: async (key: string): Promise<void> => {
       const db = this.getDb();
-      await db
-        .delete(schema.appSettings)
-        .where(eq(schema.appSettings.key, key));
+      await db.query("DELETE FROM app_settings WHERE key = ?", [key]);
     },
   };
 
@@ -816,28 +962,72 @@ export class SQLiteAdapter implements IDatabaseAdapter {
   }
 
   private parseExercise(row: any): Exercise {
+    // Helper to safely parse JSON fields
+    const safeJsonParse = (value: any, fallback: any[] = []): any[] => {
+      if (!value || value === null || value === undefined) {
+        return fallback;
+      }
+
+      // Handle string cases
+      if (typeof value === "string") {
+        // Handle literal string "undefined" or "null"
+        if (value === "undefined" || value === "null" || value.trim() === "") {
+          return fallback;
+        }
+
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : fallback;
+        } catch (error) {
+          console.warn(`⚠️ Failed to parse JSON field:`, value, error);
+          return fallback;
+        }
+      }
+
+      // Already an array
+      if (Array.isArray(value)) {
+        return value;
+      }
+
+      return fallback;
+    };
+
+    // Row should already be mapped from snake_case to camelCase via mapSnakeToCamel
     return {
-      exerciseId: row.exerciseId,
-      name: row.name,
-      gifUrl: row.gifUrl,
-      equipments: JSON.parse(row.equipments),
-      bodyParts: JSON.parse(row.bodyParts),
-      targetMuscles: JSON.parse(row.targetMuscles),
-      secondaryMuscles: JSON.parse(row.secondaryMuscles),
-      instructions: JSON.parse(row.instructions),
+      exerciseId: row.exerciseId || "",
+      name: row.name || "",
+      gifUrl: row.gifUrl || "",
+      equipments: safeJsonParse(row.equipments, []),
+      bodyParts: safeJsonParse(row.bodyParts, []),
+      targetMuscles: safeJsonParse(row.targetMuscles, []),
+      secondaryMuscles: safeJsonParse(row.secondaryMuscles, []),
+      instructions: safeJsonParse(row.instructions, []),
     };
   }
 
   private serializeExercise(exercise: Exercise): any {
+    // Helper to safely stringify array fields
+    const safeStringify = (value: any): string => {
+      if (value === null || value === undefined) {
+        return JSON.stringify([]);
+      }
+      if (Array.isArray(value)) {
+        return JSON.stringify(value);
+      }
+      // Fallback: try to stringify whatever it is
+      return JSON.stringify([]);
+    };
+
+    // Return with snake_case column names for SQL
     return {
       exerciseId: exercise.exerciseId,
-      name: exercise.name,
-      gifUrl: exercise.gifUrl,
-      equipments: JSON.stringify(exercise.equipments),
-      bodyParts: JSON.stringify(exercise.bodyParts),
-      targetMuscles: JSON.stringify(exercise.targetMuscles),
-      secondaryMuscles: JSON.stringify(exercise.secondaryMuscles),
-      instructions: JSON.stringify(exercise.instructions),
+      name: exercise.name || "",
+      gifUrl: exercise.gifUrl || "",
+      equipments: safeStringify(exercise.equipments),
+      bodyParts: safeStringify(exercise.bodyParts),
+      targetMuscles: safeStringify(exercise.targetMuscles),
+      secondaryMuscles: safeStringify(exercise.secondaryMuscles),
+      instructions: safeStringify(exercise.instructions),
     };
   }
 }

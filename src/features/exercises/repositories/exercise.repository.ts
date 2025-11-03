@@ -47,15 +47,25 @@ export class ExerciseRepository {
     const allExercises = await this.getAll();
     let exercises = allExercises;
 
+    // Filter out invalid exercises first
+    exercises = exercises.filter(
+      (e) =>
+        e &&
+        e.name &&
+        e.exerciseId &&
+        e.name.trim().length > 0 &&
+        e.exerciseId.trim().length > 0
+    );
+
     // Apply search query filter
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       exercises = exercises.filter(
         (e) =>
-          e.name.toLowerCase().includes(query) ||
-          e.targetMuscles.some((m) => m.toLowerCase().includes(query)) ||
-          e.bodyParts.some((bp) => bp.toLowerCase().includes(query)) ||
-          e.equipments.some((eq) => eq.toLowerCase().includes(query))
+          (e.name || '').toLowerCase().includes(query) ||
+          (e.targetMuscles || []).some((m) => m.toLowerCase().includes(query)) ||
+          (e.bodyParts || []).some((bp) => bp.toLowerCase().includes(query)) ||
+          (e.equipments || []).some((eq) => eq.toLowerCase().includes(query))
       );
     }
 
@@ -86,7 +96,13 @@ export class ExerciseRepository {
       );
     }
 
-    return exercises.sort((a, b) => a.name.localeCompare(b.name));
+    // Filter out invalid exercises and sort safely
+    const validExercises = exercises.filter(e => e && e.name && e.exerciseId);
+    return validExercises.sort((a, b) => {
+      const nameA = (a.name || '').toLowerCase();
+      const nameB = (b.name || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
   }
 
   /**
@@ -94,11 +110,23 @@ export class ExerciseRepository {
    */
   static async getByBodyPart(bodyPart: string): Promise<Exercise[]> {
     const allExercises = await this.getAll();
-    return allExercises
+    const validExercises = allExercises.filter(
+      (e) =>
+        e &&
+        e.name &&
+        e.exerciseId &&
+        e.name.trim().length > 0 &&
+        e.exerciseId.trim().length > 0
+    );
+    return validExercises
       .filter((e) =>
-        e.bodyParts.some((bp) => bp.toLowerCase() === bodyPart.toLowerCase())
+        (e.bodyParts || []).some((bp) => bp.toLowerCase() === bodyPart.toLowerCase())
       )
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
   }
 
   /**
@@ -106,11 +134,23 @@ export class ExerciseRepository {
    */
   static async getByEquipment(equipment: string): Promise<Exercise[]> {
     const allExercises = await this.getAll();
-    return allExercises
+    const validExercises = allExercises.filter(
+      (e) =>
+        e &&
+        e.name &&
+        e.exerciseId &&
+        e.name.trim().length > 0 &&
+        e.exerciseId.trim().length > 0
+    );
+    return validExercises
       .filter((e) =>
-        e.equipments.some((eq) => eq.toLowerCase() === equipment.toLowerCase())
+        (e.equipments || []).some((eq) => eq.toLowerCase() === equipment.toLowerCase())
       )
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
   }
 
   /**
@@ -118,13 +158,25 @@ export class ExerciseRepository {
    */
   static async getByTargetMuscle(targetMuscle: string): Promise<Exercise[]> {
     const allExercises = await this.getAll();
-    return allExercises
+    const validExercises = allExercises.filter(
+      (e) =>
+        e &&
+        e.name &&
+        e.exerciseId &&
+        e.name.trim().length > 0 &&
+        e.exerciseId.trim().length > 0
+    );
+    return validExercises
       .filter((e) =>
-        e.targetMuscles.some(
+        (e.targetMuscles || []).some(
           (tm) => tm.toLowerCase() === targetMuscle.toLowerCase()
         )
       )
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
   }
 
   /**
@@ -133,8 +185,20 @@ export class ExerciseRepository {
   static async searchByName(query: string): Promise<Exercise[]> {
     const lowerQuery = query.toLowerCase();
     const allExercises = await this.getAll();
-    return allExercises
-      .filter((exercise) => exercise.name.toLowerCase().includes(lowerQuery))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const validExercises = allExercises.filter(
+      (e) =>
+        e &&
+        e.name &&
+        e.exerciseId &&
+        e.name.trim().length > 0 &&
+        e.exerciseId.trim().length > 0
+    );
+    return validExercises
+      .filter((exercise) => (exercise.name || '').toLowerCase().includes(lowerQuery))
+      .sort((a, b) => {
+        const nameA = (a.name || '').toLowerCase();
+        const nameB = (b.name || '').toLowerCase();
+        return nameA.localeCompare(nameB);
+      });
   }
 }
