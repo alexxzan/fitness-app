@@ -37,7 +37,12 @@
           />
 
           <!-- Statistics Dashboard -->
-          <WorkoutStatsDashboard />
+          <WorkoutStatsDashboard
+            :total-workouts="stats.totalWorkouts"
+            :total-volume="stats.totalVolume"
+            :current-streak="stats.currentStreak"
+            :this-week-workouts="stats.thisWeekWorkouts"
+          />
 
           <!-- Recent Workouts -->
           <RecentWorkoutsSection
@@ -226,6 +231,7 @@ import FinishWorkoutModal from "@/features/workouts/components/FinishWorkoutModa
 import RoutineSelector from "@/features/workouts/components/RoutineSelector.vue";
 import WorkoutStatsDashboard from "@/features/workouts/components/WorkoutStatsDashboard.vue";
 import RecentWorkoutsSection from "@/features/workouts/components/RecentWorkoutsSection.vue";
+import { useWorkoutCelebration } from "@/features/workouts/composables/useWorkoutCelebration";
 import ActiveWorkoutResumeCard from "@/features/workouts/components/ActiveWorkoutResumeCard.vue";
 import FavoriteRoutinesSection from "@/features/workouts/components/FavoriteRoutinesSection.vue";
 import MyWorkoutProgramsSection from "@/features/workouts/components/MyWorkoutProgramsSection.vue";
@@ -301,6 +307,22 @@ const completedStats = ref<WorkoutStatistics | null>(null);
 const recentWorkouts = ref<Workout[]>([]);
 const mockFavoriteRoutines = ref<WorkoutRoutine[]>(mockFavoriteRoutinesData);
 
+// Workout stats
+const {
+  loadWorkoutHistory,
+  calculateWorkoutCount,
+  calculateTotalVolume,
+  calculateStreak,
+  getWeeklyStats,
+} = useWorkoutCelebration();
+
+const stats = ref({
+  totalWorkouts: 0,
+  totalVolume: 0,
+  currentStreak: 0,
+  thisWeekWorkouts: 0,
+});
+
 // Workout state machine
 const workoutState = computed<"empty" | "active" | "completed">(() => {
   if (completedWorkout.value) return "completed";
@@ -317,11 +339,27 @@ async function loadRecentWorkouts() {
   }
 }
 
+async function loadWorkoutStats() {
+  try {
+    await loadWorkoutHistory();
+    stats.value = {
+      totalWorkouts: calculateWorkoutCount(),
+      totalVolume: Math.round(calculateTotalVolume()),
+      currentStreak: calculateStreak(),
+      thisWeekWorkouts: getWeeklyStats(),
+    };
+  } catch (error) {
+    console.error("Failed to load workout stats:", error);
+    // Keep default values (0)
+  }
+}
+
 onMounted(async () => {
   await loadActiveWorkout();
   await loadExercises();
   await loadPrograms();
   await loadRecentWorkouts();
+  await loadWorkoutStats();
 
   // If active workout exists, redirect to full-screen workout page
   if (currentWorkout.value) {
@@ -612,8 +650,9 @@ async function handleCompletedDone(notes: string) {
   completedWorkout.value = null;
   completedStats.value = null;
 
-  // Refresh recent workouts to show the newly completed workout
+  // Refresh recent workouts and stats to show the newly completed workout
   await loadRecentWorkouts();
+  await loadWorkoutStats();
 }
 
 // New empty state handlers

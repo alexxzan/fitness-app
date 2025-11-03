@@ -17,7 +17,7 @@
           <ion-icon :icon="fitness" />
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ totalVolume }}</div>
+          <div class="stat-value">{{ formattedTotalVolume }}</div>
           <div class="stat-label">Total Volume (kg)</div>
         </div>
       </div>
@@ -46,21 +46,25 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { IonIcon } from '@ionic/vue'
 import { barbell, fitness, flame, calendar } from 'ionicons/icons'
 
 interface Props {
-  totalWorkouts?: number
-  totalVolume?: number
-  currentStreak?: number
-  thisWeekWorkouts?: number
+  totalWorkouts: number
+  totalVolume: number
+  currentStreak: number
+  thisWeekWorkouts: number
 }
 
-withDefaults(defineProps<Props>(), {
-  totalWorkouts: 24,
-  totalVolume: 2450,
-  currentStreak: 5,
-  thisWeekWorkouts: 3
+const props = defineProps<Props>()
+
+// Format large numbers for display
+const formattedTotalVolume = computed(() => {
+  if (props.totalVolume >= 1000) {
+    return (props.totalVolume / 1000).toFixed(1) + 'k'
+  }
+  return props.totalVolume.toString()
 })
 </script>
 
