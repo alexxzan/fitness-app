@@ -43,6 +43,9 @@ npm run test:unit
 
 # E2E tests
 npm run test:e2e
+
+# Linting
+npm run lint
 ```
 
 ## iOS Development
@@ -89,7 +92,7 @@ src/
 │   └── organisms/    # Complex components
 ├── views/            # Route pages
 ├── shared/           # Cross-cutting concerns
-│   └── storage/      # Database (Dexie.js)
+│   └── storage/      # Database abstraction layer (adapters & schema)
 └── router/           # Vue Router config
 ```
 
@@ -98,19 +101,25 @@ src/
 - **Vue 3** - Progressive JavaScript framework
 - **Ionic Vue** - UI component library
 - **Capacitor** - Native runtime
-- **Dexie.js** - IndexedDB wrapper for persistent storage
+- **Dexie.js** - IndexedDB wrapper (web development)
+- **Drizzle ORM** - TypeScript ORM for SQLite
+- **SQLite** - Native database via @capacitor-community/sqlite
 - **Pinia** - State management
 - **TypeScript** - Type safety
 - **Vite** - Build tool
 
 ## Database
 
-The app uses **Dexie.js** (IndexedDB) for persistent storage. Data persists between app restarts.
+The app uses a **database abstraction layer** that automatically selects the appropriate database implementation based on the platform:
+
+- **Web (Development)**: Dexie.js with IndexedDB - Fast development experience ⚡
+- **Native (iOS/Android)**: SQLite with Drizzle ORM - Optimized native performance 📱
+
+The abstraction layer ensures your code works seamlessly across both platforms. See [Database Abstraction Layer](./ABSTRACTION_LAYER.md) for details.
 
 ## Documentation
 
-- [Storage Options](./STORAGE_OPTIONS.md) - Database options and migration guide
+- [Database Abstraction Layer](./ABSTRACTION_LAYER.md) - Database architecture and usage guide
 - [iOS Setup](./IOS_SETUP.md) - Detailed iOS development guide
-- [Status](./STATUS.md) - Current implementation status
 - [Plan](./plan.md) - Project plan and roadmap
 
