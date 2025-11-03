@@ -15,7 +15,8 @@ export const workouts = sqliteTable("workouts", {
   endTime: text("end_time"), // ISO date string
   notes: text("notes"),
   // Routine tracking fields
-  routineId: text("routine_id"), // Reference to routines table
+  programId: text("program_id"), // Reference to workout_programs table
+  routineId: text("routine_id"), // Reference to routines table or routine ID within program
   routineTemplateId: text("routine_template_id"), // Direct reference to template
   // Analytics fields
   completed: integer("completed").default(0), // 0 or 1 for boolean

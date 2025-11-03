@@ -59,7 +59,7 @@
                   v-for="workout in program.workouts"
                   :key="workout.id"
                   class="workout-item"
-                  @click="$emit('startWorkout', workout)"
+                  @click="$emit('startWorkout', workout, program.id)"
                 >
                   <div class="workout-info">
                     <span class="workout-name">{{ workout.name }}</span>
@@ -111,7 +111,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   addProgram: [];
-  startWorkout: [routine: WorkoutRoutine];
+  startWorkout: [routine: WorkoutRoutine, programId: string];
   removeProgram: [program: WorkoutProgram];
   renameProgram: [program: WorkoutProgram];
   copyProgram: [program: WorkoutProgram];

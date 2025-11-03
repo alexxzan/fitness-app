@@ -29,6 +29,9 @@
         @toggle-completed="(setId) => handleToggleCompleted(exercise.id, setId)"
         @delete-set="(setId) => handleDeleteSet(exercise.id, setId)"
         @start-rest-timer="handleStartRestTimer"
+        @replace-exercise="() => emit('replaceExercise', exercise.id)"
+        @delete-exercise="() => emit('deleteExercise', exercise.id)"
+        @link-superset="() => emit('linkSuperset', exercise.id)"
       />
 
       <!-- Add Exercise Button -->
@@ -73,6 +76,9 @@ const emit = defineEmits<{
   updateSet: [exerciseId: string, setId: string, updates: any];
   toggleCompleted: [exerciseId: string, setId: string];
   deleteSet: [exerciseId: string, setId: string];
+  replaceExercise: [exerciseId: string];
+  deleteExercise: [exerciseId: string];
+  linkSuperset: [exerciseId: string];
 }>();
 
 const { loadWorkoutHistory, getPreviousPerformances } =

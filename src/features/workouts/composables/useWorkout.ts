@@ -11,6 +11,8 @@ import type {
 import type { IntervalConfig, IntervalProgress } from "../types/interval.types";
 import { generateId } from "@/shared/utils/id";
 import { useRoutineAnalytics } from "./useRoutineAnalytics";
+import { useRoutine } from "./useRoutine";
+import { useProgram } from "./useProgram";
 
 /**
  * Composable for managing workout state and operations
@@ -19,6 +21,11 @@ export function useWorkout() {
   const currentWorkout = ref<Workout | null>(null);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
+
+  // Track exercise modifications for routine saving
+  const exercisesReplaced = ref<string[]>([]); // Exercise IDs that were replaced
+  const exercisesDeleted = ref<string[]>([]); // Exercise IDs that were deleted
+  const exercisesLinkedAsSuperset = ref<Array<[string, string]>>([]); // Pairs of exercise IDs linked
 
   /**
    * Load the active workout from storage
@@ -35,8 +42,17 @@ export function useWorkout() {
       if (activeWorkout?.type === "interval") {
         await WorkoutRepository.setActiveWorkout(null);
         currentWorkout.value = null;
+        // Reset change tracking
+        exercisesReplaced.value = [];
+        exercisesDeleted.value = [];
+        exercisesLinkedAsSuperset.value = [];
       } else {
         currentWorkout.value = activeWorkout;
+        // Reset change tracking when loading existing workout
+        // Changes are only tracked for the current session
+        exercisesReplaced.value = [];
+        exercisesDeleted.value = [];
+        exercisesLinkedAsSuperset.value = [];
       }
     } catch (err) {
       error.value =
@@ -57,6 +73,11 @@ export function useWorkout() {
    * Create a new regular (weightlifting) workout
    */
   async function createRegularWorkout(name: string): Promise<Workout> {
+    // Reset change tracking for new workout
+    exercisesReplaced.value = [];
+    exercisesDeleted.value = [];
+    exercisesLinkedAsSuperset.value = [];
+
     const workout: Workout = {
       id: generateId(),
       name,
@@ -161,10 +182,18 @@ export function useWorkout() {
 
   /**
    * Create a workout from a routine
+   * @param routine - The routine to create a workout from
+   * @param programId - Optional program ID if the routine is part of a program
    */
   async function createWorkoutFromRoutine(
-    routine: WorkoutRoutine
+    routine: WorkoutRoutine,
+    programId?: string
   ): Promise<Workout> {
+    // Reset change tracking for new workout
+    exercisesReplaced.value = [];
+    exercisesDeleted.value = [];
+    exercisesLinkedAsSuperset.value = [];
+
     // Convert routine exercises to workout exercises with empty sets
     const exercises: WorkoutExercise[] = routine.exercises.map(
       (routineEx: RoutineExercise) => {
@@ -203,6 +232,7 @@ export function useWorkout() {
       name: routine.name,
       type: "regular",
       exercises,
+      programId, // Track program ID if provided
       routineId: routine.id,
       routineTemplateId: routine.templateId,
       completed: false,
@@ -253,10 +283,104 @@ export function useWorkout() {
   }
 
   /**
+   * Replace an exercise with a new one
+   * Preserves incomplete sets, clears completed sets
+   */
+  function replaceExercise(
+    exerciseId: string,
+    newExerciseId: string,
+    newExerciseName: string
+  ) {
+    if (!currentWorkout.value) {
+      throw new Error("No active workout");
+    }
+
+    const exercise = currentWorkout.value.exercises.find(
+      (e) => e.id === exerciseId
+    );
+    if (!exercise) {
+      throw new Error("Exercise not found");
+    }
+
+    // Preserve incomplete sets, clear completed ones
+    const incompleteSets = exercise.sets.filter((set) => !set.completed);
+
+    // Update exercise
+    exercise.exerciseId = newExerciseId;
+    exercise.exerciseName = newExerciseName;
+    exercise.sets = incompleteSets.map((set) => ({
+      ...set,
+      id: generateId(), // Generate new IDs for preserved sets
+    }));
+
+    // Track replacement
+    if (!exercisesReplaced.value.includes(exerciseId)) {
+      exercisesReplaced.value.push(exerciseId);
+    }
+
+    currentWorkout.value.updatedAt = new Date().toISOString();
+    saveWorkout();
+  }
+
+  /**
+   * Link two exercises as a superset
+   */
+  function linkExercisesAsSuperset(exerciseId1: string, exerciseId2: string) {
+    if (!currentWorkout.value) {
+      throw new Error("No active workout");
+    }
+
+    const exercise1 = currentWorkout.value.exercises.find(
+      (e) => e.id === exerciseId1
+    );
+    const exercise2 = currentWorkout.value.exercises.find(
+      (e) => e.id === exerciseId2
+    );
+
+    if (!exercise1 || !exercise2) {
+      throw new Error("One or both exercises not found");
+    }
+
+    // Generate or reuse superset group ID
+    const supersetGroupId = exercise1.supersetGroupId || generateId();
+
+    // Link both exercises
+    exercise1.supersetGroupId = supersetGroupId;
+    exercise2.supersetGroupId = supersetGroupId;
+
+    // Track linking
+    const linkPair: [string, string] = [exerciseId1, exerciseId2];
+    const existingLink = exercisesLinkedAsSuperset.value.find(
+      (pair) =>
+        (pair[0] === exerciseId1 && pair[1] === exerciseId2) ||
+        (pair[0] === exerciseId2 && pair[1] === exerciseId1)
+    );
+    if (!existingLink) {
+      exercisesLinkedAsSuperset.value.push(linkPair);
+    }
+
+    currentWorkout.value.updatedAt = new Date().toISOString();
+    saveWorkout();
+  }
+
+  /**
    * Remove an exercise from the current workout
    */
   function removeExercise(exerciseId: string) {
     if (!currentWorkout.value) return;
+
+    const exercise = currentWorkout.value.exercises.find(
+      (e) => e.id === exerciseId
+    );
+    if (exercise?.supersetGroupId) {
+      // If exercise is in a superset, remove the group ID from other exercises
+      const groupId = exercise.supersetGroupId;
+      currentWorkout.value.exercises.forEach((ex) => {
+        if (ex.id !== exerciseId && ex.supersetGroupId === groupId) {
+          delete ex.supersetGroupId;
+        }
+      });
+    }
 
     currentWorkout.value.exercises = currentWorkout.value.exercises.filter(
       (e) => e.id !== exerciseId
@@ -265,6 +389,12 @@ export function useWorkout() {
     currentWorkout.value.exercises.forEach((ex, index) => {
       ex.order = index;
     });
+
+    // Track deletion
+    if (!exercisesDeleted.value.includes(exerciseId)) {
+      exercisesDeleted.value.push(exerciseId);
+    }
+
     currentWorkout.value.updatedAt = new Date().toISOString();
     saveWorkout();
   }
@@ -449,6 +579,189 @@ export function useWorkout() {
   }
 
   /**
+   * Check if workout has routine changes that need saving
+   */
+  const hasRoutineChanges = computed(() => {
+    if (!currentWorkout.value?.routineId && !currentWorkout.value?.programId) {
+      return false;
+    }
+    return (
+      exercisesReplaced.value.length > 0 ||
+      exercisesDeleted.value.length > 0 ||
+      exercisesLinkedAsSuperset.value.length > 0
+    );
+  });
+
+  /**
+   * Save workout changes back to the routine or program
+   * Returns true if successful, false if routine/program not found (deleted)
+   */
+  async function saveWorkoutChangesToRoutine(): Promise<boolean> {
+    if (!currentWorkout.value?.routineId && !currentWorkout.value?.programId) {
+      throw new Error("Workout is not associated with a routine or program");
+    }
+
+    // If workout is part of a program, update the program's routine
+    if (currentWorkout.value.programId) {
+      return await saveWorkoutChangesToProgram();
+    }
+
+    // Otherwise, update standalone routine
+    const { updateRoutine, getRoutineById } = useRoutine();
+
+    // Verify routine exists before trying to update
+    const routine = await getRoutineById(currentWorkout.value.routineId!);
+    if (!routine) {
+      // Routine not found - may have been deleted
+      // Return false to indicate failure, but don't throw
+      return false;
+    }
+
+    // Convert WorkoutExercise[] to RoutineExercise[]
+    const routineExercises = convertWorkoutExercisesToRoutineExercises(
+      currentWorkout.value.exercises,
+      routine.exercises
+    );
+
+    await updateRoutine(currentWorkout.value.routineId!, {
+      exercises: routineExercises,
+    });
+
+    // Clear change tracking after saving
+    clearChangeTracking();
+
+    return true; // Success
+  }
+
+  /**
+   * Save workout changes back to the program's routine
+   */
+  async function saveWorkoutChangesToProgram(): Promise<boolean> {
+    if (!currentWorkout.value?.programId || !currentWorkout.value?.routineId) {
+      throw new Error("Workout is missing program or routine ID");
+    }
+
+    const { getProgramById, loadPrograms } = useProgram();
+
+    // Get the program
+    const program = await getProgramById(currentWorkout.value.programId);
+    if (!program) {
+      // Program not found - may have been deleted
+      return false;
+    }
+
+    // Find the routine within the program
+    const routineIndex = program.workouts.findIndex(
+      (r) => r.id === currentWorkout.value!.routineId
+    );
+
+    if (routineIndex === -1) {
+      // Routine not found in program
+      return false;
+    }
+
+    const routine = program.workouts[routineIndex];
+
+    // Convert WorkoutExercise[] to RoutineExercise[]
+    const routineExercises = convertWorkoutExercisesToRoutineExercises(
+      currentWorkout.value.exercises,
+      routine.exercises
+    );
+
+    // Update the routine within the program
+    program.workouts[routineIndex] = {
+      ...routine,
+      exercises: routineExercises,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Update the program itself
+    program.updatedAt = new Date().toISOString();
+
+    // Save the updated program
+    await WorkoutRepository.saveProgram(program);
+
+    // Reload programs to update the cached list
+    // This ensures the next workout uses the updated program data
+    await loadPrograms();
+
+    // Clear change tracking after saving
+    clearChangeTracking();
+
+    return true; // Success
+  }
+
+  /**
+   * Helper to convert WorkoutExercise[] to RoutineExercise[]
+   * Preserves existing routine exercise IDs where possible
+   */
+  function convertWorkoutExercisesToRoutineExercises(
+    workoutExercises: WorkoutExercise[],
+    routineExercises: RoutineExercise[]
+  ): RoutineExercise[] {
+    // Track which routine exercise IDs we've already used to avoid duplicates
+    const usedRoutineExerciseIds = new Set<string>();
+
+    return workoutExercises.map((ex, index) => {
+      // Try to find matching routine exercise by exerciseId (regardless of position)
+      // This handles cases where exercises are reordered
+      // Only match if we haven't already used this routine exercise
+      let matchingRoutineExercise = routineExercises.find(
+        (re) =>
+          re.exerciseId === ex.exerciseId && !usedRoutineExerciseIds.has(re.id)
+      );
+
+      // If no match found, try matching by position as fallback
+      if (!matchingRoutineExercise && index < routineExercises.length) {
+        const routineExAtPosition = routineExercises[index];
+        if (
+          routineExAtPosition &&
+          !usedRoutineExerciseIds.has(routineExAtPosition.id)
+        ) {
+          matchingRoutineExercise = routineExAtPosition;
+        }
+      }
+
+      // Mark this routine exercise ID as used if we found a match
+      if (matchingRoutineExercise) {
+        usedRoutineExerciseIds.add(matchingRoutineExercise.id);
+      }
+
+      // Calculate targetSets from actual sets (if any exist)
+      const targetSets = ex.sets.length > 0 ? ex.sets.length : undefined;
+
+      // Get target reps from first set if available
+      const firstSet = ex.sets[0];
+      const targetReps = firstSet?.reps ? firstSet.reps.toString() : undefined;
+
+      // Get rest time from first set if available
+      const restTime = firstSet?.restTime || undefined;
+
+      return {
+        // Preserve ID if we found a match, otherwise generate new one
+        id: matchingRoutineExercise?.id || generateId(),
+        exerciseId: ex.exerciseId,
+        exerciseName: ex.exerciseName,
+        // Use workout data if available, otherwise fall back to routine data
+        targetSets: targetSets ?? matchingRoutineExercise?.targetSets,
+        targetReps: targetReps || matchingRoutineExercise?.targetReps,
+        restTime: restTime ?? matchingRoutineExercise?.restTime,
+        notes: ex.notes || matchingRoutineExercise?.notes,
+        order: index,
+      };
+    });
+  }
+
+  /**
+   * Clear change tracking
+   */
+  function clearChangeTracking() {
+    exercisesReplaced.value = [];
+    exercisesDeleted.value = [];
+    exercisesLinkedAsSuperset.value = [];
+  }
+
+  /**
    * Finish and save the workout to history
    */
   async function finishWorkout() {
@@ -490,6 +803,11 @@ export function useWorkout() {
       }
 
       currentWorkout.value = null;
+
+      // Clear change tracking after workout is cleared
+      exercisesReplaced.value = [];
+      exercisesDeleted.value = [];
+      exercisesLinkedAsSuperset.value = [];
     } catch (err) {
       error.value =
         err instanceof Error ? err.message : "Failed to finish workout";
@@ -521,6 +839,7 @@ export function useWorkout() {
     isLoading,
     error,
     statistics,
+    hasRoutineChanges,
     loadActiveWorkout,
     createWorkout,
     createRegularWorkout,
@@ -530,11 +849,14 @@ export function useWorkout() {
     updateIntervalProgress,
     addExercise,
     removeExercise,
+    replaceExercise,
+    linkExercisesAsSuperset,
     addSet,
     updateSet,
     toggleSetCompleted,
     deleteSet,
     saveWorkout,
+    saveWorkoutChangesToRoutine,
     finishWorkout,
     discardWorkout,
   };

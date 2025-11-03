@@ -83,6 +83,9 @@
         @update-set="handleUpdateSet"
         @toggle-completed="handleToggleCompleted"
         @delete-set="handleDeleteSet"
+        @replace-exercise="handleReplaceExercise"
+        @delete-exercise="handleDeleteExercise"
+        @link-superset="handleLinkSuperset"
       />
 
       <!-- Interval Workout View -->
@@ -125,13 +128,24 @@
       <ExerciseSelectorModal
         :is-open="showExerciseModal"
         :exercises="exercises"
+        :title="exerciseToReplaceId ? 'Replace Exercise' : 'Add Exercise'"
         @select="handleAddExercise"
-        @close="showExerciseModal = false"
+        @close="() => { showExerciseModal = false; exerciseToReplaceId = null; }"
+      />
+
+      <!-- Superset Selector Modal -->
+      <SupersetSelectorModal
+        :is-open="showSupersetSelectorModal"
+        :exercises="currentWorkout?.exercises || []"
+        :current-exercise-id="exerciseToLinkId || ''"
+        @select="handleSelectSupersetExercise"
+        @close="() => { showSupersetSelectorModal = false; exerciseToLinkId = null; }"
       />
 
       <!-- Finish Workout Modal -->
       <FinishWorkoutModal
         :is-open="showFinishModal"
+        :has-routine-changes="hasRoutineChanges"
         @finish="handleFinishWorkout"
         @cancel="showFinishModal = false"
       />
@@ -196,6 +210,7 @@ import WorkoutCompletedScreen from "@/features/workouts/components/WorkoutComple
 import StartRegularWorkoutModal from "@/features/workouts/components/StartRegularWorkoutModal.vue";
 import StartIntervalWorkoutModal from "@/features/workouts/components/StartIntervalWorkoutModal.vue";
 import ExerciseSelectorModal from "@/features/workouts/components/ExerciseSelectorModal.vue";
+import SupersetSelectorModal from "@/features/workouts/components/SupersetSelectorModal.vue";
 import FinishWorkoutModal from "@/features/workouts/components/FinishWorkoutModal.vue";
 import RoutineSelector from "@/features/workouts/components/RoutineSelector.vue";
 import WorkoutStatsDashboard from "@/features/workouts/components/WorkoutStatsDashboard.vue";
@@ -213,6 +228,7 @@ import {
 const {
   currentWorkout,
   statistics,
+  hasRoutineChanges,
   loadActiveWorkout,
   createRegularWorkout,
   createIntervalWorkout,
@@ -224,6 +240,10 @@ const {
   updateSet,
   toggleSetCompleted,
   deleteSet,
+  replaceExercise,
+  linkExercisesAsSuperset,
+  removeExercise,
+  saveWorkoutChangesToRoutine,
   finishWorkout,
   discardWorkout,
 } = useWorkout();
@@ -233,6 +253,7 @@ const { createRoutineFromTemplate } = useRoutine();
 const {
   programs,
   loadPrograms,
+  getProgramById,
   createProgramFromTemplate,
   deleteProgram,
   renameProgram,
@@ -246,6 +267,9 @@ const showStartRegularModal = ref(false);
 const showStartIntervalModal = ref(false);
 const showRoutineSelector = ref(false);
 const showAddProgramModal = ref(false);
+const showSupersetSelectorModal = ref(false);
+const exerciseToReplaceId = ref<string | null>(null);
+const exerciseToLinkId = ref<string | null>(null);
 const intervalModalRef = ref<InstanceType<
   typeof StartIntervalWorkoutModal
 > | null>(null);
@@ -306,8 +330,26 @@ async function handleAddProgramFromTemplate(template: WorkoutTemplate) {
   }
 }
 
-async function handleStartWorkoutFromProgram(routine: WorkoutRoutine) {
-  await createWorkoutFromRoutine(routine);
+async function handleStartWorkoutFromProgram(
+  routine: WorkoutRoutine,
+  programId: string
+) {
+  // Fetch fresh program data from database to ensure we use the latest routine
+  // This prevents using stale cached data after a save
+  const freshProgram = await getProgramById(programId);
+  if (!freshProgram) {
+    return;
+  }
+
+  // Find the routine in the fresh program data
+  const freshRoutine = freshProgram.workouts.find((r) => r.id === routine.id);
+  if (!freshRoutine) {
+    // Fallback to using the passed routine if fresh data not found
+    await createWorkoutFromRoutine(routine, programId);
+    return;
+  }
+
+  await createWorkoutFromRoutine(freshRoutine, programId);
 }
 
 async function handleRemoveProgram(program: any) {
@@ -389,6 +431,14 @@ function handleAddExercise(exercise: Exercise) {
       exerciseId: exercise.exerciseId,
       name: exercise.name,
     });
+  } else if (exerciseToReplaceId.value) {
+    // Replacing an exercise
+    replaceExercise(
+      exerciseToReplaceId.value,
+      exercise.exerciseId,
+      exercise.name
+    );
+    exerciseToReplaceId.value = null;
   } else {
     // Adding exercise to regular workout
     addExercise(exercise.exerciseId, exercise.name);
@@ -417,8 +467,58 @@ function handleDeleteSet(exerciseId: string, setId: string) {
   deleteSet(exerciseId, setId);
 }
 
-async function handleFinishWorkout() {
+function handleReplaceExercise(exerciseId: string) {
+  exerciseToReplaceId.value = exerciseId;
+  showExerciseModal.value = true;
+}
+
+function handleDeleteExercise(exerciseId: string) {
+  removeExercise(exerciseId);
+}
+
+function handleLinkSuperset(exerciseId: string) {
+  exerciseToLinkId.value = exerciseId;
+  showSupersetSelectorModal.value = true;
+}
+
+function handleSelectSupersetExercise(targetExerciseId: string) {
+  if (exerciseToLinkId.value) {
+    linkExercisesAsSuperset(exerciseToLinkId.value, targetExerciseId);
+    exerciseToLinkId.value = null;
+  }
+}
+
+async function handleFinishWorkout(saveToRoutine?: boolean) {
   try {
+    // Save to routine if requested
+    if (saveToRoutine && hasRoutineChanges.value) {
+      try {
+        const saved = await saveWorkoutChangesToRoutine();
+        if (!saved) {
+          // Routine not found (may have been deleted)
+          showAlert({
+            header: "Couldn't Save to Routine",
+            message:
+              "The routine associated with this workout could not be found. It may have been deleted.",
+            buttons: [{ text: "OK", role: "confirm" }],
+          });
+        }
+      } catch (error) {
+        console.error("Failed to save changes to routine:", error);
+        // Show alert to user that routine save failed
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "An error occurred while saving to the routine.";
+        showAlert({
+          header: "Couldn't Save to Routine",
+          message: errorMessage,
+          buttons: [{ text: "OK", role: "confirm" }],
+        });
+        // Continue with workout finish even if routine save fails
+      }
+    }
+
     // Save completed workout data before finishing
     // Deep clone to remove Vue reactivity
     if (currentWorkout.value && statistics.value) {

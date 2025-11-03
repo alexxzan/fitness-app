@@ -3,14 +3,14 @@
     :is-open="isOpen"
     @did-dismiss="$emit('close')"
   >
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Add Exercise</ion-title>
-        <ion-buttons slot="end">
-          <ion-button @click="$emit('close')">Close</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ title || 'Add Exercise' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button @click="$emit('close')">Close</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
     <ion-content>
       <ExerciseSelector
         :exercises="exercises"
@@ -36,6 +36,7 @@ import type { Exercise } from '@/features/exercises/types/exercise.types'
 interface Props {
   isOpen: boolean
   exercises: Exercise[]
+  title?: string
 }
 
 const props = defineProps<Props>()

@@ -57,6 +57,7 @@ class FitnessDexieDB extends Dexie {
     });
 
     // Version 3: Add workout programs
+    // Note: programId is stored in workout objects but not indexed
     this.version(3).stores({
       workouts: "id, name, createdAt, startTime, endTime, routineId, completed",
       routines: "id, name, createdAt, type, templateId, isFavorite",

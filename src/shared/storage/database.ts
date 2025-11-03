@@ -111,6 +111,7 @@ class DatabaseManager {
         start_time TEXT,
         end_time TEXT,
         notes TEXT,
+        program_id TEXT,
         routine_id TEXT,
         routine_template_id TEXT,
         completed INTEGER DEFAULT 0,

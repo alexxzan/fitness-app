@@ -34,6 +34,7 @@ export interface WorkoutExercise {
   sets: WorkoutSet[];
   notes?: string;
   order: number;
+  supersetGroupId?: string; // Links exercises together as supersets
 }
 
 export interface Workout {
@@ -45,7 +46,8 @@ export interface Workout {
   intervalConfig?: IntervalConfig;
   intervalProgress?: IntervalProgress;
   // Routine tracking fields
-  routineId?: string; // Reference to routines table (if started from routine)
+  programId?: string; // Reference to workout_programs table (if started from program)
+  routineId?: string; // Reference to routines table (if started from routine) or routine ID within program
   routineTemplateId?: string; // Direct reference to template if used directly
   // Analytics fields
   completed?: boolean;

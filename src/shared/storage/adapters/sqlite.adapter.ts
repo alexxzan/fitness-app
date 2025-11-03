@@ -111,6 +111,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         start_time TEXT,
         end_time TEXT,
         notes TEXT,
+        program_id TEXT,
         routine_id TEXT,
         routine_template_id TEXT,
         completed INTEGER DEFAULT 0,
@@ -305,9 +306,9 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       await db.query(
         `INSERT INTO workouts (
           id, name, type, exercises, interval_config, interval_progress,
-          start_time, end_time, notes, routine_id, routine_template_id,
+          start_time, end_time, notes, program_id, routine_id, routine_template_id,
           completed, completion_percentage, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           name = excluded.name,
           type = excluded.type,
@@ -317,6 +318,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
           start_time = excluded.start_time,
           end_time = excluded.end_time,
           notes = excluded.notes,
+          program_id = excluded.program_id,
           routine_id = excluded.routine_id,
           routine_template_id = excluded.routine_template_id,
           completed = excluded.completed,
@@ -332,6 +334,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
           serialized.startTime || null,
           serialized.endTime || null,
           serialized.notes || null,
+          serialized.programId || null,
           serialized.routineId || null,
           serialized.routineTemplateId || null,
           serialized.completed,
@@ -844,6 +847,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       startTime: row.startTime || undefined,
       endTime: row.endTime || undefined,
       notes: row.notes || undefined,
+      programId: row.programId || undefined,
       routineId: row.routineId || undefined,
       routineTemplateId: row.routineTemplateId || undefined,
       completed: row.completed === 1,
@@ -876,6 +880,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
           : workout.endTime.toISOString()
         : undefined,
       notes: workout.notes || undefined,
+      programId: workout.programId || undefined,
       routineId: workout.routineId || undefined,
       routineTemplateId: workout.routineTemplateId || undefined,
       completed: workout.completed ? 1 : 0,

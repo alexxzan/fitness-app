@@ -42,6 +42,13 @@
       </div>
       <div class="header-right">
         <button
+          class="context-menu-button"
+          @click.stop="openContextMenu"
+          :aria-label="'Exercise options'"
+        >
+          <ion-icon :icon="ellipsisVertical" />
+        </button>
+        <button
           class="collapse-button"
           :aria-label="isCollapsed ? 'Expand' : 'Collapse'"
         >
@@ -274,6 +281,13 @@
         </div>
       </ion-content>
     </ion-modal>
+
+    <!-- Context Menu -->
+    <ContentMenu
+      :is-open="showContextMenu"
+      :items="contextMenuItems"
+      @dismiss="showContextMenu = false"
+    />
   </div>
 </template>
 
@@ -300,6 +314,8 @@ import {
   IonImg,
 } from "@ionic/vue";
 import AppCheckbox from "@/components/atoms/AppCheckbox.vue";
+import ContentMenu from "@/components/molecules/ContentMenu.vue";
+import type { ContentMenuItem } from "@/components/molecules/ContentMenu.vue";
 import {
   add,
   trash,
@@ -307,6 +323,9 @@ import {
   chevronUp,
   chevronDown,
   barbell,
+  ellipsisVertical,
+  swapHorizontal,
+  link,
 } from "ionicons/icons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import type { WorkoutExercise } from "../types/workout.types";
@@ -327,6 +346,9 @@ const emit = defineEmits<{
   toggleCompleted: [setId: string];
   deleteSet: [setId: string];
   startRestTimer: [exerciseName: string, duration: number];
+  replaceExercise: [];
+  deleteExercise: [];
+  linkSuperset: [];
 }>();
 
 // State management
@@ -335,6 +357,7 @@ const inputRefs = ref<Record<string, any>>({});
 const expandedNotes = reactive<Record<string, boolean>>({});
 const showRestTimePicker = ref(false);
 const showSetTypePicker = ref(false);
+const showContextMenu = ref(false);
 const exerciseRestTime = ref(60); // Default 60 seconds
 const selectedSetId = ref<string | null>(null);
 const selectedSetType = ref<SetType>("working");
@@ -583,6 +606,42 @@ function openRestTimePicker() {
   triggerHaptic(ImpactStyle.Light);
 }
 
+function openContextMenu() {
+  showContextMenu.value = true;
+  triggerHaptic(ImpactStyle.Light);
+}
+
+const contextMenuItems = computed<ContentMenuItem[]>(() => [
+  {
+    text: "Replace exercise",
+    icon: swapHorizontal,
+    handler: () => {
+      showContextMenu.value = false;
+      triggerHaptic(ImpactStyle.Medium);
+      emit("replaceExercise");
+    },
+  },
+  {
+    text: "Add as superset",
+    icon: link,
+    handler: () => {
+      showContextMenu.value = false;
+      triggerHaptic(ImpactStyle.Medium);
+      emit("linkSuperset");
+    },
+  },
+  {
+    text: "Delete exercise",
+    icon: trash,
+    role: "destructive",
+    handler: () => {
+      showContextMenu.value = false;
+      triggerHaptic(ImpactStyle.Heavy);
+      emit("deleteExercise");
+    },
+  },
+]);
+
 function handleRestTimeChange(selectedIndex: number) {
   const selectedOption = restTimeOptionsList.value[selectedIndex];
   if (selectedOption) {
@@ -806,7 +865,6 @@ function handleDeleteSet(setId: string) {
 
 // Load exercise image URL
 async function loadExerciseImage() {
-  console.log("Loading exercise image for:", props.exercise);
   if (!props.exercise.exerciseId) {
     exerciseImageUrl.value = null;
     return;
@@ -933,6 +991,15 @@ watch(
 }
 
 .exercise-header--completed .collapse-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--color-text-primary);
+}
+
+.exercise-header--completed .context-menu-button {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.exercise-header--completed .context-menu-button:hover {
   background: rgba(255, 255, 255, 0.15);
   color: var(--color-text-primary);
 }
@@ -1076,6 +1143,29 @@ watch(
 .rest-time-value {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.3px;
+}
+
+.context-menu-button {
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.context-menu-button:hover {
+  background: var(--color-background-elevated);
+}
+
+.context-menu-button:active {
+  transform: scale(0.95);
 }
 
 .collapse-button {
