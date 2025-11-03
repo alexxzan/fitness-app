@@ -163,35 +163,39 @@
 
               <!-- Weight -->
               <td class="col-weight">
-                <ion-input
-                  :ref="(el) => setInputRefs(`weight-${set.id}`, el)"
-                  type="number"
-                  :value="set.weight ?? ''"
-                  placeholder="—"
-                  :disabled="set.completed"
-                  @ion-input="handleWeightChange(set.id, $event)"
-                  @keydown.enter="focusNextInput(set.id, 'reps')"
-                  @click.stop
-                  class="set-input"
-                  step="0.5"
-                  min="0"
-                />
+                <div class="input-wrapper">
+                  <ion-input
+                    :ref="(el) => setInputRefs(`weight-${set.id}`, el)"
+                    type="number"
+                    :value="set.weight ?? ''"
+                    placeholder="—"
+                    :disabled="set.completed"
+                    @ion-input="handleWeightChange(set.id, $event)"
+                    @keydown.enter="focusNextInput(set.id, 'reps')"
+                    @click.stop
+                    class="set-input"
+                    step="0.5"
+                    min="0"
+                  />
+                </div>
               </td>
 
               <!-- Reps -->
               <td class="col-reps">
-                <ion-input
-                  :ref="(el) => setInputRefs(`reps-${set.id}`, el)"
-                  type="number"
-                  :value="set.reps ?? ''"
-                  placeholder="—"
-                  :disabled="set.completed"
-                  @ion-input="handleRepsChange(set.id, $event)"
-                  @keydown.enter="focusNextInput(set.id, 'next')"
-                  @click.stop
-                  class="set-input"
-                  min="0"
-                />
+                <div class="input-wrapper">
+                  <ion-input
+                    :ref="(el) => setInputRefs(`reps-${set.id}`, el)"
+                    type="number"
+                    :value="set.reps ?? ''"
+                    placeholder="—"
+                    :disabled="set.completed"
+                    @ion-input="handleRepsChange(set.id, $event)"
+                    @keydown.enter="focusNextInput(set.id, 'next')"
+                    @click.stop
+                    class="set-input"
+                    min="0"
+                  />
+                </div>
               </td>
 
               <!-- Completed Checkbox -->
@@ -288,6 +292,25 @@
       :items="contextMenuItems"
       @dismiss="showContextMenu = false"
     />
+
+    <!-- Validation Warning Modal -->
+    <ion-modal
+      :is-open="showWarningModal"
+      @did-dismiss="handleNo"
+      :backdrop-dismiss="false"
+    >
+      <div class="warning-notification">
+        <div class="warning-content">
+          <ion-icon :icon="warningOutline" class="warning-icon"></ion-icon>
+          <p class="warning-text">{{ currentWarning }}</p>
+          <p class="warning-question">Is this correct?</p>
+        </div>
+        <div class="warning-buttons">
+          <ion-button fill="outline" @click="handleNo">No</ion-button>
+          <ion-button @click="handleYes">Yes</ion-button>
+        </div>
+      </div>
+    </ion-modal>
   </div>
 </template>
 
@@ -326,6 +349,7 @@ import {
   ellipsisVertical,
   swapHorizontal,
   link,
+  warningOutline,
 } from "ionicons/icons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import type { WorkoutExercise } from "../types/workout.types";
@@ -364,6 +388,64 @@ const selectedSetType = ref<SetType>("working");
 const deleteContainerRef = ref<HTMLElement | null>(null);
 const tableRef = ref<HTMLTableElement | null>(null);
 const exerciseImageUrl = ref<string | null>(null);
+
+// Validation warnings
+const showWarningModal = ref(false);
+const currentWarning = ref("");
+const currentWarningSetId = ref<string | null>(null);
+const previousSetsData = ref<Array<{ weight?: number; reps?: number }>>([]);
+
+// Load previous sets data for the exercise
+async function loadPreviousSetsData() {
+  previousSetsData.value = [];
+
+  try {
+    const { WorkoutRepository } = await import(
+      "../repositories/workout.repository"
+    );
+    const workoutHistory = await WorkoutRepository.getWorkoutHistory();
+
+    // Find the most recent workout containing this exercise
+    for (const workout of workoutHistory) {
+      const exercise = workout.exercises.find(
+        (ex) => ex.exerciseId === props.exercise.exerciseId
+      );
+
+      if (exercise && exercise.sets.length > 0) {
+        // Get all sets with data from previous workout
+        exercise.sets.forEach((set) => {
+          if (
+            set.completed &&
+            (set.weight !== undefined || set.reps !== undefined)
+          ) {
+            previousSetsData.value.push({
+              weight: set.weight,
+              reps: set.reps,
+            });
+          }
+        });
+        break; // Use first matching workout (most recent)
+      }
+    }
+
+    // Fallback to previousPerformance if we didn't find sets
+    if (previousSetsData.value.length === 0 && props.previousPerformance) {
+      previousSetsData.value.push({
+        weight: props.previousPerformance.weight,
+        reps: props.previousPerformance.reps,
+      });
+    }
+  } catch (error) {
+    console.error("Failed to load previous sets data:", error);
+    // Fallback to previousPerformance
+    if (props.previousPerformance) {
+      previousSetsData.value.push({
+        weight: props.previousPerformance.weight,
+        reps: props.previousPerformance.reps,
+      });
+    }
+  }
+}
 
 // Set type cycling
 const SET_TYPES: SetType[] = [
@@ -476,16 +558,24 @@ function getSetTypeShortLabel(setType: SetType): string {
 }
 
 function getPreviousWeight(index: number): string {
+  // First try to get from previous workout's set at same index
+  if (previousSetsData.value[index]?.weight !== undefined) {
+    return `${previousSetsData.value[index].weight}kg`;
+  }
+
+  // Fallback to previous performance for first set
   if (index === 0 && props.previousPerformance?.weight) {
     return `${props.previousPerformance.weight}kg`;
   }
-  // For subsequent sets, show previous set's weight
+
+  // For subsequent sets in current workout, show previous set's weight
   if (index > 0) {
     const previousSet = props.exercise.sets[index - 1];
     if (previousSet.weight) {
       return `${previousSet.weight}kg`;
     }
   }
+
   return "—";
 }
 
@@ -508,16 +598,196 @@ function handleSetTypeChange(setType: SetType) {
   }
 }
 
+/**
+ * Validates weight input against previous performance
+ */
+function validateWeight(setId: string, value: number | null): string | null {
+  if (value === null || value === undefined || isNaN(value)) {
+    return null;
+  }
+
+  // Absolute limits - check for obviously wrong values
+  if (value > 1000) {
+    return (
+      "Weight seems too high. Did you mean " +
+      formatSuggestedWeight(value) +
+      "?"
+    );
+  }
+
+  // Compare with previous performance
+  if (props.previousPerformance?.weight !== undefined) {
+    const previousWeight = props.previousPerformance.weight;
+    if (previousWeight > 0) {
+      // If current weight is more than 2x previous, it's suspicious
+      if (value > previousWeight * 2) {
+        const suggestedWeight = suggestCorrectWeight(value, previousWeight);
+        if (suggestedWeight) {
+          return `Did you mean ${suggestedWeight}kg? (Previous: ${previousWeight}kg)`;
+        }
+      }
+    }
+  }
+
+  // Compare with previous set in current workout
+  const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
+  if (setIndex > 0) {
+    const previousSet = props.exercise.sets[setIndex - 1];
+    if (previousSet.weight !== undefined && previousSet.weight > 0) {
+      if (value > previousSet.weight * 2) {
+        const suggestedWeight = suggestCorrectWeight(value, previousSet.weight);
+        if (suggestedWeight) {
+          return `Did you mean ${suggestedWeight}kg? (Previous set: ${previousSet.weight}kg)`;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Validates reps input against previous performance
+ */
+function validateReps(setId: string, value: number | null): string | null {
+  if (value === null || value === undefined || isNaN(value)) {
+    return null;
+  }
+
+  // Absolute limits - check for obviously wrong values
+  if (value > 500) {
+    return "Reps seem too high. Please check your input.";
+  }
+
+  // Compare with previous performance
+  if (props.previousPerformance?.reps !== undefined) {
+    const previousReps = props.previousPerformance.reps;
+    if (previousReps > 0) {
+      // If current reps is more than 3x previous, it's suspicious (reps can vary more than weight)
+      if (value > previousReps * 3) {
+        return `Are you sure? Previous: ${previousReps} reps`;
+      }
+    }
+  }
+
+  // Compare with previous set in current workout
+  const setIndex = props.exercise.sets.findIndex((s) => s.id === setId);
+  if (setIndex > 0) {
+    const previousSet = props.exercise.sets[setIndex - 1];
+    if (previousSet.reps !== undefined && previousSet.reps > 0) {
+      if (value > previousSet.reps * 3) {
+        return `Are you sure? Previous set: ${previousSet.reps} reps`;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Suggests a corrected weight based on common typos
+ * E.g., 1005kg -> 105kg (when previous was 100kg), 1000kg -> 100kg
+ */
+function suggestCorrectWeight(
+  inputWeight: number,
+  referenceWeight: number
+): string | null {
+  const inputStr = inputWeight.toString();
+  const refStr = referenceWeight.toString();
+
+  // Case 1: Extra digit inserted anywhere (e.g., 100kg -> 1005kg, meaning 105kg)
+  // Try removing each digit to see if we get something reasonable
+  if (inputStr.length > refStr.length) {
+    for (let i = 0; i < inputStr.length; i++) {
+      const possible = Number(inputStr.slice(0, i) + inputStr.slice(i + 1));
+      // Accept if it's close to reference or a reasonable progression (within 15kg)
+      if (
+        possible > 0 &&
+        possible < 1000 &&
+        Math.abs(possible - referenceWeight) <= 15
+      ) {
+        return `${possible}kg`;
+      }
+    }
+  }
+
+  // Case 2: Extra zero added at end (e.g., 100kg -> 1000kg)
+  if (inputWeight > referenceWeight * 8 && inputWeight < referenceWeight * 12) {
+    const possible = Math.round(inputWeight / 10);
+    if (
+      possible > 0 &&
+      possible < 1000 &&
+      Math.abs(possible - referenceWeight) <= 15
+    ) {
+      return `${possible}kg`;
+    }
+  }
+
+  // Case 3: Very close to reference * 10 (e.g., 100kg -> 1000kg typo)
+  if (inputWeight > referenceWeight * 9 && inputWeight < referenceWeight * 11) {
+    return `${referenceWeight}kg`;
+  }
+
+  // Case 4: Special case for 1005 pattern (common typo: meant 105, typed 1005)
+  // If input is like 1005 and reference is around 100, suggest 105
+  if (
+    inputStr.length === 4 &&
+    inputStr.startsWith("100") &&
+    referenceWeight >= 95 &&
+    referenceWeight <= 110
+  ) {
+    // Remove middle zero: 1005 -> 105
+    const altPossible = Number(inputStr[0] + inputStr.slice(2));
+    if (
+      altPossible >= 100 &&
+      altPossible <= 120 &&
+      Math.abs(altPossible - referenceWeight) <= 20
+    ) {
+      return `${altPossible}kg`;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Formats a suggested weight, removing extra digits
+ */
+function formatSuggestedWeight(value: number): string {
+  // Try common corrections
+  const valueStr = value.toString();
+
+  // If it's 4+ digits and starts with common patterns, suggest removing first digit
+  if (valueStr.length >= 4) {
+    const withoutFirst = Number(valueStr.slice(1));
+    if (withoutFirst < 1000 && withoutFirst > 0) {
+      return `${withoutFirst}kg`;
+    }
+
+    // Try removing middle digit if it's like 1005
+    if (valueStr.length === 4 && valueStr[1] === "0") {
+      const possible = Number(valueStr[0] + valueStr.slice(2));
+      if (possible > 0 && possible < 1000) {
+        return `${possible}kg`;
+      }
+    }
+  }
+
+  return `${Math.round(value / 10)}kg`;
+}
+
 function handleWeightChange(setId: string, event: Event) {
   const target = event.target as HTMLIonInputElement;
   const value = target.value;
-  emit("updateSet", setId, "weight", value ? Number(value) : null);
+  const numValue = value ? Number(value) : null;
+  emit("updateSet", setId, "weight", numValue);
 }
 
 function handleRepsChange(setId: string, event: Event) {
   const target = event.target as HTMLIonInputElement;
   const value = target.value;
-  emit("updateSet", setId, "reps", value ? Number(value) : null);
+  const numValue = value ? Number(value) : null;
+  emit("updateSet", setId, "reps", numValue);
 }
 
 function focusNextInput(setId: string, target: "reps" | "next") {
@@ -548,12 +818,89 @@ function focusNextInput(setId: string, target: "reps" | "next") {
 }
 
 function handleToggleCompleted(setId: string) {
-  emit("toggleCompleted", setId);
+  const set = props.exercise.sets.find((s) => s.id === setId);
+  if (!set) return;
 
+  // Validate when marking as completed
+  if (!set.completed && (set.weight || set.reps)) {
+    const weightWarning =
+      set.weight !== null && set.weight !== undefined
+        ? validateWeight(setId, set.weight)
+        : null;
+    const repsWarning =
+      set.reps !== null && set.reps !== undefined
+        ? validateReps(setId, set.reps)
+        : null;
+
+    if (weightWarning || repsWarning) {
+      currentWarningSetId.value = setId;
+      // Clean up warning message - remove suggestion parts, just keep the core warning
+      const warningMessage = weightWarning || repsWarning || "";
+      // Remove "Did you mean..." suggestions to keep it simple
+      currentWarning.value = warningMessage
+        .replace(/Did you mean [^?]+\?/g, "")
+        .replace(/\s*\(.*?\)/g, "")
+        .trim();
+
+      showWarningModal.value = true;
+      triggerHaptic(ImpactStyle.Medium);
+
+      // Don't mark as completed yet - wait for user to confirm
+      return;
+    }
+  }
+
+  // If no warnings, proceed with completion
+  emit("toggleCompleted", setId);
+  handleSetCompletionFlow(setId);
+  triggerHaptic(ImpactStyle.Medium);
+}
+
+function handleYes() {
+  // User confirmed the value is correct, complete the set
+  showWarningModal.value = false;
+  if (currentWarningSetId.value) {
+    const setId = currentWarningSetId.value;
+    currentWarningSetId.value = null;
+    currentWarning.value = "";
+
+    // Complete the set and proceed with normal flow
+    emit("toggleCompleted", setId);
+    handleSetCompletionFlow(setId);
+  }
+}
+
+function handleNo() {
+  // User said no, don't complete the set - let them correct it
+  showWarningModal.value = false;
+  if (currentWarningSetId.value) {
+    // Focus the input so user can correct it
+    nextTick(() => {
+      const set = props.exercise.sets.find(
+        (s) => s.id === currentWarningSetId.value
+      );
+      if (set) {
+        const weightInput =
+          inputRefs.value[`weight-${currentWarningSetId.value}`];
+        if (weightInput && weightInput.$el) {
+          const input = weightInput.$el.querySelector("input");
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }
+      }
+    });
+    currentWarningSetId.value = null;
+    currentWarning.value = "";
+  }
+}
+
+function handleSetCompletionFlow(setId: string) {
   // Auto-focus next set's weight if completed
   nextTick(() => {
-    const set = props.exercise.sets.find((s) => s.id === setId);
-    if (set?.completed && exerciseRestTime.value > 0) {
+    const updatedSet = props.exercise.sets.find((s) => s.id === setId);
+    if (updatedSet?.completed && exerciseRestTime.value > 0) {
       // Start global rest timer
       emit(
         "startRestTimer",
@@ -574,8 +921,6 @@ function handleToggleCompleted(setId: string) {
       });
     }
   });
-
-  triggerHaptic(ImpactStyle.Medium);
 }
 
 function toggleNotes(setId: string) {
@@ -886,9 +1231,15 @@ watch(
   () => props.exercise.exerciseId,
   () => {
     loadExerciseImage();
+    loadPreviousSetsData();
   },
   { immediate: true }
 );
+
+// Load previous sets data on mount
+onMounted(() => {
+  loadPreviousSetsData();
+});
 </script>
 
 <style scoped>
@@ -1357,10 +1708,19 @@ watch(
 
 .sets-table td {
   padding: var(--spacing-sm) var(--spacing-xs);
-  vertical-align: middle;
+  vertical-align: top;
   position: relative;
   z-index: 2;
   background: inherit;
+}
+
+.sets-table td.col-weight,
+.sets-table td.col-reps {
+  vertical-align: top;
+}
+
+.sets-table td.col-prev-weight {
+  vertical-align: middle;
 }
 
 .set-number {
@@ -1441,6 +1801,13 @@ watch(
   color: var(--color-primary-700);
 }
 
+.input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
 .set-input {
   width: 100%;
   --padding-start: var(--spacing-xs);
@@ -1454,6 +1821,64 @@ watch(
 
 .set-input input {
   text-align: center;
+}
+
+/* Warning Notification Styles */
+.warning-notification {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-surface);
+  border-radius: var(--radius-card);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  padding: var(--spacing-base);
+  min-width: 260px;
+  max-width: 85%;
+  z-index: 10000;
+  border: 1px solid var(--color-border);
+}
+
+.warning-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  text-align: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.warning-icon {
+  font-size: 1.5rem;
+  color: var(--color-warning-500);
+  margin-bottom: var(--spacing-xs);
+}
+
+.warning-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.warning-question {
+  font-size: var(--typography-small-size);
+  color: var(--color-text-secondary);
+  margin: var(--spacing-xs) 0 0 0;
+  font-weight: var(--font-weight-medium);
+}
+
+.warning-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.warning-buttons ion-button {
+  flex: 1;
+  margin: 0;
+  --padding-top: var(--spacing-sm);
+  --padding-bottom: var(--spacing-sm);
 }
 
 .sets-table-wrapper {
