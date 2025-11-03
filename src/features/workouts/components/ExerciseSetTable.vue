@@ -23,17 +23,13 @@
         <div class="exercise-name-section">
           <div class="exercise-name-row">
             <h3 class="exercise-name">{{ exercise.exerciseName }}</h3>
-            <div
-              v-if="isCollapsed && isExerciseComplete"
-              class="completion-badge"
-            >
-              <ion-icon :icon="checkmarkCircle" />
-              <span>{{ completedSetsCount }}/{{ totalSetsCount }}</span>
-            </div>
           </div>
           <div class="exercise-summary-row" v-if="exerciseSummary">
-            <div class="exercise-summary">{{ exerciseSummary }}</div>
+            <div class="exercise-summary">
+              <span>{{ exerciseSummary }}</span>
+            </div>
             <button
+              v-if="!isExerciseComplete"
               class="rest-time-button"
               @click.stop="openRestTimePicker"
               :aria-label="`Rest time: ${exerciseRestTime}s`"
@@ -310,7 +306,6 @@ import {
   timeOutline,
   chevronUp,
   chevronDown,
-  checkmarkCircle,
   barbell,
 } from "ionicons/icons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
@@ -868,7 +863,86 @@ watch(
 }
 
 .exercise-header--completed {
-  background: var(--color-success-50);
+  background: linear-gradient(
+    135deg,
+    var(--color-success-500) 0%,
+    var(--color-success-600) 50%,
+    var(--color-success-500) 100%
+  );
+  border-bottom-color: var(--color-success-700);
+  box-shadow: inset 0 2px 4px 0 rgba(22, 163, 74, 0.3),
+    0 1px 2px 0 rgba(22, 163, 74, 0.2);
+  position: relative;
+}
+
+.exercise-header--completed > * {
+  position: relative;
+  z-index: 1;
+}
+
+.exercise-header--completed::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-success-300) 50%,
+    transparent 100%
+  );
+  opacity: 0.8;
+  z-index: 0;
+}
+
+.exercise-header--completed:hover {
+  background: linear-gradient(
+    135deg,
+    var(--color-success-600) 0%,
+    var(--color-success-700) 50%,
+    var(--color-success-600) 100%
+  );
+}
+
+/* Ensure text is readable on completed header */
+.exercise-header--completed .exercise-name {
+  color: var(--color-text-primary);
+  font-weight: var(--typography-body-weight-bold);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.exercise-header--completed .exercise-summary {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: var(--typography-body-weight-medium);
+}
+
+.exercise-header--completed .rest-time-button {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.exercise-header--completed .rest-time-button:hover {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.exercise-header--completed .collapse-button {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.exercise-header--completed .collapse-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--color-text-primary);
+}
+
+.exercise-header--completed .completion-badge {
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.2);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(4px);
 }
 
 .header-left {
