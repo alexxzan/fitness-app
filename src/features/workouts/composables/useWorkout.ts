@@ -555,7 +555,22 @@ export function useWorkout() {
    * Helper to convert reactive workout to plain object for storage
    */
   function toPlainWorkout(workout: Workout): Workout {
-    return JSON.parse(JSON.stringify(workout));
+    // Deep clone to remove Vue reactivity and ensure all properties are included
+    const plain = JSON.parse(JSON.stringify(workout));
+    // Ensure sets have all properties explicitly included, even if null/undefined
+    plain.exercises = plain.exercises.map((ex: WorkoutExercise) => ({
+      ...ex,
+      sets: ex.sets.map((set: WorkoutSet) => ({
+        id: set.id,
+        reps: set.reps ?? null,
+        weight: set.weight ?? null,
+        restTime: set.restTime ?? null,
+        completed: set.completed,
+        notes: set.notes ?? null,
+        setType: set.setType ?? "working",
+      })),
+    }));
+    return plain;
   }
 
   /**
@@ -785,12 +800,26 @@ export function useWorkout() {
         currentWorkout.value
       );
       currentWorkout.value.completionPercentage = completionPercentage;
-      currentWorkout.value.completed = completionPercentage >= 50; // Consider 50%+ as completed
+      // Always mark as completed when finishing workout - user intentionally finished it
+      // The completion percentage is still tracked for analytics
+      currentWorkout.value.completed = true;
 
       const workoutToSave = toPlainWorkout(currentWorkout.value);
 
+      console.log('Saving completed workout:', {
+        id: workoutToSave.id,
+        name: workoutToSave.name,
+        completed: workoutToSave.completed,
+        completionPercentage: workoutToSave.completionPercentage,
+        endTime: workoutToSave.endTime,
+        exercisesCount: workoutToSave.exercises.length,
+      });
+
       await WorkoutRepository.save(workoutToSave);
+      console.log('Workout saved successfully to database');
+      
       await WorkoutRepository.setActiveWorkout(null);
+      console.log('Active workout cleared');
 
       // Update routine analytics if workout was from a routine
       if (workoutToSave.routineId) {
@@ -809,8 +838,13 @@ export function useWorkout() {
       exercisesDeleted.value = [];
       exercisesLinkedAsSuperset.value = [];
     } catch (err) {
-      error.value =
-        err instanceof Error ? err.message : "Failed to finish workout";
+      const errorMessage = err instanceof Error ? err.message : "Failed to finish workout";
+      error.value = errorMessage;
+      console.error('Error finishing workout:', err);
+      console.error('Error details:', {
+        message: errorMessage,
+        stack: err instanceof Error ? err.stack : undefined,
+      });
       throw err;
     } finally {
       isLoading.value = false;

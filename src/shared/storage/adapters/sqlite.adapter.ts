@@ -303,47 +303,67 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     save: async (workout: Workout): Promise<string> => {
       const db = this.getDb();
       const serialized = this.serializeWorkout(workout);
-      await db.query(
-        `INSERT INTO workouts (
-          id, name, type, exercises, interval_config, interval_progress,
-          start_time, end_time, notes, program_id, routine_id, routine_template_id,
-          completed, completion_percentage, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-          name = excluded.name,
-          type = excluded.type,
-          exercises = excluded.exercises,
-          interval_config = excluded.interval_config,
-          interval_progress = excluded.interval_progress,
-          start_time = excluded.start_time,
-          end_time = excluded.end_time,
-          notes = excluded.notes,
-          program_id = excluded.program_id,
-          routine_id = excluded.routine_id,
-          routine_template_id = excluded.routine_template_id,
-          completed = excluded.completed,
-          completion_percentage = excluded.completion_percentage,
-          updated_at = excluded.updated_at`,
-        [
-          serialized.id,
-          serialized.name,
-          serialized.type,
-          serialized.exercises,
-          serialized.intervalConfig || null,
-          serialized.intervalProgress || null,
-          serialized.startTime || null,
-          serialized.endTime || null,
-          serialized.notes || null,
-          serialized.programId || null,
-          serialized.routineId || null,
-          serialized.routineTemplateId || null,
-          serialized.completed,
-          serialized.completionPercentage || null,
-          serialized.createdAt,
-          serialized.updatedAt,
-        ]
-      );
-      return workout.id;
+      
+      try {
+        console.log('SQLiteAdapter: Saving workout', {
+          id: serialized.id,
+          name: serialized.name,
+          completed: serialized.completed,
+          exercisesLength: serialized.exercises?.length || 0,
+        });
+        
+        await db.query(
+          `INSERT INTO workouts (
+            id, name, type, exercises, interval_config, interval_progress,
+            start_time, end_time, notes, program_id, routine_id, routine_template_id,
+            completed, completion_percentage, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            name = excluded.name,
+            type = excluded.type,
+            exercises = excluded.exercises,
+            interval_config = excluded.interval_config,
+            interval_progress = excluded.interval_progress,
+            start_time = excluded.start_time,
+            end_time = excluded.end_time,
+            notes = excluded.notes,
+            program_id = excluded.program_id,
+            routine_id = excluded.routine_id,
+            routine_template_id = excluded.routine_template_id,
+            completed = excluded.completed,
+            completion_percentage = excluded.completion_percentage,
+            updated_at = excluded.updated_at`,
+          [
+            serialized.id,
+            serialized.name,
+            serialized.type,
+            serialized.exercises,
+            serialized.intervalConfig || null,
+            serialized.intervalProgress || null,
+            serialized.startTime || null,
+            serialized.endTime || null,
+            serialized.notes || null,
+            serialized.programId || null,
+            serialized.routineId || null,
+            serialized.routineTemplateId || null,
+            serialized.completed,
+            serialized.completionPercentage || null,
+            serialized.createdAt,
+            serialized.updatedAt,
+          ]
+        );
+        
+        console.log('SQLiteAdapter: Workout saved successfully', serialized.id);
+        return workout.id;
+      } catch (error) {
+        console.error('SQLiteAdapter: Error saving workout', {
+          error,
+          workoutId: serialized.id,
+          exercisesJsonLength: serialized.exercises?.length,
+          completed: serialized.completed,
+        });
+        throw error;
+      }
     },
 
     delete: async (id: string): Promise<void> => {

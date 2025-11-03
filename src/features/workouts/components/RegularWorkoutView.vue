@@ -98,10 +98,23 @@ const restTimer = reactive<{
 });
 
 // Load workout history and get previous performances
+// Force reload to ensure we get the most recent completed workouts
 onMounted(async () => {
-  await loadWorkoutHistory();
+  await loadWorkoutHistory(true);
   updatePreviousPerformances();
 });
+
+// Reload history when workout ID changes (new workout started)
+watch(
+  () => props.workout.id,
+  async (newId, oldId) => {
+    // If this is a new workout (different ID), reload history to get latest completed workouts
+    if (newId && newId !== oldId) {
+      await loadWorkoutHistory(true);
+      updatePreviousPerformances();
+    }
+  }
+);
 
 // Update previous performances when exercises change
 watch(

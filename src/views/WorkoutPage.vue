@@ -527,9 +527,16 @@ async function handleFinishWorkout(saveToRoutine?: boolean) {
     }
 
     await finishWorkout();
+    console.log('Workout finished successfully');
     showFinishModal.value = false;
   } catch (error) {
     console.error("Failed to finish workout:", error);
+    // Show error to user
+    showAlert({
+      header: "Failed to Complete Workout",
+      message: error instanceof Error ? error.message : "An error occurred while completing the workout.",
+      buttons: [{ text: "OK", role: "confirm" }],
+    });
   }
 }
 
