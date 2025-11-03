@@ -1,118 +1,126 @@
 <template>
-  <ion-page>
-    <ion-header>
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-button
-            v-if="
-              currentWorkout &&
-              workoutState === 'active' &&
-              currentWorkout?.type === 'regular'
-            "
-            @click="handleCancelWorkout"
-            color="danger"
-          >
-            Cancel
-          </ion-button>
-        </ion-buttons>
-        <ion-title>Workout</ion-title>
-        <ion-buttons slot="end">
-          <ion-button
-            v-if="currentWorkout && workoutState === 'active'"
-            @click="showFinishModal = true"
-          >
-            Finish
-          </ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content :fullscreen="true">
-      <!-- Regular Workout View -->
-      <RegularWorkoutView
-        v-if="workoutState === 'active' && currentWorkout?.type === 'regular'"
-        :workout="currentWorkout"
-        :statistics="statistics"
-        @add-exercise="showExerciseModal = true"
-        @add-set="handleAddSet"
-        @update-set="handleUpdateSet"
-        @toggle-completed="handleToggleCompleted"
-        @delete-set="handleDeleteSet"
-        @replace-exercise="handleReplaceExercise"
-        @delete-exercise="handleDeleteExercise"
-        @link-superset="handleLinkSuperset"
-      />
+  <transition
+    :css="false"
+    @enter="onEnterTransition"
+    @leave="onLeaveTransition"
+    appear
+  >
+    <ion-page>
+      <ion-header>
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button
+              v-if="
+                currentWorkout &&
+                workoutState === 'active' &&
+                currentWorkout?.type === 'regular'
+              "
+              @click="handleCancelWorkout"
+              color="danger"
+            >
+              Cancel
+            </ion-button>
+          </ion-buttons>
+          <ion-title>Workout</ion-title>
+          <ion-buttons slot="end">
+            <ion-button
+              v-if="currentWorkout && workoutState === 'active'"
+              @click="showFinishModal = true"
+            >
+              Finish
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content :fullscreen="true">
+        <!-- Regular Workout View -->
+        <RegularWorkoutView
+          v-if="workoutState === 'active' && currentWorkout?.type === 'regular'"
+          :workout="currentWorkout"
+          :statistics="statistics"
+          @add-exercise="showExerciseModal = true"
+          @add-set="handleAddSet"
+          @update-set="handleUpdateSet"
+          @toggle-completed="handleToggleCompleted"
+          @delete-set="handleDeleteSet"
+          @replace-exercise="handleReplaceExercise"
+          @delete-exercise="handleDeleteExercise"
+          @link-superset="handleLinkSuperset"
+        />
 
-      <!-- Interval Workout View -->
-      <IntervalWorkoutView
-        v-else-if="
-          workoutState === 'active' && currentWorkout?.type === 'interval'
-        "
-        :workout="currentWorkout"
-        @finish="showFinishModal = true"
-        @update-progress="handleUpdateIntervalProgress"
-      />
+        <!-- Interval Workout View -->
+        <IntervalWorkoutView
+          v-else-if="
+            workoutState === 'active' && currentWorkout?.type === 'interval'
+          "
+          :workout="currentWorkout"
+          @finish="showFinishModal = true"
+          @update-progress="handleUpdateIntervalProgress"
+        />
 
-      <!-- Workout Completed View -->
-      <WorkoutCompletedScreen
-        v-else-if="
-          workoutState === 'completed' && completedWorkout && completedStats
-        "
-        :workout="completedWorkout"
-        :statistics="completedStats"
-        @done="handleCompletedDone"
-      />
+        <!-- Workout Completed View -->
+        <WorkoutCompletedScreen
+          v-else-if="
+            workoutState === 'completed' && completedWorkout && completedStats
+          "
+          :workout="completedWorkout"
+          :statistics="completedStats"
+          @done="handleCompletedDone"
+        />
 
-      <!-- Exercise Selection Modal -->
-      <ExerciseSelectorModal
-        :is-open="showExerciseModal"
-        :exercises="exercises"
-        :title="exerciseToReplaceId ? 'Replace Exercise' : 'Add Exercise'"
-        @select="handleAddExercise"
-        @close="
-          () => {
-            showExerciseModal = false;
-            exerciseToReplaceId = null;
-          }
-        "
-      />
+        <!-- Exercise Selection Modal -->
+        <ExerciseSelectorModal
+          :is-open="showExerciseModal"
+          :exercises="exercises"
+          :title="exerciseToReplaceId ? 'Replace Exercise' : 'Add Exercise'"
+          @select="handleAddExercise"
+          @close="
+            () => {
+              showExerciseModal = false;
+              exerciseToReplaceId = null;
+            }
+          "
+        />
 
-      <!-- Superset Selector Modal -->
-      <SupersetSelectorModal
-        :is-open="showSupersetSelectorModal"
-        :exercises="currentWorkout?.exercises || []"
-        :current-exercise-id="exerciseToLinkId || ''"
-        @select="handleSelectSupersetExercise"
-        @close="
-          () => {
-            showSupersetSelectorModal = false;
-            exerciseToLinkId = null;
-          }
-        "
-      />
+        <!-- Superset Selector Modal -->
+        <SupersetSelectorModal
+          :is-open="showSupersetSelectorModal"
+          :exercises="currentWorkout?.exercises || []"
+          :current-exercise-id="exerciseToLinkId || ''"
+          @select="handleSelectSupersetExercise"
+          @close="
+            () => {
+              showSupersetSelectorModal = false;
+              exerciseToLinkId = null;
+            }
+          "
+        />
 
-      <!-- Finish Workout Modal -->
-      <FinishWorkoutModal
-        :is-open="showFinishModal"
-        :has-routine-changes="hasRoutineChanges"
-        @finish="handleFinishWorkout"
-        @cancel="showFinishModal = false"
-      />
+        <!-- Finish Workout Modal -->
+        <FinishWorkoutModal
+          :is-open="showFinishModal"
+          :has-routine-changes="hasRoutineChanges"
+          @finish="handleFinishWorkout"
+          @cancel="showFinishModal = false"
+        />
 
-      <!-- Cancel Workout Alert -->
-      <AlertDialog
-        :is-open="showCancelAlert"
-        :header="alertOptions.header"
-        :message="alertOptions.message"
-        :buttons="alertOptions.buttons"
-        @dismiss="showCancelAlert = false"
-      />
-    </ion-content>
-  </ion-page>
+        <!-- Cancel Workout Alert -->
+        <AlertDialog
+          :is-open="showCancelAlert"
+          :header="alertOptions.header"
+          :message="alertOptions.message"
+          :buttons="alertOptions.buttons"
+          @dismiss="showCancelAlert = false"
+        />
+      </ion-content>
+    </ion-page>
+  </transition>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import { createAnimation } from "@ionic/vue";
 import {
   IonPage,
   IonHeader,
@@ -349,6 +357,31 @@ async function handleCompletedDone(notes: string) {
 
   // Redirect to regular workout page after clearing state
   router.replace("/workout");
+}
+
+// Ionic native transition animations
+function onEnterTransition(el: Element, done: () => void) {
+  const animation = createAnimation()
+    .addElement(el)
+    .duration(300)
+    .easing("cubic-bezier(0.25, 0.46, 0.45, 0.94)")
+    .fromTo("transform", "translateY(100%)", "translateY(0%)")
+    .fromTo("opacity", "0", "1")
+    .onFinish(() => done());
+
+  animation.play();
+}
+
+function onLeaveTransition(el: Element, done: () => void) {
+  const animation = createAnimation()
+    .addElement(el)
+    .duration(250)
+    .easing("cubic-bezier(0.55, 0.06, 0.68, 0.19)")
+    .fromTo("transform", "translateY(0%)", "translateY(100%)")
+    .fromTo("opacity", "1", "0")
+    .onFinish(() => done());
+
+  animation.play();
 }
 </script>
 
