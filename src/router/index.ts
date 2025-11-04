@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "@ionic/vue-router";
 import type { RouteRecordRaw } from "vue-router";
 import TabsPage from "../views/TabsPage.vue";
+import { ExerciseInitialization } from "@/features/exercises/services/exercise.initialization";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -52,11 +53,30 @@ const router = createRouter({
   routes,
 });
 
-// Navigation guard to redirect to active workout page if active workout exists
+// Navigation guard to check initialization and active workouts
 router.beforeEach(async (to, from, next) => {
   // Don't redirect if already going to active workout page or splash
   if (to.path === "/active-workout" || to.path === "/splash") {
     next();
+    return;
+  }
+
+  // Check if exercises are initialized (required for app to function)
+  try {
+    const isInitialized = await ExerciseInitialization.isInitialized();
+
+    // If not initialized, redirect to splash screen
+    if (!isInitialized) {
+      console.log(
+        "🔄 Exercises not initialized, redirecting to splash screen..."
+      );
+      next("/splash");
+      return;
+    }
+  } catch (error) {
+    console.error("Error checking initialization status:", error);
+    // On error, redirect to splash screen to allow retry
+    next("/splash");
     return;
   }
 
@@ -80,8 +100,5 @@ router.beforeEach(async (to, from, next) => {
 
   next();
 });
-
-// No navigation guard needed - initialization happens on app startup in main.ts
-// The splash screen is still available as a fallback/error recovery route
 
 export default router;

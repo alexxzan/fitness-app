@@ -4,7 +4,6 @@ import router from "./router";
 import { pinia } from "./stores";
 import { dbAdapter } from "./shared/storage/database-adapter";
 import { DatabaseReset } from "./shared/storage/database-reset";
-import { ExerciseInitialization } from "./features/exercises/services/exercise.initialization";
 import { Capacitor } from "@capacitor/core";
 
 import { IonicVue } from "@ionic/vue";
@@ -26,30 +25,8 @@ async function initializeDatabase() {
   }
 }
 
-// Initialize exercises if not already initialized
-async function initializeExercises() {
-  try {
-    const isInitialized = await ExerciseInitialization.isInitialized();
-
-    if (!isInitialized) {
-      console.log("🔄 Exercises not initialized, loading exercise library...");
-      await ExerciseInitialization.initialize((progress) => {
-        // Log progress every 10%
-        if (progress % 10 === 0 || progress === 100) {
-          console.log(
-            `📚 Exercise initialization progress: ${Math.round(progress)}%`
-          );
-        }
-      });
-      console.log("✅ Exercise library initialized successfully");
-    } else {
-      console.log("✅ Exercise library already initialized");
-    }
-  } catch (err) {
-    console.error("❌ Failed to initialize exercise library:", err);
-    throw err;
-  }
-}
+// Note: Exercise and workout template initialization now happens in SplashScreen.vue
+// This ensures proper progress tracking and UI feedback
 
 // Expose database reset utilities globally in development (handy for testing)
 if (import.meta.env.DEV) {
@@ -119,9 +96,9 @@ import "./theme/variables.css";
 
 const app = createApp(App).use(IonicVue).use(pinia).use(router);
 
-// Initialize database, then exercises, then wait for router, then mount app
+// Initialize database, then wait for router, then mount app
+// Exercise and workout template initialization happens in SplashScreen.vue
 initializeDatabase()
-  .then(() => initializeExercises())
   .then(() => router.isReady())
   .then(() => {
     app.mount("#app");
