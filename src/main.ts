@@ -88,17 +88,54 @@ import "@ionic/vue/css/display.css";
  */
 
 /* @import '@ionic/vue/css/palettes/dark.always.css'; */
-/* @import '@ionic/vue/css/palettes/dark.class.css'; */
-import "@ionic/vue/css/palettes/dark.system.css";
+import "@ionic/vue/css/palettes/dark.class.css";
+/* @import '@ionic/vue/css/palettes/dark.system.css'; */
 
 /* Theme variables */
 import "./theme/variables.css";
 
 const app = createApp(App).use(IonicVue).use(pinia).use(router);
 
+// Initialize theme early to prevent flash
+// Note: Ionic's dark.class.css requires the .ion-palette-dark class on the html element
+async function initializeTheme() {
+  try {
+    const { LocalStorage } = await import("@/shared/storage/local-storage");
+    const THEME_KEY = "app_theme";
+    type Theme = "light" | "dark" | "system";
+    
+    const stored = await LocalStorage.get<Theme>(THEME_KEY);
+    const html = document.documentElement;
+    
+    // Remove existing theme class (Ionic uses .ion-palette-dark, not .dark)
+    html.classList.remove("ion-palette-dark");
+    
+    if (stored === "dark") {
+      html.classList.add("ion-palette-dark");
+    } else if (stored === "light") {
+      // No class needed for light mode (defaults to light)
+    } else {
+      // System preference
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (prefersDark) {
+        html.classList.add("ion-palette-dark");
+      }
+      // When light, no class is needed (defaults to light)
+    }
+  } catch (error) {
+    console.error("Failed to initialize theme:", error);
+    // Fallback to system preference
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (prefersDark) {
+      document.documentElement.classList.add("ion-palette-dark");
+    }
+  }
+}
+
 // Initialize database, then wait for router, then mount app
 // Exercise and workout template initialization happens in SplashScreen.vue
 initializeDatabase()
+  .then(() => initializeTheme())
   .then(() => router.isReady())
   .then(() => {
     app.mount("#app");

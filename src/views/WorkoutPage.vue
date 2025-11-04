@@ -17,6 +17,9 @@
         </ion-buttons>
         <ion-title>Workout</ion-title>
         <ion-buttons slot="end">
+          <ion-button @click="handleToggleTheme">
+            <ion-icon :icon="isDark ? sunny : moon" slot="icon-only" />
+          </ion-button>
           <ion-button
             v-if="currentWorkout && workoutState === 'active'"
             @click="showFinishModal = true"
@@ -207,10 +210,11 @@ import {
 } from "@ionic/vue";
 import AlertDialog from "@/components/molecules/AlertDialog.vue";
 import { useAlert } from "@/shared/composables/useAlert";
-import { close } from "ionicons/icons";
+import { close, moon, sunny } from "ionicons/icons";
 import { useWorkout } from "@/features/workouts/composables/useWorkout";
 import { useRoutine } from "@/features/workouts/composables/useRoutine";
 import { useProgram } from "@/features/workouts/composables/useProgram";
+import { useTheme } from "@/shared/composables/useTheme";
 import type { Exercise } from "@/features/exercises/types/exercise.types";
 import type {
   Workout,
@@ -277,6 +281,7 @@ const {
   renameProgram,
   copyProgram,
 } = useProgram();
+const { isDark, toggleTheme } = useTheme();
 
 // Modal states
 const showExerciseModal = ref(false);
@@ -685,6 +690,10 @@ async function handleStartFromRoutineSelection(routine: WorkoutRoutine) {
   // Create workout from the selected routine
   await createWorkoutFromRoutine(routine);
   // Navigation to full-screen page will happen via watch on currentWorkout
+}
+
+async function handleToggleTheme() {
+  await toggleTheme();
 }
 </script>
 

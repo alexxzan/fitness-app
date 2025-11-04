@@ -13,7 +13,7 @@ interface ViewPreferences {
 }
 
 const defaultPreferences: ViewPreferences = {
-  viewMode: "grid",
+  viewMode: "list",
   activeTab: "all",
   sortBy: "alphabetical",
 };
@@ -63,7 +63,7 @@ export function useExerciseViews() {
    * Set view mode
    */
   function setViewMode(mode: ViewMode) {
-    viewMode.value = "list";
+    viewMode.value = mode;
     savePreferences();
   }
 
