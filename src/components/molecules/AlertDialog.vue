@@ -62,7 +62,11 @@ function getButtonColor(button: AlertButton): string {
     return "danger";
   }
   if (button.role === "cancel") {
-    return "medium";
+    // If there's a destructive button in the dialog, make cancel button green
+    const hasDestructiveButton = props.buttons.some(
+      (b) => b.role === "destructive"
+    );
+    return hasDestructiveButton ? "success" : "medium";
   }
   return "primary";
 }
@@ -147,4 +151,3 @@ async function handleButtonClick(button: AlertButton) {
   }
 }
 </style>
-

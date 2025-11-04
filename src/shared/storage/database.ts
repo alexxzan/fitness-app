@@ -83,6 +83,9 @@ class DatabaseManager {
 
       // Create tables if they don't exist
       await this.createTables();
+      
+      // Migrate existing tables to add missing columns
+      await this.migrateTables();
 
       this.isInitialized = true;
       console.log("✅ SQLite database initialized successfully");
@@ -205,6 +208,134 @@ class DatabaseManager {
     `;
 
     await this.dbConnection.execute(createTablesSQL);
+  }
+
+  /**
+   * Migrate existing tables to add missing columns
+   * This handles schema updates for existing databases
+   */
+  private async migrateTables(): Promise<void> {
+    if (!this.dbConnection) {
+      throw new Error("Database connection not initialized");
+    }
+
+    // Migrate workout_programs table
+    await this.migrateWorkoutProgramsTable();
+    
+    // Migrate workouts table
+    await this.migrateWorkoutsTable();
+  }
+
+  private async migrateWorkoutProgramsTable(): Promise<void> {
+    if (!this.dbConnection) {
+      throw new Error("Database connection not initialized");
+    }
+
+    try {
+      // Check if workout_programs table exists and if is_enabled column is missing
+      const tableInfo = await this.dbConnection.query(
+        "PRAGMA table_info(workout_programs)",
+        []
+      );
+
+      if (tableInfo.values && tableInfo.values.length > 0) {
+        // Check if is_enabled column exists
+        const hasIsEnabled = tableInfo.values.some(
+          (col: any) => col.name === "is_enabled"
+        );
+
+        if (!hasIsEnabled) {
+          console.log("🔄 Migrating workout_programs table: adding is_enabled column");
+          await this.dbConnection.execute(
+            "ALTER TABLE workout_programs ADD COLUMN is_enabled INTEGER DEFAULT 0"
+          );
+          console.log("✅ Migration completed: is_enabled column added to workout_programs");
+        }
+      }
+    } catch (error) {
+      // If table doesn't exist yet, that's fine - createTables will handle it
+      if (error instanceof Error && error.message.includes("no such table")) {
+        console.log("📋 workout_programs table doesn't exist yet, will be created");
+      } else {
+        console.error("⚠️ Error during workout_programs migration:", error);
+        // Don't throw - migration failures shouldn't prevent app from starting
+      }
+    }
+  }
+
+  private async migrateWorkoutsTable(): Promise<void> {
+    if (!this.dbConnection) {
+      throw new Error("Database connection not initialized");
+    }
+
+    try {
+      // Check if workouts table exists
+      const tableInfo = await this.dbConnection.query(
+        "PRAGMA table_info(workouts)",
+        []
+      );
+
+      if (tableInfo.values && tableInfo.values.length > 0) {
+        const columnNames = tableInfo.values.map((col: any) => col.name);
+        const columnsToAdd: Array<{ name: string; sql: string }> = [];
+
+        // Check for missing columns
+        if (!columnNames.includes("program_id")) {
+          columnsToAdd.push({
+            name: "program_id",
+            sql: "ALTER TABLE workouts ADD COLUMN program_id TEXT",
+          });
+        }
+
+        if (!columnNames.includes("routine_id")) {
+          columnsToAdd.push({
+            name: "routine_id",
+            sql: "ALTER TABLE workouts ADD COLUMN routine_id TEXT",
+          });
+        }
+
+        if (!columnNames.includes("routine_template_id")) {
+          columnsToAdd.push({
+            name: "routine_template_id",
+            sql: "ALTER TABLE workouts ADD COLUMN routine_template_id TEXT",
+          });
+        }
+
+        if (!columnNames.includes("completed")) {
+          columnsToAdd.push({
+            name: "completed",
+            sql: "ALTER TABLE workouts ADD COLUMN completed INTEGER DEFAULT 0",
+          });
+        }
+
+        if (!columnNames.includes("completion_percentage")) {
+          columnsToAdd.push({
+            name: "completion_percentage",
+            sql: "ALTER TABLE workouts ADD COLUMN completion_percentage REAL",
+          });
+        }
+
+        // Add missing columns
+        if (columnsToAdd.length > 0) {
+          console.log(
+            `🔄 Migrating workouts table: adding ${columnsToAdd.length} missing column(s)`
+          );
+          for (const column of columnsToAdd) {
+            await this.dbConnection.execute(column.sql);
+            console.log(`  ✅ Added column: ${column.name}`);
+          }
+          console.log("✅ Migration completed: workouts table updated");
+        }
+      }
+    } catch (error) {
+      // If table doesn't exist yet, that's fine - createTables will handle it
+      if (error instanceof Error && error.message.includes("no such table")) {
+        console.log("📋 workouts table doesn't exist yet, will be created");
+      } else {
+        console.error("⚠️ Error during workouts migration:", error);
+        // Don't throw - migration failures shouldn't prevent app from starting
+      }
+    }
   }
 
   /**
