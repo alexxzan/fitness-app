@@ -32,10 +32,10 @@
               v-if="!isExerciseComplete"
               class="rest-time-button"
               @click.stop="openRestTimePicker"
-              :aria-label="`Rest time: ${exerciseRestTime}s`"
+              :aria-label="`Rest time: ${formattedRestTime}`"
             >
               <ion-icon :icon="timeOutline" />
-              <span class="rest-time-value">{{ exerciseRestTime }}s</span>
+              <span class="rest-time-value">{{ formattedRestTime }}</span>
             </button>
           </div>
         </div>
@@ -255,37 +255,13 @@
       </button>
     </div>
 
-    <!-- Rest Time Picker Modal -->
-    <ion-modal
+    <!-- Rest Time Picker -->
+    <RestTimePicker
       :is-open="showRestTimePicker"
-      @did-dismiss="showRestTimePicker = false"
-    >
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>Rest Time</ion-title>
-          <ion-buttons slot="end">
-            <ion-button @click="showRestTimePicker = false">Done</ion-button>
-          </ion-buttons>
-        </ion-toolbar>
-      </ion-header>
-      <ion-content class="picker-content">
-        <div class="picker-wrapper">
-          <div class="picker-values">
-            <button
-              v-for="(option, index) in restTimeOptionsList"
-              :key="option.value"
-              class="picker-option"
-              :class="{
-                'picker-option--selected': option.value === exerciseRestTime,
-              }"
-              @click="handleRestTimeChange(index)"
-            >
-              {{ option.text }}
-            </button>
-          </div>
-        </div>
-      </ion-content>
-    </ion-modal>
+      :selected-value="exerciseRestTime"
+      @update="handleRestTimeUpdate"
+      @dismiss="showRestTimePicker = false"
+    />
 
     <!-- Set Type Picker Modal -->
     <ion-modal
@@ -371,6 +347,7 @@ import {
 } from "@ionic/vue";
 import AppCheckbox from "@/components/atoms/AppCheckbox.vue";
 import ContentMenu from "@/components/molecules/ContentMenu.vue";
+import RestTimePicker from "./RestTimePicker.vue";
 import type { ContentMenuItem } from "@/components/molecules/ContentMenu.vue";
 import {
   add,
@@ -510,18 +487,6 @@ const swipeState = reactive<
 const SWIPE_THRESHOLD = 50;
 const DELETE_BUTTON_WIDTH = 80;
 
-// Rest time options (15-second increments)
-const restTimeOptionsList = computed(() => {
-  const options = [];
-  for (let i = 15; i <= 300; i += 15) {
-    options.push({
-      text: `${i}s`,
-      value: i,
-    });
-  }
-  return options;
-});
-
 // Computed properties
 const totalSetsCount = computed(() => props.exercise.sets.length);
 const completedSetsCount = computed(
@@ -549,6 +514,13 @@ const exerciseSummary = computed(() => {
     parts.push(`${Math.round(totalVolume.value)}kg`);
   }
   return parts.join(" • ");
+});
+
+// Format rest time to MM:SS
+const formattedRestTime = computed(() => {
+  const mins = Math.floor(exerciseRestTime.value / 60);
+  const secs = exerciseRestTime.value % 60;
+  return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 });
 
 // Haptic feedback helper
@@ -1139,13 +1111,9 @@ const contextMenuItems = computed<ContentMenuItem[]>(() => [
   },
 ]);
 
-function handleRestTimeChange(selectedIndex: number) {
-  const selectedOption = restTimeOptionsList.value[selectedIndex];
-  if (selectedOption) {
-    exerciseRestTime.value = selectedOption.value;
-    showRestTimePicker.value = false;
-    triggerHaptic(ImpactStyle.Light);
-  }
+function handleRestTimeUpdate(value: number) {
+  exerciseRestTime.value = value;
+  showRestTimePicker.value = false;
 }
 
 // Swipe handlers
