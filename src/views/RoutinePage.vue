@@ -133,7 +133,7 @@
             <ion-label>
               <h2>{{ template.name }}</h2>
               <p>
-                {{ template.exercises.length }} exercises •
+                {{ getTotalExerciseCount(template) }} exercises •
                 {{ template.durationWeeks }} weeks
               </p>
               <p>{{ template.description }}</p>
@@ -335,6 +335,13 @@ function handleSearch() {
 
 function handleFilterChange(event: CustomEvent) {
   selectedFilter.value = event.detail.value;
+}
+
+function getTotalExerciseCount(template: WorkoutTemplate): number {
+  return template.workouts.reduce(
+    (total, workout) => total + workout.exercises.length,
+    0
+  );
 }
 
 function viewRoutine(routine: WorkoutRoutine) {
