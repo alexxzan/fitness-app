@@ -136,10 +136,7 @@ export function useWorkout() {
           "Cannot repeat interval workout without interval config"
         );
       }
-      return createIntervalWorkout(
-        `${workout.name} (Repeat)`,
-        workout.intervalConfig
-      );
+      return createIntervalWorkout(workout.name, workout.intervalConfig);
     }
 
     // For regular workouts, copy exercises with empty sets
@@ -162,7 +159,7 @@ export function useWorkout() {
 
     const newWorkout: Workout = {
       id: generateId(),
-      name: `${workout.name} (Repeat)`,
+      name: workout.name,
       type: "regular",
       exercises,
       routineId: workout.routineId,
@@ -806,7 +803,7 @@ export function useWorkout() {
 
       const workoutToSave = toPlainWorkout(currentWorkout.value);
 
-      console.log('Saving completed workout:', {
+      console.log("Saving completed workout:", {
         id: workoutToSave.id,
         name: workoutToSave.name,
         completed: workoutToSave.completed,
@@ -816,10 +813,10 @@ export function useWorkout() {
       });
 
       await WorkoutRepository.save(workoutToSave);
-      console.log('Workout saved successfully to database');
-      
+      console.log("Workout saved successfully to database");
+
       await WorkoutRepository.setActiveWorkout(null);
-      console.log('Active workout cleared');
+      console.log("Active workout cleared");
 
       // Update routine analytics if workout was from a routine
       if (workoutToSave.routineId) {
@@ -838,10 +835,11 @@ export function useWorkout() {
       exercisesDeleted.value = [];
       exercisesLinkedAsSuperset.value = [];
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to finish workout";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to finish workout";
       error.value = errorMessage;
-      console.error('Error finishing workout:', err);
-      console.error('Error details:', {
+      console.error("Error finishing workout:", err);
+      console.error("Error details:", {
         message: errorMessage,
         stack: err instanceof Error ? err.stack : undefined,
       });

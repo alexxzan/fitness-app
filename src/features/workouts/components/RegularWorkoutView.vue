@@ -43,7 +43,7 @@
 
     <!-- Rest Timer -->
     <RestTimerBottom
-      :is-active="restTimer.isActive"
+      :is-active="restTimer.isActive && !props.workout.endTime"
       :time-remaining="restTimer.timeRemaining"
       :exercise-name="restTimer.exerciseName"
       @adjust-time="handleAdjustRestTime"
@@ -204,6 +204,18 @@ function stopRestTimer() {
   restTimer.timeRemaining = 0;
   restTimer.exerciseName = "";
 }
+
+// Watch for workout changes to stop timer if workout is being completed
+watch(
+  () => props.workout,
+  () => {
+    // Stop timer if workout is being completed (endTime is set)
+    if (props.workout.endTime) {
+      stopRestTimer();
+    }
+  },
+  { deep: true }
+);
 
 // Cleanup on unmount
 onUnmounted(() => {

@@ -232,13 +232,13 @@
                       class="fill-prompt-button fill-all-button"
                       @click.stop="handleFillAllRemainingSets"
                     >
-                      Fill All
+                      Yes
                     </button>
                     <button
                       class="fill-prompt-button dismiss-button"
                       @click.stop="dismissFillRemainingPrompt"
                     >
-                      Dismiss
+                      No
                     </button>
                   </div>
                 </div>
@@ -2239,12 +2239,14 @@ onMounted(() => {
 }
 
 .dismiss-button {
-  background: var(--color-background-elevated);
-  color: var(--color-text-secondary);
+  background: transparent;
+  color: var(--color-error-500);
+  border-color: var(--color-error-500);
 }
 
 .dismiss-button:hover {
-  background: var(--color-background);
+  background: var(--color-error-500);
   color: var(--color-text-primary);
+  border-color: var(--color-error-600);
 }
 </style>

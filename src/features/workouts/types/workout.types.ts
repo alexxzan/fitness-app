@@ -128,6 +128,7 @@ export interface WorkoutProgram {
   description?: string;
   templateId?: string; // Reference to workout-templates.json
   workouts: WorkoutRoutine[]; // Array of routines in the program
+  isEnabled?: boolean; // Whether the user has selected/enabled this program
   createdAt: Date | string;
   updatedAt: Date | string;
 }

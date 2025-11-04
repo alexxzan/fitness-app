@@ -171,6 +171,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         description TEXT,
         template_id TEXT,
         workouts TEXT NOT NULL,
+        is_enabled INTEGER DEFAULT 0,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
@@ -490,13 +491,14 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       const serialized = this.serializeProgram(program);
       await db.query(
         `INSERT INTO workout_programs (
-          id, name, description, template_id, workouts, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+          id, name, description, template_id, workouts, is_enabled, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           name = excluded.name,
           description = excluded.description,
           template_id = excluded.template_id,
           workouts = excluded.workouts,
+          is_enabled = excluded.is_enabled,
           updated_at = excluded.updated_at`,
         [
           serialized.id,
@@ -504,6 +506,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
           serialized.description || null,
           serialized.templateId || null,
           serialized.workouts,
+          serialized.isEnabled,
           serialized.createdAt,
           serialized.updatedAt,
         ]
@@ -963,6 +966,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       description: row.description || undefined,
       templateId: row.templateId || undefined,
       workouts: JSON.parse(row.workouts),
+      isEnabled: row.isEnabled === 1 || row.isEnabled === true ? true : false,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
     };
@@ -975,6 +979,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       description: program.description || undefined,
       templateId: program.templateId || undefined,
       workouts: JSON.stringify(program.workouts),
+      isEnabled: program.isEnabled === true ? 1 : 0,
       createdAt:
         typeof program.createdAt === "string"
           ? program.createdAt

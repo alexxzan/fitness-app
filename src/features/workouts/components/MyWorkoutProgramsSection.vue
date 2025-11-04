@@ -3,12 +3,7 @@
     <div class="section-card">
       <div class="section-header">
         <h2 class="section-title">My Workout Programs</h2>
-        <ion-button
-          v-if="programs.length > 0"
-          fill="clear"
-          size="small"
-          @click="$emit('addProgram')"
-        >
+        <ion-button fill="clear" size="small" @click="$emit('addProgram')">
           <ion-icon :icon="add" slot="start" />
           Add Program
         </ion-button>

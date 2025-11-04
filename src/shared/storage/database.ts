@@ -180,6 +180,7 @@ class DatabaseManager {
         description TEXT,
         template_id TEXT,
         workouts TEXT NOT NULL,
+        is_enabled INTEGER DEFAULT 0,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );

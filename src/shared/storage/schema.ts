@@ -112,6 +112,7 @@ export const workoutPrograms = sqliteTable("workout_programs", {
   description: text("description"),
   templateId: text("template_id"), // Reference to workout-templates.json
   workouts: text("workouts").notNull(), // JSON string of WorkoutRoutine[]
+  isEnabled: integer("is_enabled").default(0), // 0 or 1 for boolean - indicates if user has selected/enabled this program
   createdAt: text("created_at").notNull(), // ISO date string
   updatedAt: text("updated_at").notNull(), // ISO date string
 });

@@ -54,7 +54,7 @@
 
           <!-- My Workout Programs -->
           <MyWorkoutProgramsSection
-            :programs="programs"
+            :programs="enabledPrograms"
             @add-program="showAddProgramModal = true"
             @start-workout="handleStartWorkoutFromProgram"
             @remove-program="handleRemoveProgram"
@@ -269,6 +269,7 @@ const { exercises, loadExercises } = useExerciseLibrary();
 const { createRoutineFromTemplate } = useRoutine();
 const {
   programs,
+  enabledPrograms,
   loadPrograms,
   getProgramById,
   createProgramFromTemplate,
