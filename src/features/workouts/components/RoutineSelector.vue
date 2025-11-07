@@ -49,43 +49,10 @@
 
       <!-- Templates -->
       <div v-if="selectedTab === 'templates'" class="section">
-        <div class="filter-section">
-          <ion-segment v-model="selectedDifficulty">
-            <ion-segment-button value="all">
-              <ion-label>All</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="beginner">
-              <ion-label>Beginner</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="intermediate">
-              <ion-label>Intermediate</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="advanced">
-              <ion-label>Advanced</ion-label>
-            </ion-segment-button>
-          </ion-segment>
-        </div>
-
-        <ion-list>
-          <ion-item
-            v-for="template in filteredTemplates"
-            :key="template.id"
-            button
-            @click="handleSelectTemplate(template)"
-          >
-            <ion-label>
-              <h2>{{ template.name }}</h2>
-              <p>{{ getTotalExercises(template) }} exercises across {{ template.workouts.length }} workout{{ template.workouts.length !== 1 ? 's' : '' }}</p>
-              <p>{{ template.description }}</p>
-              <div class="template-meta">
-                <ion-badge :color="getDifficultyColor(template.difficulty)">
-                  {{ template.difficulty }}
-                </ion-badge>
-                <span class="duration">{{ template.durationWeeks }} weeks</span>
-              </div>
-            </ion-label>
-          </ion-item>
-        </ion-list>
+        <WorkoutTemplateSelector
+          :templates="templates"
+          @select="handleSelectTemplate"
+        />
       </div>
     </ion-content>
   </ion-modal>
@@ -107,11 +74,11 @@ import {
   IonSegment,
   IonSegmentButton,
   IonIcon,
-  IonBadge,
 } from "@ionic/vue";
 import { star } from "ionicons/icons";
 import { useRoutine } from "../composables/useRoutine";
 import type { WorkoutRoutine, WorkoutTemplate } from "../types/workout.types";
+import WorkoutTemplateSelector from "./WorkoutTemplateSelector.vue";
 
 const props = defineProps<{
   isOpen: boolean;
@@ -124,22 +91,12 @@ const emit = defineEmits<{
   createCustom: [];
 }>();
 
-const { routines, templates, loadRoutines, getTemplates } = useRoutine();
+const { routines, templates, loadRoutines } = useRoutine();
 
 const selectedTab = ref<string>("custom");
-const selectedDifficulty = ref<string>("all");
 
 const customRoutines = computed(() => {
   return routines.value.filter((r) => r.type === "custom");
-});
-
-const filteredTemplates = computed(() => {
-  if (selectedDifficulty.value === "all") {
-    return templates.value;
-  }
-  return templates.value.filter(
-    (t) => t.difficulty === selectedDifficulty.value
-  );
 });
 
 onMounted(async () => {
@@ -157,23 +114,6 @@ function handleSelectRoutine(routine: WorkoutRoutine) {
 function handleSelectTemplate(template: WorkoutTemplate) {
   emit("selectTemplate", template);
 }
-
-function getDifficultyColor(difficulty: string) {
-  switch (difficulty) {
-    case "beginner":
-      return "success";
-    case "intermediate":
-      return "warning";
-    case "advanced":
-      return "danger";
-    default:
-      return "medium";
-  }
-}
-
-function getTotalExercises(template: WorkoutTemplate): number {
-  return template.workouts.reduce((total, workout) => total + workout.exercises.length, 0);
-}
 </script>
 
 <style scoped>
@@ -184,22 +124,6 @@ function getTotalExercises(template: WorkoutTemplate): number {
 .empty-state {
   text-align: center;
   padding: var(--spacing-xl);
-  color: var(--color-text-secondary);
-}
-
-.filter-section {
-  margin-bottom: var(--spacing-md);
-}
-
-.template-meta {
-  display: flex;
-  gap: var(--spacing-sm);
-  align-items: center;
-  margin-top: var(--spacing-xs);
-}
-
-.duration {
-  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
 }
 </style>
