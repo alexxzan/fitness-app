@@ -1,34 +1,36 @@
 <template>
-  <div
-    v-if="isOpen"
-    class="rest-time-picker-overlay"
-    :class="{ 'rest-time-picker-overlay--visible': isOpen }"
-    @click.self="handleDismiss"
-  >
-    <div class="rest-time-picker-modal">
-      <div class="picker-header">
-        <h3 class="picker-title">Rest Time</h3>
-        <button class="picker-close" @click="handleDismiss" aria-label="Close">
-          <ion-icon :icon="close" />
-        </button>
-      </div>
-      <div class="picker-content">
-        <div class="picker-values">
-          <button
-            v-for="(option, index) in restTimeOptions"
-            :key="option.value"
-            class="picker-option"
-            :class="{
-              'picker-option--selected': option.value === selectedValue,
-            }"
-            @click="handleOptionClick(index)"
-          >
-            {{ option.text }}
+  <Teleport to="body">
+    <div
+      v-if="isOpen"
+      class="rest-time-picker-overlay"
+      :class="{ 'rest-time-picker-overlay--visible': isOpen }"
+      @click.self="handleDismiss"
+    >
+      <div class="rest-time-picker-modal">
+        <div class="picker-header">
+          <h3 class="picker-title">Rest Time</h3>
+          <button class="picker-close" @click="handleDismiss" aria-label="Close">
+            <ion-icon :icon="close" />
           </button>
+        </div>
+        <div class="picker-content">
+          <div class="picker-values">
+            <button
+              v-for="(option, index) in restTimeOptions"
+              :key="option.value"
+              class="picker-option"
+              :class="{
+                'picker-option--selected': option.value === selectedValue,
+              }"
+              @click="handleOptionClick(index)"
+            >
+              {{ option.text }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">

@@ -47,6 +47,7 @@
           @delete-exercise="handleDeleteExercise"
           @link-superset="handleLinkSuperset"
           @unlink-superset="handleUnlinkSuperset"
+          @reorder-exercises="handleReorderExercises"
         />
 
         <!-- Interval Workout View -->
@@ -164,6 +165,7 @@ const {
   linkExercisesAsSuperset,
   unlinkSuperset,
   removeExercise,
+  reorderExercises,
   saveWorkoutChangesToRoutine,
   finishWorkout,
   discardWorkout,
@@ -280,6 +282,10 @@ function handleSelectSupersetExercise(targetExerciseId: string) {
     linkExercisesAsSuperset(exerciseToLinkId.value, targetExerciseId);
     exerciseToLinkId.value = null;
   }
+}
+
+function handleReorderExercises(newOrder: string[]) {
+  reorderExercises(newOrder);
 }
 
 function handleUpdateIntervalProgress(progress: any) {

@@ -437,6 +437,37 @@ export function useWorkout() {
   }
 
   /**
+   * Reorder exercises in the workout
+   * @param newOrder - Array of exercise IDs in the new order
+   */
+  function reorderExercises(newOrder: string[]) {
+    if (!currentWorkout.value) {
+      throw new Error("No active workout");
+    }
+
+    // Create a map of exercise ID to exercise for quick lookup
+    const exerciseMap = new Map(
+      currentWorkout.value.exercises.map((ex) => [ex.id, ex])
+    );
+
+    // Reorder exercises based on newOrder array
+    const reorderedExercises: WorkoutExercise[] = [];
+    for (let i = 0; i < newOrder.length; i++) {
+      const exerciseId = newOrder[i];
+      const exercise = exerciseMap.get(exerciseId);
+      if (exercise) {
+        exercise.order = i;
+        reorderedExercises.push(exercise);
+      }
+    }
+
+    // Update the exercises array
+    currentWorkout.value.exercises = reorderedExercises;
+    currentWorkout.value.updatedAt = new Date().toISOString();
+    saveWorkout();
+  }
+
+  /**
    * Add a set to an exercise
    */
   function addSet(
@@ -930,6 +961,7 @@ export function useWorkout() {
     addExercise,
     removeExercise,
     replaceExercise,
+    reorderExercises,
     linkExercisesAsSuperset,
     unlinkSuperset,
     addSet,

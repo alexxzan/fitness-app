@@ -4,14 +4,21 @@
     :class="{ 'exercise-card--superset': hasSupersetGroup }"
   >
     <!-- Exercise Header -->
-    <div
-      class="exercise-header"
-      :class="{
-        'exercise-header--collapsed': isCollapsed,
-        'exercise-header--completed': isExerciseComplete,
-      }"
-      @click="toggleCollapse"
-    >
+    <ion-reorder>
+      <div
+        class="exercise-header"
+        :class="{
+          'exercise-header--collapsed': isCollapsed,
+          'exercise-header--completed': isExerciseComplete,
+        }"
+        @click="toggleCollapse"
+        @touchstart="handleHeaderTouchStart"
+        @touchend="handleHeaderTouchEnd"
+        @touchcancel="handleHeaderTouchEnd"
+        @mousedown="handleHeaderMouseDown"
+        @mouseup="handleHeaderMouseUp"
+        @mouseleave="handleHeaderMouseUp"
+      >
       <div class="header-left">
         <div class="exercise-image-container">
           <ion-img
@@ -66,7 +73,8 @@
           />
         </button>
       </div>
-    </div>
+      </div>
+    </ion-reorder>
 
     <!-- Previous Performance Hint -->
     <div
@@ -352,6 +360,7 @@ import {
   IonButton,
   IonContent,
   IonImg,
+  IonReorder,
 } from "@ionic/vue";
 import AppCheckbox from "@/components/atoms/AppCheckbox.vue";
 import ContentMenu from "@/components/molecules/ContentMenu.vue";
@@ -379,6 +388,8 @@ interface Props {
   exercise: WorkoutExercise;
   allExercises?: WorkoutExercise[];
   previousPerformance?: PreviousExercisePerformance | null;
+  isCollapsed?: boolean;
+  isReordering?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -393,10 +404,12 @@ const emit = defineEmits<{
   deleteExercise: [];
   linkSuperset: [];
   unlinkSuperset: [];
+  "update:collapsed": [value: boolean];
+  longPress: [exerciseId: string];
 }>();
 
 // State management
-const isCollapsed = ref(false);
+const internalCollapsed = ref(false);
 const inputRefs = ref<Record<string, any>>({});
 const expandedNotes = reactive<Record<string, boolean>>({});
 const showRestTimePicker = ref(false);
@@ -408,6 +421,19 @@ const selectedSetType = ref<SetType>("working");
 const deleteContainerRef = ref<HTMLElement | null>(null);
 const tableRef = ref<HTMLTableElement | null>(null);
 const exerciseImageUrl = ref<string | null>(null);
+
+// Long-press detection
+const longPressTimer = ref<number | null>(null);
+const LONG_PRESS_DURATION = 500; // 500ms
+const longPressDetected = ref(false);
+
+// Computed collapse state - use external prop if provided, otherwise use internal
+const isCollapsed = computed(() => {
+  if (props.isCollapsed !== undefined) {
+    return props.isCollapsed;
+  }
+  return internalCollapsed.value;
+});
 
 // Validation warnings
 const showWarningModal = ref(false);
@@ -576,10 +602,81 @@ function setInputRefs(key: string, el: any) {
   }
 }
 
-function toggleCollapse() {
-  isCollapsed.value = !isCollapsed.value;
+function toggleCollapse(event?: Event) {
+  if (props.isReordering || longPressDetected.value) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    longPressDetected.value = false;
+    return; // Disable collapse during reorder or after long-press
+  }
+  
+  const newValue = !isCollapsed.value;
+  
+  if (props.isCollapsed !== undefined) {
+    // External control - emit event
+    emit("update:collapsed", newValue);
+  } else {
+    // Internal control
+    internalCollapsed.value = newValue;
+  }
+  
   triggerHaptic(ImpactStyle.Light);
 }
+
+// Long-press handlers for reorder
+function handleHeaderTouchStart(event: TouchEvent) {
+  if (props.isReordering) return;
+  
+  longPressDetected.value = false;
+  clearLongPressTimer();
+  longPressTimer.value = window.setTimeout(() => {
+    longPressDetected.value = true;
+    emit("longPress", props.exercise.id);
+    // Note: Haptic feedback is handled by parent component on reorder start
+  }, LONG_PRESS_DURATION);
+}
+
+function handleHeaderTouchEnd(event: TouchEvent) {
+  clearLongPressTimer();
+  // Reset after a short delay to allow click event to check it
+  setTimeout(() => {
+    longPressDetected.value = false;
+  }, 100);
+}
+
+function handleHeaderMouseDown(event: MouseEvent) {
+  if (props.isReordering || event.button !== 0) return;
+  
+  longPressDetected.value = false;
+  clearLongPressTimer();
+  longPressTimer.value = window.setTimeout(() => {
+    longPressDetected.value = true;
+    emit("longPress", props.exercise.id);
+    // Note: Haptic feedback is handled by parent component on reorder start
+  }, LONG_PRESS_DURATION);
+}
+
+function handleHeaderMouseUp(event: MouseEvent) {
+  clearLongPressTimer();
+  // Reset after a short delay to allow click event to check it
+  setTimeout(() => {
+    longPressDetected.value = false;
+  }, 100);
+}
+
+function clearLongPressTimer() {
+  if (longPressTimer.value !== null) {
+    clearTimeout(longPressTimer.value);
+    longPressTimer.value = null;
+  }
+}
+
+// Cleanup on unmount
+onUnmounted(() => {
+  clearLongPressTimer();
+});
 
 function getSetTypeLabel(setType: SetType): string {
   const labels: Record<SetType, string> = {
@@ -1436,12 +1533,25 @@ onMounted(() => {
   margin-bottom: var(--spacing-sm);
   overflow: hidden;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .exercise-card--superset {
   border-left-width: 4px;
   border-left-color: #8b5cf6;
   border-left-style: solid;
+}
+
+/* Make ion-reorder wrapper transparent and non-interfering */
+.exercise-card ion-reorder {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.exercise-card ion-reorder::part(icon) {
+  display: none; /* Hide the default reorder icon since header is draggable */
 }
 
 .exercise-header {
