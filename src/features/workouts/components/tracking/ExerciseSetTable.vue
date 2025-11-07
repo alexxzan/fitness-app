@@ -6,13 +6,13 @@
     <!-- Exercise Header -->
     <ion-reorder>
       <div
+        ref="headerRef"
         class="exercise-header"
         :class="{
           'exercise-header--collapsed': isCollapsed,
           'exercise-header--completed': isExerciseComplete,
         }"
         @click="toggleCollapse"
-        @touchstart="handleHeaderTouchStart"
         @touchend="handleHeaderTouchEnd"
         @touchcancel="handleHeaderTouchEnd"
         @mousedown="handleHeaderMouseDown"
@@ -138,9 +138,9 @@
                 'set-row--completed': set.completed,
                 'swipeable-row': true,
               }"
-              @touchstart="handleTouchStart($event, set.id)"
               @touchmove="handleTouchMove($event, set.id)"
               @touchend="handleTouchEnd($event, set.id)"
+              :data-set-id="set.id"
               @mousedown="handleMouseDown($event, set.id)"
               @mousemove="handleMouseMove($event, set.id)"
               @mouseup="handleMouseUp($event, set.id)"
@@ -420,6 +420,7 @@ const selectedSetId = ref<string | null>(null);
 const selectedSetType = ref<SetType>("working");
 const deleteContainerRef = ref<HTMLElement | null>(null);
 const tableRef = ref<HTMLTableElement | null>(null);
+const headerRef = ref<HTMLElement | null>(null);
 const exerciseImageUrl = ref<string | null>(null);
 
 // Long-press detection
@@ -676,6 +677,12 @@ function clearLongPressTimer() {
 // Cleanup on unmount
 onUnmounted(() => {
   clearLongPressTimer();
+  // Clean up passive touchstart listeners
+  if (headerTouchStartCleanup.value) {
+    headerTouchStartCleanup.value();
+  }
+  rowTouchStartCleanups.value.forEach((cleanup) => cleanup());
+  rowTouchStartCleanups.value = [];
 });
 
 function getSetTypeLabel(setType: SetType): string {
@@ -1406,6 +1413,35 @@ function getDeleteButtonStyle(index: number): string {
   return `top: ${top}px;`;
 }
 
+// Function to setup passive touchstart listeners for table rows
+function setupRowTouchStartListeners() {
+  // Clean up existing row listeners
+  rowTouchStartCleanups.value.forEach((cleanup) => cleanup());
+  rowTouchStartCleanups.value = [];
+
+  // Add new listeners for current rows
+  if (tableRef.value) {
+    const tbody = tableRef.value.querySelector("tbody");
+    if (tbody) {
+      const rows = tbody.querySelectorAll("tr[data-set-id]");
+      rows.forEach((row) => {
+        const setId = row.getAttribute("data-set-id");
+        if (setId) {
+          const rowTouchStartHandler = (event: TouchEvent) => {
+            handleTouchStart(event, setId);
+          };
+          row.addEventListener("touchstart", rowTouchStartHandler, {
+            passive: true,
+          });
+          rowTouchStartCleanups.value.push(() => {
+            row.removeEventListener("touchstart", rowTouchStartHandler);
+          });
+        }
+      });
+    }
+  }
+}
+
 // Update delete button positions when table changes
 watch(
   () => props.exercise.sets.length,
@@ -1430,13 +1466,41 @@ watch(
           });
         }
       }
+      // Update touchstart listeners when sets change
+      setupRowTouchStartListeners();
     });
   }
 );
 
+// Store cleanup functions for passive touchstart listeners
+const headerTouchStartCleanup = ref<(() => void) | null>(null);
+const rowTouchStartCleanups = ref<Array<() => void>>([]);
+
 // Also update on mount
 onMounted(() => {
   nextTick(() => {
+    // Add passive touchstart listener to header
+    if (headerRef.value) {
+      const headerTouchStartHandler = (event: TouchEvent) => {
+        handleHeaderTouchStart(event);
+      };
+      headerRef.value.addEventListener("touchstart", headerTouchStartHandler, {
+        passive: true,
+      });
+      headerTouchStartCleanup.value = () => {
+        if (headerRef.value) {
+          headerRef.value.removeEventListener(
+            "touchstart",
+            headerTouchStartHandler
+          );
+        }
+      };
+    }
+
+    // Add passive touchstart listeners to table rows
+    setupRowTouchStartListeners();
+
+    // Update delete button positions
     if (tableRef.value && deleteContainerRef.value) {
       const tbody = tableRef.value.querySelector("tbody");
       const containerRect = deleteContainerRef.value.getBoundingClientRect();
