@@ -1,3 +1,4 @@
+<!-- eslint-disable @typescript-eslint/no-unused-vars -->
 <template>
   <div
     class="exercise-card"
@@ -19,60 +20,60 @@
         @mouseup="handleHeaderMouseUp"
         @mouseleave="handleHeaderMouseUp"
       >
-      <div class="header-left">
-        <div class="exercise-image-container">
-          <ion-img
-            v-if="exerciseImageUrl"
-            :src="exerciseImageUrl"
-            :alt="exercise.exerciseName"
-            class="exercise-image"
-            loading="lazy"
-          />
-          <ion-icon v-else :icon="barbell" class="exercise-image-icon" />
-        </div>
-        <div class="exercise-name-section">
-          <div class="exercise-name-row">
-            <h3
-              class="exercise-name"
-              :class="{ 'exercise-name--superset': hasSupersetGroup }"
-            >
-              {{ exercise.exerciseName }}
-            </h3>
+        <div class="header-left">
+          <div class="exercise-image-container">
+            <ion-img
+              v-if="exerciseImageUrl"
+              :src="exerciseImageUrl"
+              :alt="exercise.exerciseName"
+              class="exercise-image"
+              loading="lazy"
+            />
+            <ion-icon v-else :icon="barbell" class="exercise-image-icon" />
           </div>
-          <div class="exercise-summary-row" v-if="exerciseSummary">
-            <div class="exercise-summary">
-              <span>{{ exerciseSummary }}</span>
+          <div class="exercise-name-section">
+            <div class="exercise-name-row">
+              <h3
+                class="exercise-name"
+                :class="{ 'exercise-name--superset': hasSupersetGroup }"
+              >
+                {{ exercise.exerciseName }}
+              </h3>
             </div>
-            <button
-              v-if="!isExerciseComplete"
-              class="rest-time-button"
-              @click.stop="openRestTimePicker"
-              :aria-label="`Rest time: ${formattedRestTime}`"
-            >
-              <ion-icon :icon="timeOutline" />
-              <span class="rest-time-value">{{ formattedRestTime }}</span>
-            </button>
+            <div class="exercise-summary-row" v-if="exerciseSummary">
+              <div class="exercise-summary">
+                <span>{{ exerciseSummary }}</span>
+              </div>
+              <button
+                v-if="!isExerciseComplete"
+                class="rest-time-button"
+                @click.stop="openRestTimePicker"
+                :aria-label="`Rest time: ${formattedRestTime}`"
+              >
+                <ion-icon :icon="timeOutline" />
+                <span class="rest-time-value">{{ formattedRestTime }}</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="header-right">
-        <button
-          class="context-menu-button"
-          @click.stop="openContextMenu"
-          :aria-label="'Exercise options'"
-        >
-          <ion-icon :icon="ellipsisVertical" />
-        </button>
-        <button
-          class="collapse-button"
-          :aria-label="isCollapsed ? 'Expand' : 'Collapse'"
-        >
-          <ion-icon
-            :icon="isCollapsed ? chevronDown : chevronUp"
-            :class="{ 'rotate-180': isCollapsed }"
-          />
-        </button>
-      </div>
+        <div class="header-right">
+          <button
+            class="context-menu-button"
+            @click.stop="openContextMenu"
+            :aria-label="'Exercise options'"
+          >
+            <ion-icon :icon="ellipsisVertical" />
+          </button>
+          <button
+            class="collapse-button"
+            :aria-label="isCollapsed ? 'Expand' : 'Collapse'"
+          >
+            <ion-icon
+              :icon="isCollapsed ? chevronDown : chevronUp"
+              :class="{ 'rotate-180': isCollapsed }"
+            />
+          </button>
+        </div>
       </div>
     </ion-reorder>
 
@@ -565,29 +566,6 @@ const hasSupersetGroup = computed(() => {
   return !!props.exercise.supersetGroupId;
 });
 
-const supersetGroupExercises = computed(() => {
-  if (!hasSupersetGroup.value || !props.allExercises) {
-    return [];
-  }
-  return props.allExercises.filter(
-    (ex) => ex.supersetGroupId === props.exercise.supersetGroupId
-  );
-});
-
-const supersetGroupInfo = computed(() => {
-  if (!hasSupersetGroup.value) {
-    return null;
-  }
-  const groupExercises = supersetGroupExercises.value;
-  const currentIndex = groupExercises.findIndex(
-    (ex) => ex.id === props.exercise.id
-  );
-  return {
-    position: currentIndex + 1,
-    total: groupExercises.length,
-  };
-});
-
 // Haptic feedback helper
 async function triggerHaptic(style: ImpactStyle = ImpactStyle.Light) {
   try {
@@ -612,9 +590,9 @@ function toggleCollapse(event?: Event) {
     longPressDetected.value = false;
     return; // Disable collapse during reorder or after long-press
   }
-  
+
   const newValue = !isCollapsed.value;
-  
+
   if (props.isCollapsed !== undefined) {
     // External control - emit event
     emit("update:collapsed", newValue);
@@ -622,14 +600,14 @@ function toggleCollapse(event?: Event) {
     // Internal control
     internalCollapsed.value = newValue;
   }
-  
+
   triggerHaptic(ImpactStyle.Light);
 }
 
 // Long-press handlers for reorder
-function handleHeaderTouchStart(event: TouchEvent) {
+function handleHeaderTouchStart() {
   if (props.isReordering) return;
-  
+
   longPressDetected.value = false;
   clearLongPressTimer();
   longPressTimer.value = window.setTimeout(() => {
@@ -639,7 +617,7 @@ function handleHeaderTouchStart(event: TouchEvent) {
   }, LONG_PRESS_DURATION);
 }
 
-function handleHeaderTouchEnd(event: TouchEvent) {
+function handleHeaderTouchEnd() {
   clearLongPressTimer();
   // Reset after a short delay to allow click event to check it
   setTimeout(() => {
@@ -649,7 +627,7 @@ function handleHeaderTouchEnd(event: TouchEvent) {
 
 function handleHeaderMouseDown(event: MouseEvent) {
   if (props.isReordering || event.button !== 0) return;
-  
+
   longPressDetected.value = false;
   clearLongPressTimer();
   longPressTimer.value = window.setTimeout(() => {
@@ -659,7 +637,7 @@ function handleHeaderMouseDown(event: MouseEvent) {
   }, LONG_PRESS_DURATION);
 }
 
-function handleHeaderMouseUp(event: MouseEvent) {
+function handleHeaderMouseUp() {
   clearLongPressTimer();
   // Reset after a short delay to allow click event to check it
   setTimeout(() => {
@@ -1189,11 +1167,6 @@ function handleSetCompletionFlow(setId: string) {
   });
 }
 
-function toggleNotes(setId: string) {
-  expandedNotes[setId] = !expandedNotes[setId];
-  triggerHaptic(ImpactStyle.Light);
-}
-
 function handleAddSet() {
   emit("addSet");
   triggerHaptic(ImpactStyle.Light);
@@ -1396,7 +1369,6 @@ function getDeleteButtonStyle(index: number): string {
     const thead = tableRef.value.querySelector("thead");
     if (thead) {
       const theadRect = thead.getBoundingClientRect();
-      const tableRect = tableRef.value.getBoundingClientRect();
       headerHeight = theadRect.height;
     }
   }
@@ -1427,8 +1399,8 @@ function setupRowTouchStartListeners() {
       rows.forEach((row) => {
         const setId = row.getAttribute("data-set-id");
         if (setId) {
-          const rowTouchStartHandler = (event: TouchEvent) => {
-            handleTouchStart(event, setId);
+          const rowTouchStartHandler = (event: Event) => {
+            handleTouchStart(event as TouchEvent, setId);
           };
           row.addEventListener("touchstart", rowTouchStartHandler, {
             passive: true,
@@ -1740,7 +1712,6 @@ onMounted(() => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-
 .header-left {
   flex: 1;
   min-width: 0;
@@ -1824,7 +1795,6 @@ onMounted(() => {
 .superset-badge ion-icon {
   font-size: 14px;
 }
-
 
 .exercise-summary-row {
   display: flex;
