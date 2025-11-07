@@ -5,6 +5,7 @@ import { pinia } from "./stores";
 import { dbAdapter } from "./shared/storage/database-adapter";
 import { DatabaseReset } from "./shared/storage/database-reset";
 import { Capacitor } from "@capacitor/core";
+import { initializeGlobalKeyboard } from "./shared/composables/useKeyboard";
 
 import { IonicVue } from "@ionic/vue";
 
@@ -136,6 +137,7 @@ async function initializeTheme() {
 // Exercise and workout template initialization happens in SplashScreen.vue
 initializeDatabase()
   .then(() => initializeTheme())
+  .then(() => initializeGlobalKeyboard())
   .then(() => router.isReady())
   .then(() => {
     app.mount("#app");

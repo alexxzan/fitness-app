@@ -1960,6 +1960,18 @@ onMounted(() => {
   min-height: 40px;
   font-size: var(--typography-body-size);
   font-weight: var(--typography-body-weight-medium);
+  --border-width: var(--input-border-width);
+  --border-color: var(--input-border-color);
+  transition: var(--transition-border);
+}
+
+.set-input:focus {
+  --border-width: var(--input-border-width-active);
+  --border-color: var(--input-border-color-active);
+}
+
+.set-input:focus input {
+  caret-color: var(--input-cursor-color);
 }
 
 .set-input input {

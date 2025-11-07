@@ -1,4 +1,7 @@
+/// <reference types="@capacitor/keyboard" />
+
 import type { CapacitorConfig } from "@capacitor/cli";
+import { KeyboardResize } from "@capacitor/keyboard";
 
 const config: CapacitorConfig = {
   appId: "com.alexchorak.fitnessapp",
@@ -10,6 +13,12 @@ const config: CapacitorConfig = {
   //   url: "http://192.168.178.206:5173",
   //   cleartext: true,
   // },
+  plugins: {
+    Keyboard: {
+      resize: KeyboardResize.Body,
+      resizeOnFullScreen: true,
+    },
+  },
 };
 
 export default config;

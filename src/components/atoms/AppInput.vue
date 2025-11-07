@@ -59,7 +59,12 @@ ion-input {
 }
 
 ion-input:focus {
-  --border-color: var(--input-border-color-focus);
+  --border-width: var(--input-border-width-active);
+  --border-color: var(--input-border-color-active);
+}
+
+ion-input:focus input {
+  caret-color: var(--input-cursor-color);
 }
 
 ion-input[aria-invalid="true"],

@@ -151,7 +151,7 @@ html.ion-palette-dark {
   --color-background-secondary: var(--color-gray-800);
   --color-background-tertiary: var(--color-gray-700);
   --color-background-elevated: var(--color-gray-800);
-  
+
   /* Ionic Background (for body and ion-app) */
   --ion-background-color: var(--color-background);
   --ion-background-color-rgb: 25, 20, 20;
@@ -378,11 +378,14 @@ html.ion-palette-dark {
   --input-padding-y: var(--spacing-sm);
   --input-font-size: var(--font-size-base);
   --input-border-width: 1px;
+  --input-border-width-active: 2px;
   --input-border-color: var(--color-border);
   --input-border-color-focus: var(--color-border-focus);
+  --input-border-color-active: var(--color-primary-500);
   --input-border-color-error: var(--color-border-error);
   --input-background: var(--color-background);
   --input-background-disabled: var(--color-background-secondary);
+  --input-cursor-color: var(--color-primary-500);
 
   /* Card */
   --card-padding: var(--spacing-base);
@@ -569,68 +572,67 @@ html.ion-palette-dark {
    ========================================================================== */
 /* Light mode (default when .ion-palette-dark is not present) */
 html:not(.ion-palette-dark) {
-    --color-background: #ffffff;
-    --color-background-secondary: var(--color-gray-50);
-    --color-background-tertiary: var(--color-gray-100);
-    --color-background-elevated: #ffffff;
-    
-    /* Ionic Background (for body and ion-app) */
-    --ion-background-color: #ffffff;
-    --ion-background-color-rgb: 255, 255, 255;
+  --color-background: #ffffff;
+  --color-background-secondary: var(--color-gray-50);
+  --color-background-tertiary: var(--color-gray-100);
+  --color-background-elevated: #ffffff;
 
-    /* Surface Colors - Light Mode */
-    --color-surface: #ffffff;
-    --color-surface-hover: var(--color-gray-50);
-    --color-surface-active: var(--color-gray-100);
+  /* Ionic Background (for body and ion-app) */
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
 
-    /* Text Colors - Light Mode */
-    --color-text-primary: var(--color-gray-900);
-    --color-text-secondary: var(--color-gray-600);
-    --color-text-tertiary: var(--color-gray-500);
-    --color-text-disabled: var(--color-gray-400);
-    --color-text-inverse: #ffffff;
-    --color-text-link: var(--color-primary-600);
-    --color-text-link-hover: var(--color-primary-700);
+  /* Surface Colors - Light Mode */
+  --color-surface: #ffffff;
+  --color-surface-hover: var(--color-gray-50);
+  --color-surface-active: var(--color-gray-100);
 
-    /* Border Colors - Light Mode */
-    --color-border: var(--color-gray-200);
-    --color-border-hover: var(--color-gray-300);
-    --color-border-focus: var(--color-primary-500);
-    --color-border-error: var(--color-error-500);
-    --color-border-success: var(--color-success-500);
+  /* Text Colors - Light Mode */
+  --color-text-primary: var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-tertiary: var(--color-gray-500);
+  --color-text-disabled: var(--color-gray-400);
+  --color-text-inverse: #ffffff;
+  --color-text-link: var(--color-primary-600);
+  --color-text-link-hover: var(--color-primary-700);
 
-    /* Input - Light Mode */
-    --input-background: #ffffff;
-    --input-background-disabled: var(--color-gray-50);
-    --input-border-color: var(--color-gray-200);
+  /* Border Colors - Light Mode */
+  --color-border: var(--color-gray-200);
+  --color-border-hover: var(--color-gray-300);
+  --color-border-focus: var(--color-primary-500);
+  --color-border-error: var(--color-error-500);
+  --color-border-success: var(--color-success-500);
 
-    /* Card - Light Mode */
-    --card-background: #ffffff;
-    --card-border-color: var(--color-gray-200);
+  /* Input - Light Mode */
+  --input-background: #ffffff;
+  --input-background-disabled: var(--color-gray-50);
+  --input-border-color: var(--color-gray-200);
 
-    /* Modal - Light Mode */
-    --modal-backdrop-color: rgba(0, 0, 0, 0.5);
+  /* Card - Light Mode */
+  --card-background: #ffffff;
+  --card-border-color: var(--color-gray-200);
 
-    /* Toolbar - Light Mode */
-    --toolbar-background: #ffffff;
+  /* Modal - Light Mode */
+  --modal-backdrop-color: rgba(0, 0, 0, 0.5);
 
-    /* Shadow adjustments for light mode */
-    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
-      0 1px 2px -1px rgba(0, 0, 0, 0.1);
-    --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -2px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -4px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-      0 8px 10px -6px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    --shadow-2xl: 0 30px 60px -12px rgba(0, 0, 0, 0.25);
+  /* Toolbar - Light Mode */
+  --toolbar-background: #ffffff;
 
-    /* Ionic Color Mappings for Light Mode */
-    --ion-color-primary-contrast: var(--color-text-inverse);
-    --ion-color-secondary-contrast: var(--color-text-inverse);
-    --ion-color-tertiary-contrast: var(--color-text-inverse);
+  /* Shadow adjustments for light mode */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-2xl: 0 30px 60px -12px rgba(0, 0, 0, 0.25);
+
+  /* Ionic Color Mappings for Light Mode */
+  --ion-color-primary-contrast: var(--color-text-inverse);
+  --ion-color-secondary-contrast: var(--color-text-inverse);
+  --ion-color-tertiary-contrast: var(--color-text-inverse);
 }
 
 /* Also support media query for system preference (when no class is set) */
@@ -715,4 +717,20 @@ html:not(.ion-palette-dark) {
     --transition-shadow: box-shadow var(--duration-instant);
     --transition-all: all var(--duration-instant);
   }
+}
+
+/* ==========================================================================
+   GLOBAL INPUT STYLES - Active Indicator
+   ========================================================================== */
+/* Apply green outline and visible cursor to all ion-input elements on focus */
+ion-input:focus {
+  --border-width: var(--input-border-width-active);
+  --border-color: var(--input-border-color-active);
+  transition: var(--transition-border);
+}
+
+/* Ensure cursor is visible and green when input is focused */
+ion-input:focus input,
+ion-input:focus textarea {
+  caret-color: var(--input-cursor-color);
 }
