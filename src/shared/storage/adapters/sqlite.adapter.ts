@@ -20,6 +20,15 @@ import type {
   Equipment,
   Muscle,
 } from "@/features/exercises/types/exercise.types";
+import type {
+  UserProfile,
+  MacroPlan,
+  FoodLog,
+  MealTemplate,
+  MealPlan,
+  WaterLog,
+  MacroHistory,
+} from "@/features/macros/types/macro.types";
 
 export class SQLiteAdapter implements IDatabaseAdapter {
   private static readonly DB_NAME = "fitness-db";
@@ -977,6 +986,521 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     },
   };
 
+  // User Profile
+  userProfile = {
+    get: async (): Promise<UserProfile | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM user_profile LIMIT 1",
+        []
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseUserProfile(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (profile: UserProfile): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeUserProfile(profile);
+      await db.query(
+        `INSERT INTO user_profile (
+          id, height, weight, age, gender, activity_level, goal,
+          protein_preference, carb_preference, dietary_restrictions,
+          body_fat_percentage, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          height = excluded.height,
+          weight = excluded.weight,
+          age = excluded.age,
+          gender = excluded.gender,
+          activity_level = excluded.activity_level,
+          goal = excluded.goal,
+          protein_preference = excluded.protein_preference,
+          carb_preference = excluded.carb_preference,
+          dietary_restrictions = excluded.dietary_restrictions,
+          body_fat_percentage = excluded.body_fat_percentage,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.height,
+          serialized.weight,
+          serialized.age,
+          serialized.gender,
+          serialized.activityLevel,
+          serialized.goal,
+          serialized.proteinPreference || null,
+          serialized.carbPreference || null,
+          serialized.dietaryRestrictions || null,
+          serialized.bodyFatPercentage || null,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return profile.id;
+    },
+
+    delete: async (): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM user_profile", []);
+    },
+  };
+
+  // Macro Plan
+  macroPlan = {
+    get: async (): Promise<MacroPlan | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM macro_plan LIMIT 1",
+        []
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseMacroPlan(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (plan: MacroPlan): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeMacroPlan(plan);
+      await db.query(
+        `INSERT INTO macro_plan (
+          id, user_id, daily_calories, protein, carbs, fats,
+          water_goal, calculation_method, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          user_id = excluded.user_id,
+          daily_calories = excluded.daily_calories,
+          protein = excluded.protein,
+          carbs = excluded.carbs,
+          fats = excluded.fats,
+          water_goal = excluded.water_goal,
+          calculation_method = excluded.calculation_method,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.userId || null,
+          serialized.dailyCalories,
+          serialized.protein,
+          serialized.carbs,
+          serialized.fats,
+          serialized.waterGoal,
+          serialized.calculationMethod,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return plan.id;
+    },
+
+    delete: async (): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM macro_plan", []);
+    },
+  };
+
+  // Food Logs
+  foodLogs = {
+    getByDate: async (date: string): Promise<FoodLog[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM food_logs WHERE date = ? ORDER BY created_at ASC",
+        [date]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseFoodLog(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<FoodLog | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM food_logs WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseFoodLog(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (log: FoodLog): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeFoodLog(log);
+      await db.query(
+        `INSERT INTO food_logs (
+          id, date, meal_type, food_name, calories, protein, carbs, fats,
+          notes, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          date = excluded.date,
+          meal_type = excluded.meal_type,
+          food_name = excluded.food_name,
+          calories = excluded.calories,
+          protein = excluded.protein,
+          carbs = excluded.carbs,
+          fats = excluded.fats,
+          notes = excluded.notes`,
+        [
+          serialized.id,
+          serialized.date,
+          serialized.mealType,
+          serialized.foodName,
+          serialized.calories,
+          serialized.protein,
+          serialized.carbs,
+          serialized.fats,
+          serialized.notes || null,
+          serialized.createdAt,
+        ]
+      );
+      return log.id;
+    },
+
+    update: async (id: string, log: Partial<FoodLog>): Promise<void> => {
+      const db = this.getDb();
+      const updates: string[] = [];
+      const values: any[] = [];
+
+      if (log.date !== undefined) {
+        updates.push("date = ?");
+        values.push(log.date);
+      }
+      if (log.mealType !== undefined) {
+        updates.push("meal_type = ?");
+        values.push(log.mealType);
+      }
+      if (log.foodName !== undefined) {
+        updates.push("food_name = ?");
+        values.push(log.foodName);
+      }
+      if (log.calories !== undefined) {
+        updates.push("calories = ?");
+        values.push(log.calories);
+      }
+      if (log.protein !== undefined) {
+        updates.push("protein = ?");
+        values.push(log.protein);
+      }
+      if (log.carbs !== undefined) {
+        updates.push("carbs = ?");
+        values.push(log.carbs);
+      }
+      if (log.fats !== undefined) {
+        updates.push("fats = ?");
+        values.push(log.fats);
+      }
+      if (log.notes !== undefined) {
+        updates.push("notes = ?");
+        values.push(log.notes || null);
+      }
+
+      if (updates.length > 0) {
+        values.push(id);
+        await db.query(
+          `UPDATE food_logs SET ${updates.join(", ")} WHERE id = ?`,
+          values
+        );
+      }
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM food_logs WHERE id = ?", [id]);
+    },
+
+    getDateRange: async (
+      startDate: string,
+      endDate: string
+    ): Promise<FoodLog[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM food_logs WHERE date >= ? AND date <= ? ORDER BY date ASC, created_at ASC",
+        [startDate, endDate]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseFoodLog(this.mapSnakeToCamel(r))
+      );
+    },
+  };
+
+  // Meal Templates
+  mealTemplates = {
+    getAll: async (): Promise<MealTemplate[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM meal_templates ORDER BY created_at DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseMealTemplate(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<MealTemplate | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM meal_templates WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseMealTemplate(
+          this.mapSnakeToCamel(result.values[0])
+        );
+      }
+      return null;
+    },
+
+    save: async (template: MealTemplate): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeMealTemplate(template);
+      await db.query(
+        `INSERT INTO meal_templates (
+          id, name, description, foods, total_calories, total_protein,
+          total_carbs, total_fats, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          description = excluded.description,
+          foods = excluded.foods,
+          total_calories = excluded.total_calories,
+          total_protein = excluded.total_protein,
+          total_carbs = excluded.total_carbs,
+          total_fats = excluded.total_fats,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.name,
+          serialized.description || null,
+          serialized.foods,
+          serialized.totalCalories,
+          serialized.totalProtein,
+          serialized.totalCarbs,
+          serialized.totalFats,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return template.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM meal_templates WHERE id = ?", [id]);
+    },
+  };
+
+  // Meal Plans
+  mealPlans = {
+    getByDate: async (date: string): Promise<MealPlan | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM meal_plans WHERE date = ? LIMIT 1",
+        [date]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseMealPlan(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    getAll: async (): Promise<MealPlan[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM meal_plans ORDER BY date DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseMealPlan(this.mapSnakeToCamel(r))
+      );
+    },
+
+    save: async (plan: MealPlan): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeMealPlan(plan);
+      await db.query(
+        `INSERT INTO meal_plans (
+          id, date, meals, is_completed, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          date = excluded.date,
+          meals = excluded.meals,
+          is_completed = excluded.is_completed,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.date,
+          serialized.meals,
+          serialized.isCompleted,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return plan.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM meal_plans WHERE id = ?", [id]);
+    },
+
+    getDateRange: async (
+      startDate: string,
+      endDate: string
+    ): Promise<MealPlan[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM meal_plans WHERE date >= ? AND date <= ? ORDER BY date ASC",
+        [startDate, endDate]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseMealPlan(this.mapSnakeToCamel(r))
+      );
+    },
+  };
+
+  // Water Logs
+  waterLogs = {
+    getByDate: async (date: string): Promise<WaterLog[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM water_logs WHERE date = ? ORDER BY timestamp ASC",
+        [date]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseWaterLog(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getTotalByDate: async (date: string): Promise<number> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT SUM(amount) as total FROM water_logs WHERE date = ?",
+        [date]
+      );
+      if (
+        result.values &&
+        result.values.length > 0 &&
+        result.values[0].total !== null
+      ) {
+        return result.values[0].total || 0;
+      }
+      return 0;
+    },
+
+    save: async (log: WaterLog): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeWaterLog(log);
+      await db.query(
+        `INSERT INTO water_logs (
+          id, date, amount, timestamp, created_at
+        ) VALUES (?, ?, ?, ?, ?)`,
+        [
+          serialized.id,
+          serialized.date,
+          serialized.amount,
+          serialized.timestamp,
+          serialized.createdAt,
+        ]
+      );
+      return log.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM water_logs WHERE id = ?", [id]);
+    },
+
+    getDateRange: async (
+      startDate: string,
+      endDate: string
+    ): Promise<WaterLog[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM water_logs WHERE date >= ? AND date <= ? ORDER BY date ASC, timestamp ASC",
+        [startDate, endDate]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseWaterLog(this.mapSnakeToCamel(r))
+      );
+    },
+  };
+
+  // Macro History
+  macroHistory = {
+    getByDate: async (date: string): Promise<MacroHistory | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM macro_history WHERE date = ? LIMIT 1",
+        [date]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseMacroHistory(
+          this.mapSnakeToCamel(result.values[0])
+        );
+      }
+      return null;
+    },
+
+    getAll: async (): Promise<MacroHistory[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM macro_history ORDER BY date DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseMacroHistory(this.mapSnakeToCamel(r))
+      );
+    },
+
+    save: async (history: MacroHistory): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeMacroHistory(history);
+      await db.query(
+        `INSERT INTO macro_history (
+          id, date, total_calories, total_protein, total_carbs,
+          total_fats, water_intake, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          total_calories = excluded.total_calories,
+          total_protein = excluded.total_protein,
+          total_carbs = excluded.total_carbs,
+          total_fats = excluded.total_fats,
+          water_intake = excluded.water_intake`,
+        [
+          serialized.id,
+          serialized.date,
+          serialized.totalCalories,
+          serialized.totalProtein,
+          serialized.totalCarbs,
+          serialized.totalFats,
+          serialized.waterIntake,
+          serialized.createdAt,
+        ]
+      );
+      return history.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM macro_history WHERE id = ?", [id]);
+    },
+
+    getDateRange: async (
+      startDate: string,
+      endDate: string
+    ): Promise<MacroHistory[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM macro_history WHERE date >= ? AND date <= ? ORDER BY date ASC",
+        [startDate, endDate]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseMacroHistory(this.mapSnakeToCamel(r))
+      );
+    },
+  };
+
   // Serialization helpers
   private parseWorkout(row: any): Workout {
     return {
@@ -1181,6 +1705,205 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       targetMuscles: safeStringify(exercise.targetMuscles),
       secondaryMuscles: safeStringify(exercise.secondaryMuscles),
       instructions: safeStringify(exercise.instructions),
+    };
+  }
+
+  // Macro parsing/serialization helpers
+  private parseUserProfile(row: any): UserProfile {
+    return {
+      id: row.id,
+      height: row.height,
+      weight: row.weight,
+      age: row.age,
+      gender: row.gender,
+      activityLevel: row.activityLevel,
+      goal: row.goal,
+      proteinPreference: row.proteinPreference || undefined,
+      carbPreference: row.carbPreference || undefined,
+      dietaryRestrictions: row.dietaryRestrictions
+        ? JSON.parse(row.dietaryRestrictions)
+        : undefined,
+      bodyFatPercentage: row.bodyFatPercentage || undefined,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeUserProfile(profile: UserProfile): any {
+    return {
+      id: profile.id,
+      height: profile.height,
+      weight: profile.weight,
+      age: profile.age,
+      gender: profile.gender,
+      activityLevel: profile.activityLevel,
+      goal: profile.goal,
+      proteinPreference: profile.proteinPreference || null,
+      carbPreference: profile.carbPreference || null,
+      dietaryRestrictions: profile.dietaryRestrictions
+        ? JSON.stringify(profile.dietaryRestrictions)
+        : null,
+      bodyFatPercentage: profile.bodyFatPercentage || null,
+      createdAt: profile.createdAt,
+      updatedAt: profile.updatedAt,
+    };
+  }
+
+  private parseMacroPlan(row: any): MacroPlan {
+    return {
+      id: row.id,
+      userId: row.userId || undefined,
+      dailyCalories: row.dailyCalories,
+      protein: row.protein,
+      carbs: row.carbs,
+      fats: row.fats,
+      waterGoal: row.waterGoal,
+      calculationMethod: row.calculationMethod,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeMacroPlan(plan: MacroPlan): any {
+    return {
+      id: plan.id,
+      userId: plan.userId || null,
+      dailyCalories: plan.dailyCalories,
+      protein: plan.protein,
+      carbs: plan.carbs,
+      fats: plan.fats,
+      waterGoal: plan.waterGoal,
+      calculationMethod: plan.calculationMethod,
+      createdAt: plan.createdAt,
+      updatedAt: plan.updatedAt,
+    };
+  }
+
+  private parseFoodLog(row: any): FoodLog {
+    return {
+      id: row.id,
+      date: row.date,
+      mealType: row.mealType,
+      foodName: row.foodName,
+      calories: row.calories,
+      protein: row.protein,
+      carbs: row.carbs,
+      fats: row.fats,
+      notes: row.notes || undefined,
+      createdAt: row.createdAt,
+    };
+  }
+
+  private serializeFoodLog(log: FoodLog): any {
+    return {
+      id: log.id,
+      date: log.date,
+      mealType: log.mealType,
+      foodName: log.foodName,
+      calories: log.calories,
+      protein: log.protein,
+      carbs: log.carbs,
+      fats: log.fats,
+      notes: log.notes || null,
+      createdAt: log.createdAt,
+    };
+  }
+
+  private parseMealTemplate(row: any): MealTemplate {
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description || undefined,
+      foods: JSON.parse(row.foods),
+      totalCalories: row.totalCalories,
+      totalProtein: row.totalProtein,
+      totalCarbs: row.totalCarbs,
+      totalFats: row.totalFats,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeMealTemplate(template: MealTemplate): any {
+    return {
+      id: template.id,
+      name: template.name,
+      description: template.description || null,
+      foods: JSON.stringify(template.foods),
+      totalCalories: template.totalCalories,
+      totalProtein: template.totalProtein,
+      totalCarbs: template.totalCarbs,
+      totalFats: template.totalFats,
+      createdAt: template.createdAt,
+      updatedAt: template.updatedAt,
+    };
+  }
+
+  private parseMealPlan(row: any): MealPlan {
+    return {
+      id: row.id,
+      date: row.date,
+      meals: JSON.parse(row.meals),
+      isCompleted: row.isCompleted === 1,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeMealPlan(plan: MealPlan): any {
+    return {
+      id: plan.id,
+      date: plan.date,
+      meals: JSON.stringify(plan.meals),
+      isCompleted: plan.isCompleted ? 1 : 0,
+      createdAt: plan.createdAt,
+      updatedAt: plan.updatedAt,
+    };
+  }
+
+  private parseWaterLog(row: any): WaterLog {
+    return {
+      id: row.id,
+      date: row.date,
+      amount: row.amount,
+      timestamp: row.timestamp,
+      createdAt: row.createdAt,
+    };
+  }
+
+  private serializeWaterLog(log: WaterLog): any {
+    return {
+      id: log.id,
+      date: log.date,
+      amount: log.amount,
+      timestamp: log.timestamp,
+      createdAt: log.createdAt,
+    };
+  }
+
+  private parseMacroHistory(row: any): MacroHistory {
+    return {
+      id: row.id,
+      date: row.date,
+      totalCalories: row.totalCalories,
+      totalProtein: row.totalProtein,
+      totalCarbs: row.totalCarbs,
+      totalFats: row.totalFats,
+      waterIntake: row.waterIntake,
+      createdAt: row.createdAt,
+    };
+  }
+
+  private serializeMacroHistory(history: MacroHistory): any {
+    return {
+      id: history.id,
+      date: history.date,
+      totalCalories: history.totalCalories,
+      totalProtein: history.totalProtein,
+      totalCarbs: history.totalCarbs,
+      totalFats: history.totalFats,
+      waterIntake: history.waterIntake,
+      createdAt: history.createdAt,
     };
   }
 }

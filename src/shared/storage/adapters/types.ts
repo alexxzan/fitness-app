@@ -14,6 +14,15 @@ import type {
   Equipment,
   Muscle,
 } from "@/features/exercises/types/exercise.types";
+import type {
+  UserProfile,
+  MacroPlan,
+  FoodLog,
+  MealTemplate,
+  MealPlan,
+  WaterLog,
+  MacroHistory,
+} from "@/features/macros/types/macro.types";
 
 export interface IDatabaseAdapter {
   // Initialization
@@ -92,5 +101,64 @@ export interface IDatabaseAdapter {
     get(key: string): Promise<any | null>;
     set(key: string, value: any): Promise<void>;
     delete(key: string): Promise<void>;
+  };
+
+  // User Profile
+  userProfile: {
+    get(): Promise<UserProfile | null>;
+    save(profile: UserProfile): Promise<string>;
+    delete(): Promise<void>;
+  };
+
+  // Macro Plan
+  macroPlan: {
+    get(): Promise<MacroPlan | null>;
+    save(plan: MacroPlan): Promise<string>;
+    delete(): Promise<void>;
+  };
+
+  // Food Logs
+  foodLogs: {
+    getByDate(date: string): Promise<FoodLog[]>;
+    getById(id: string): Promise<FoodLog | null>;
+    save(log: FoodLog): Promise<string>;
+    update(id: string, log: Partial<FoodLog>): Promise<void>;
+    delete(id: string): Promise<void>;
+    getDateRange(startDate: string, endDate: string): Promise<FoodLog[]>;
+  };
+
+  // Meal Templates
+  mealTemplates: {
+    getAll(): Promise<MealTemplate[]>;
+    getById(id: string): Promise<MealTemplate | null>;
+    save(template: MealTemplate): Promise<string>;
+    delete(id: string): Promise<void>;
+  };
+
+  // Meal Plans
+  mealPlans: {
+    getByDate(date: string): Promise<MealPlan | null>;
+    getAll(): Promise<MealPlan[]>;
+    save(plan: MealPlan): Promise<string>;
+    delete(id: string): Promise<void>;
+    getDateRange(startDate: string, endDate: string): Promise<MealPlan[]>;
+  };
+
+  // Water Logs
+  waterLogs: {
+    getByDate(date: string): Promise<WaterLog[]>;
+    getTotalByDate(date: string): Promise<number>;
+    save(log: WaterLog): Promise<string>;
+    delete(id: string): Promise<void>;
+    getDateRange(startDate: string, endDate: string): Promise<WaterLog[]>;
+  };
+
+  // Macro History
+  macroHistory: {
+    getByDate(date: string): Promise<MacroHistory | null>;
+    getAll(): Promise<MacroHistory[]>;
+    save(history: MacroHistory): Promise<string>;
+    delete(id: string): Promise<void>;
+    getDateRange(startDate: string, endDate: string): Promise<MacroHistory[]>;
   };
 }
