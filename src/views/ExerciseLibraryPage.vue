@@ -542,12 +542,12 @@ import { useExerciseFavorites } from "@/features/exercises/composables/useExerci
 import { useExerciseStats } from "@/features/exercises/composables/useExerciseStats";
 import { useExerciseViews } from "@/features/exercises/composables/useExerciseViews";
 import { useWorkout } from "@/features/workouts/composables/useWorkout";
-import ExerciseCard from "@/features/exercises/components/ExerciseCard.vue";
-import ExerciseFiltersModal from "@/features/exercises/components/ExerciseFiltersModal.vue";
-import ExerciseGrid from "@/features/exercises/components/ExerciseGrid.vue";
-import ExerciseListView from "@/features/exercises/components/ExerciseListView.vue";
-import ExerciseListWithSearch from "@/features/exercises/components/ExerciseListWithSearch.vue";
-import ExerciseDetailModal from "@/features/exercises/components/ExerciseDetailModal.vue";
+import ExerciseCard from "@/features/exercises/components/library/ExerciseCard.vue";
+import ExerciseFiltersModal from "@/features/exercises/components/filters/ExerciseFiltersModal.vue";
+import ExerciseGrid from "@/features/exercises/components/library/ExerciseGrid.vue";
+import ExerciseListView from "@/features/exercises/components/library/ExerciseListView.vue";
+import ExerciseListWithSearch from "@/features/exercises/components/library/ExerciseListWithSearch.vue";
+import ExerciseDetailModal from "@/features/exercises/components/detail/ExerciseDetailModal.vue";
 import FormField from "@/components/molecules/FormField.vue";
 import AppButton from "@/components/atoms/AppButton.vue";
 import type { Exercise } from "@/features/exercises/types/exercise.types";

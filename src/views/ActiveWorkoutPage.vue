@@ -141,12 +141,12 @@ import type {
   WorkoutStatistics,
 } from "@/features/workouts/types/workout.types";
 import { useExerciseLibrary } from "@/features/exercises/composables/useExerciseLibrary";
-import RegularWorkoutView from "@/features/workouts/components/RegularWorkoutView.vue";
-import IntervalWorkoutView from "@/features/workouts/components/IntervalWorkoutView.vue";
-import WorkoutCompletedScreen from "@/features/workouts/components/WorkoutCompletedScreen.vue";
-import ExerciseSelectorModal from "@/features/workouts/components/ExerciseSelectorModal.vue";
-import SupersetSelectorModal from "@/features/workouts/components/SupersetSelectorModal.vue";
-import FinishWorkoutModal from "@/features/workouts/components/FinishWorkoutModal.vue";
+import RegularWorkoutView from "@/features/workouts/components/active/RegularWorkoutView.vue";
+import IntervalWorkoutView from "@/features/workouts/components/active/IntervalWorkoutView.vue";
+import WorkoutCompletedScreen from "@/features/workouts/components/active/WorkoutCompletedScreen.vue";
+import ExerciseSelectorModal from "@/features/workouts/components/selection/ExerciseSelectorModal.vue";
+import SupersetSelectorModal from "@/features/workouts/components/selection/SupersetSelectorModal.vue";
+import FinishWorkoutModal from "@/features/workouts/components/completion/FinishWorkoutModal.vue";
 
 const router = useRouter();
 

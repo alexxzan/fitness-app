@@ -43,7 +43,7 @@ import {
   IonSpinner
 } from '@ionic/vue'
 import { useWorkoutHistory } from '@/features/workouts/composables/useWorkoutHistory'
-import WorkoutCard from '@/features/workouts/components/WorkoutCard.vue'
+import WorkoutCard from '@/features/workouts/components/cards/WorkoutCard.vue'
 import SearchBar from '@/components/molecules/SearchBar.vue'
 
 const router = useRouter()
