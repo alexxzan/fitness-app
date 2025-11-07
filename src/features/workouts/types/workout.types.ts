@@ -86,6 +86,7 @@ export interface WorkoutRoutine {
   type: "custom" | "template";
   templateId?: string; // Reference to workout-templates.json (if template-based)
   isFavorite?: boolean;
+  isCustom?: boolean; // True if this routine was created as part of a custom program
   tags?: string[];
   estimatedDuration?: number; // in minutes
   difficulty?: "beginner" | "intermediate" | "advanced";

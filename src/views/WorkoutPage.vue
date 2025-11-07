@@ -181,6 +181,15 @@
         :is-open="showAddProgramModal"
         @close="showAddProgramModal = false"
         @select-template="handleAddProgramFromTemplate"
+        @create-custom="handleCreateCustomProgram"
+      />
+
+      <!-- Create Custom Program Modal -->
+      <CreateCustomProgramModal
+        :is-open="showCreateCustomProgramModal"
+        :exercises="exercises"
+        @save="handleSaveCustomProgram"
+        @close="showCreateCustomProgramModal = false"
       />
 
       <!-- Cancel Workout Alert -->
@@ -240,6 +249,7 @@ import ActiveWorkoutResumeCard from "@/features/workouts/components/ActiveWorkou
 import FavoriteRoutinesSection from "@/features/workouts/components/FavoriteRoutinesSection.vue";
 import MyWorkoutProgramsSection from "@/features/workouts/components/MyWorkoutProgramsSection.vue";
 import AddProgramModal from "@/features/workouts/components/AddProgramModal.vue";
+import CreateCustomProgramModal from "@/features/workouts/components/CreateCustomProgramModal.vue";
 import type { WorkoutRoutine } from "@/features/workouts/types/workout.types";
 import { mockFavoriteRoutines as mockFavoriteRoutinesData } from "@/features/workouts/mocks/mock";
 import { WorkoutRepository } from "@/features/workouts/repositories/workout.repository";
@@ -277,6 +287,7 @@ const {
   loadPrograms,
   getProgramById,
   createProgramFromTemplate,
+  createCustomProgram,
   deleteProgram,
   renameProgram,
   copyProgram,
@@ -290,6 +301,7 @@ const showStartRegularModal = ref(false);
 const showStartIntervalModal = ref(false);
 const showRoutineSelector = ref(false);
 const showAddProgramModal = ref(false);
+const showCreateCustomProgramModal = ref(false);
 const showSupersetSelectorModal = ref(false);
 const exerciseToReplaceId = ref<string | null>(null);
 const exerciseToLinkId = ref<string | null>(null);
@@ -409,6 +421,37 @@ async function handleAddProgramFromTemplate(template: WorkoutTemplate) {
     showAddProgramModal.value = false;
   } catch (error) {
     console.error("Failed to add program:", error);
+    showAlert({
+      header: "Error",
+      message: "Failed to add program. Please try again.",
+      buttons: [{ text: "OK", role: "confirm" }],
+    });
+  }
+}
+
+function handleCreateCustomProgram() {
+  showAddProgramModal.value = false;
+  showCreateCustomProgramModal.value = true;
+}
+
+async function handleSaveCustomProgram(data: {
+  name: string;
+  description?: string;
+  routines: WorkoutRoutine[];
+}) {
+  try {
+    await createCustomProgram(data.name, data.description, data.routines);
+    showCreateCustomProgramModal.value = false;
+  } catch (error) {
+    console.error("Failed to create custom program:", error);
+    showAlert({
+      header: "Error",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to create custom program. Please try again.",
+      buttons: [{ text: "OK", role: "confirm" }],
+    });
   }
 }
 

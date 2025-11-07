@@ -224,6 +224,111 @@ export function useProgram() {
     }
   }
 
+  /**
+   * Helper to convert reactive program to plain object for storage
+   * Removes Vue reactivity and ensures all data is serializable
+   */
+  function toPlainProgram(program: WorkoutProgram): WorkoutProgram {
+    // Deep clone to remove Vue reactivity
+    const plain = JSON.parse(JSON.stringify(program));
+    
+    // Ensure dates are strings
+    const toISOString = (date: Date | string | undefined): string => {
+      if (!date) return new Date().toISOString();
+      if (date instanceof Date) return date.toISOString();
+      return date;
+    };
+
+    return {
+      ...plain,
+      createdAt: toISOString(plain.createdAt),
+      updatedAt: toISOString(plain.updatedAt),
+      workouts: plain.workouts.map((routine: WorkoutRoutine) => ({
+        ...routine,
+        createdAt: toISOString(routine.createdAt),
+        updatedAt: toISOString(routine.updatedAt),
+        exercises: routine.exercises.map((ex: any) => ({
+          id: ex.id,
+          exerciseId: ex.exerciseId,
+          exerciseName: ex.exerciseName,
+          targetSets: ex.targetSets ?? undefined,
+          targetReps: ex.targetReps ?? undefined,
+          targetWeight: ex.targetWeight ?? undefined,
+          restTime: ex.restTime ?? undefined,
+          notes: ex.notes ?? undefined,
+          order: ex.order,
+        })),
+      })),
+    };
+  }
+
+  /**
+   * Create a custom program
+   * Creates a program with user-defined routines (not from a template)
+   */
+  async function createCustomProgram(
+    name: string,
+    description: string | undefined,
+    routines: WorkoutRoutine[]
+  ): Promise<WorkoutProgram> {
+    if (!name.trim()) {
+      throw new Error("Program name is required");
+    }
+
+    if (routines.length === 0) {
+      throw new Error("Program must have at least one routine");
+    }
+
+    // Helper function to convert Date to ISO string
+    const toISOString = (date: Date | string | undefined): string => {
+      if (!date) return new Date().toISOString();
+      if (date instanceof Date) return date.toISOString();
+      return date;
+    };
+
+    // Ensure all routines are marked as custom and dates are serialized
+    const customRoutines: WorkoutRoutine[] = routines.map((routine) => ({
+      ...routine,
+      type: "custom" as const,
+      isCustom: true, // Mark as custom routine created within program
+      createdAt: toISOString(routine.createdAt),
+      updatedAt: new Date().toISOString(),
+    }));
+
+    const program: WorkoutProgram = {
+      id: generateId(),
+      name: name.trim(),
+      description: description?.trim() || undefined,
+      templateId: undefined, // No template reference for custom programs
+      workouts: customRoutines,
+      isEnabled: true, // Automatically enabled when created
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      // Save each routine individually to the routines database
+      // This allows them to be reused when adding existing routines
+      for (const routine of customRoutines) {
+        // Convert routine to plain object to remove Vue reactivity
+        const plainRoutine = JSON.parse(JSON.stringify(routine));
+        await WorkoutRepository.saveRoutine(plainRoutine);
+      }
+
+      // Convert to plain object to remove Vue reactivity before saving
+      const plainProgram = toPlainProgram(program);
+      await WorkoutRepository.saveProgram(plainProgram);
+      await loadPrograms(); // Refresh list
+      return program;
+    } catch (err) {
+      error.value =
+        err instanceof Error
+          ? err.message
+          : "Failed to create custom program";
+      throw err;
+    }
+  }
+
   return {
     programs,
     enabledPrograms,
@@ -232,6 +337,7 @@ export function useProgram() {
     loadPrograms,
     getProgramById,
     createProgramFromTemplate,
+    createCustomProgram,
     deleteProgram,
     renameProgram,
     copyProgram,

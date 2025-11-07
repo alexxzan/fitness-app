@@ -1,10 +1,19 @@
 <template>
-  <ion-modal :is-open="isOpen" @did-dismiss="emit('close')">
+  <!-- Action Sheet for Program Selection -->
+  <ion-action-sheet
+    :is-open="isOpen && showActionSheet"
+    header="Add Workout Program"
+    :buttons="actionSheetButtons"
+    @did-dismiss="handleActionSheetDismiss"
+  />
+
+  <!-- Template Selection Modal -->
+  <ion-modal :is-open="isOpen && showTemplateList" @did-dismiss="handleClose">
     <ion-header>
       <ion-toolbar>
-        <ion-title>Add Workout Program</ion-title>
+        <ion-title>Browse Templates</ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="emit('close')">Close</ion-button>
+          <ion-button @click="handleClose">Close</ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -53,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import {
   IonModal,
   IonHeader,
@@ -68,6 +77,7 @@ import {
   IonSegment,
   IonSegmentButton,
   IonBadge,
+  IonActionSheet,
 } from "@ionic/vue";
 import { useRoutine } from "../composables/useRoutine";
 import type { WorkoutTemplate } from "../types/workout.types";
@@ -79,10 +89,69 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: [];
   selectTemplate: [template: WorkoutTemplate];
+  createCustom: [];
 }>();
 
 const { templates } = useRoutine();
 const selectedDifficulty = ref<string>("all");
+const showActionSheet = ref(true);
+const showTemplateList = ref(false);
+
+// Reset state when modal opens/closes
+watch(
+  () => props.isOpen,
+  (newValue) => {
+    if (newValue) {
+      showActionSheet.value = true;
+      showTemplateList.value = false;
+    } else {
+      showActionSheet.value = false;
+      showTemplateList.value = false;
+    }
+  }
+);
+
+const actionSheetButtons = computed(() => [
+  {
+    text: "Create Custom Program",
+    handler: () => {
+      showActionSheet.value = false;
+      emit("createCustom");
+      handleClose();
+    },
+  },
+  {
+    text: "Browse Templates",
+    handler: () => {
+      showActionSheet.value = false;
+      showTemplateList.value = true;
+    },
+  },
+  {
+    text: "Cancel",
+    role: "cancel",
+    handler: () => {
+      handleClose();
+    },
+  },
+]);
+
+function handleActionSheetDismiss() {
+  // Only close everything if template list is not showing
+  // If template list is showing, user selected "Browse Templates" and we should keep it open
+  if (!showTemplateList.value) {
+    handleClose();
+  } else {
+    // Just hide the action sheet, keep template list open
+    showActionSheet.value = false;
+  }
+}
+
+function handleClose() {
+  showActionSheet.value = false;
+  showTemplateList.value = false;
+  emit("close");
+}
 
 const filteredTemplates = computed(() => {
   if (selectedDifficulty.value === "all") {
@@ -95,6 +164,7 @@ const filteredTemplates = computed(() => {
 
 function handleSelectTemplate(template: WorkoutTemplate) {
   emit("selectTemplate", template);
+  handleClose();
 }
 
 function getDifficultyColor(difficulty: string) {
