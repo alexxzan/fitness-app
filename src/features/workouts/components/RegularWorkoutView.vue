@@ -20,6 +20,7 @@
         v-for="exercise in workout.exercises"
         :key="exercise.id"
         :exercise="exercise"
+        :all-exercises="workout.exercises"
         :previous-performance="previousPerformances[exercise.exerciseId]"
         @add-set="handleAddSet(exercise.id)"
         @update-set="

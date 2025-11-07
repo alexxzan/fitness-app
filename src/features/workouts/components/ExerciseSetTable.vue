@@ -1,5 +1,8 @@
 <template>
-  <div class="exercise-card">
+  <div
+    class="exercise-card"
+    :class="{ 'exercise-card--superset': hasSupersetGroup }"
+  >
     <!-- Exercise Header -->
     <div
       class="exercise-header"
@@ -24,9 +27,18 @@
           <div class="exercise-name-row">
             <h3 class="exercise-name">{{ exercise.exerciseName }}</h3>
           </div>
-          <div class="exercise-summary-row" v-if="exerciseSummary">
+          <div class="exercise-summary-row" v-if="exerciseSummary || supersetGroupInfo">
             <div class="exercise-summary">
-              <span>{{ exerciseSummary }}</span>
+              <template v-if="exerciseSummary">
+                <span>{{ exerciseSummary }}</span>
+                <span v-if="supersetGroupInfo" class="summary-separator">•</span>
+              </template>
+              <span
+                v-if="supersetGroupInfo"
+                class="superset-group-indicator"
+              >
+                {{ supersetGroupInfo.position }} of {{ supersetGroupInfo.total }}
+              </span>
             </div>
             <button
               v-if="!isExerciseComplete"
@@ -41,22 +53,28 @@
         </div>
       </div>
       <div class="header-right">
-        <button
-          class="context-menu-button"
-          @click.stop="openContextMenu"
-          :aria-label="'Exercise options'"
-        >
-          <ion-icon :icon="ellipsisVertical" />
-        </button>
-        <button
-          class="collapse-button"
-          :aria-label="isCollapsed ? 'Expand' : 'Collapse'"
-        >
-          <ion-icon
-            :icon="isCollapsed ? chevronDown : chevronUp"
-            :class="{ 'rotate-180': isCollapsed }"
-          />
-        </button>
+        <div class="header-right-buttons">
+          <button
+            class="context-menu-button"
+            @click.stop="openContextMenu"
+            :aria-label="'Exercise options'"
+          >
+            <ion-icon :icon="ellipsisVertical" />
+          </button>
+          <button
+            class="collapse-button"
+            :aria-label="isCollapsed ? 'Expand' : 'Collapse'"
+          >
+            <ion-icon
+              :icon="isCollapsed ? chevronDown : chevronUp"
+              :class="{ 'rotate-180': isCollapsed }"
+            />
+          </button>
+        </div>
+        <div v-if="hasSupersetGroup" class="superset-badge">
+          <ion-icon :icon="link" />
+          <span>Superset</span>
+        </div>
       </div>
     </div>
 
@@ -369,6 +387,7 @@ import { ExerciseRepository } from "@/features/exercises/repositories/exercise.r
 
 interface Props {
   exercise: WorkoutExercise;
+  allExercises?: WorkoutExercise[];
   previousPerformance?: PreviousExercisePerformance | null;
 }
 
@@ -521,6 +540,34 @@ const formattedRestTime = computed(() => {
   const mins = Math.floor(exerciseRestTime.value / 60);
   const secs = exerciseRestTime.value % 60;
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+});
+
+// Superset detection and grouping
+const hasSupersetGroup = computed(() => {
+  return !!props.exercise.supersetGroupId;
+});
+
+const supersetGroupExercises = computed(() => {
+  if (!hasSupersetGroup.value || !props.allExercises) {
+    return [];
+  }
+  return props.allExercises.filter(
+    (ex) => ex.supersetGroupId === props.exercise.supersetGroupId
+  );
+});
+
+const supersetGroupInfo = computed(() => {
+  if (!hasSupersetGroup.value) {
+    return null;
+  }
+  const groupExercises = supersetGroupExercises.value;
+  const currentIndex = groupExercises.findIndex(
+    (ex) => ex.id === props.exercise.id
+  );
+  return {
+    position: currentIndex + 1,
+    total: groupExercises.length,
+  };
 });
 
 // Haptic feedback helper
@@ -1393,6 +1440,13 @@ onMounted(() => {
   box-shadow: var(--shadow-card);
   margin-bottom: var(--spacing-sm);
   overflow: hidden;
+  position: relative;
+}
+
+.exercise-card--superset {
+  border-left-width: 4px;
+  border-left-color: #8b5cf6;
+  border-left-style: solid;
 }
 
 .exercise-header {
@@ -1506,6 +1560,17 @@ onMounted(() => {
   backdrop-filter: blur(4px);
 }
 
+.exercise-header--completed .superset-badge {
+  background: rgba(139, 92, 246, 0.9);
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.exercise-header--completed .superset-group-indicator {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: var(--typography-body-weight-semibold);
+}
+
 .header-left {
   flex: 1;
   min-width: 0;
@@ -1568,6 +1633,35 @@ onMounted(() => {
   text-transform: capitalize;
 }
 
+.superset-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: #8b5cf6;
+  color: white;
+  border-radius: var(--radius-badge);
+  font-size: var(--typography-caption-size);
+  font-weight: var(--typography-body-weight-medium);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.superset-badge ion-icon {
+  font-size: 14px;
+}
+
+.summary-separator {
+  margin: 0 var(--spacing-xs);
+  color: var(--color-text-tertiary);
+}
+
+.superset-group-indicator {
+  color: #8b5cf6;
+  font-weight: var(--typography-body-weight-medium);
+  font-size: var(--typography-small-size);
+}
+
 .exercise-summary-row {
   display: flex;
   align-items: center;
@@ -1597,9 +1691,16 @@ onMounted(() => {
 
 .header-right {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
   gap: var(--spacing-xs);
   flex-shrink: 0;
+}
+
+.header-right-buttons {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
 }
 
 .rest-time-button {
