@@ -361,6 +361,46 @@ export function useWorkout() {
   }
 
   /**
+   * Unlink exercises from a superset (remove supersetGroupId from all exercises in the group)
+   */
+  function unlinkSuperset(exerciseId: string) {
+    if (!currentWorkout.value) {
+      throw new Error("No active workout");
+    }
+
+    const exercise = currentWorkout.value.exercises.find(
+      (e) => e.id === exerciseId
+    );
+
+    if (!exercise || !exercise.supersetGroupId) {
+      throw new Error("Exercise not found or not in a superset");
+    }
+
+    const groupId = exercise.supersetGroupId;
+
+    // Get all exercise IDs in the same superset group
+    const groupExerciseIds = currentWorkout.value.exercises
+      .filter((ex) => ex.supersetGroupId === groupId)
+      .map((ex) => ex.id);
+
+    // Remove supersetGroupId from all exercises in the same group
+    currentWorkout.value.exercises.forEach((ex) => {
+      if (ex.supersetGroupId === groupId) {
+        delete ex.supersetGroupId;
+      }
+    });
+
+    // Remove from tracking - remove all pairs that contain any exercise in this group
+    exercisesLinkedAsSuperset.value = exercisesLinkedAsSuperset.value.filter(
+      (pair) =>
+        !groupExerciseIds.includes(pair[0]) && !groupExerciseIds.includes(pair[1])
+    );
+
+    currentWorkout.value.updatedAt = new Date().toISOString();
+    saveWorkout();
+  }
+
+  /**
    * Remove an exercise from the current workout
    */
   function removeExercise(exerciseId: string) {
@@ -891,6 +931,7 @@ export function useWorkout() {
     removeExercise,
     replaceExercise,
     linkExercisesAsSuperset,
+    unlinkSuperset,
     addSet,
     updateSet,
     toggleSetCompleted,

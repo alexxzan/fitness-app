@@ -33,6 +33,7 @@
         @replace-exercise="() => emit('replaceExercise', exercise.id)"
         @delete-exercise="() => emit('deleteExercise', exercise.id)"
         @link-superset="() => emit('linkSuperset', exercise.id)"
+        @unlink-superset="() => emit('unlinkSuperset', exercise.id)"
       />
 
       <!-- Add Exercise Button -->
@@ -80,6 +81,7 @@ const emit = defineEmits<{
   replaceExercise: [exerciseId: string];
   deleteExercise: [exerciseId: string];
   linkSuperset: [exerciseId: string];
+  unlinkSuperset: [exerciseId: string];
 }>();
 
 const { loadWorkoutHistory, getPreviousPerformances } =

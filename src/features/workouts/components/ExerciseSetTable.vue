@@ -25,20 +25,16 @@
         </div>
         <div class="exercise-name-section">
           <div class="exercise-name-row">
-            <h3 class="exercise-name">{{ exercise.exerciseName }}</h3>
+            <h3
+              class="exercise-name"
+              :class="{ 'exercise-name--superset': hasSupersetGroup }"
+            >
+              {{ exercise.exerciseName }}
+            </h3>
           </div>
-          <div class="exercise-summary-row" v-if="exerciseSummary || supersetGroupInfo">
+          <div class="exercise-summary-row" v-if="exerciseSummary">
             <div class="exercise-summary">
-              <template v-if="exerciseSummary">
-                <span>{{ exerciseSummary }}</span>
-                <span v-if="supersetGroupInfo" class="summary-separator">•</span>
-              </template>
-              <span
-                v-if="supersetGroupInfo"
-                class="superset-group-indicator"
-              >
-                {{ supersetGroupInfo.position }} of {{ supersetGroupInfo.total }}
-              </span>
+              <span>{{ exerciseSummary }}</span>
             </div>
             <button
               v-if="!isExerciseComplete"
@@ -53,28 +49,22 @@
         </div>
       </div>
       <div class="header-right">
-        <div class="header-right-buttons">
-          <button
-            class="context-menu-button"
-            @click.stop="openContextMenu"
-            :aria-label="'Exercise options'"
-          >
-            <ion-icon :icon="ellipsisVertical" />
-          </button>
-          <button
-            class="collapse-button"
-            :aria-label="isCollapsed ? 'Expand' : 'Collapse'"
-          >
-            <ion-icon
-              :icon="isCollapsed ? chevronDown : chevronUp"
-              :class="{ 'rotate-180': isCollapsed }"
-            />
-          </button>
-        </div>
-        <div v-if="hasSupersetGroup" class="superset-badge">
-          <ion-icon :icon="link" />
-          <span>Superset</span>
-        </div>
+        <button
+          class="context-menu-button"
+          @click.stop="openContextMenu"
+          :aria-label="'Exercise options'"
+        >
+          <ion-icon :icon="ellipsisVertical" />
+        </button>
+        <button
+          class="collapse-button"
+          :aria-label="isCollapsed ? 'Expand' : 'Collapse'"
+        >
+          <ion-icon
+            :icon="isCollapsed ? chevronDown : chevronUp"
+            :class="{ 'rotate-180': isCollapsed }"
+          />
+        </button>
       </div>
     </div>
 
@@ -402,6 +392,7 @@ const emit = defineEmits<{
   replaceExercise: [];
   deleteExercise: [];
   linkSuperset: [];
+  unlinkSuperset: [];
 }>();
 
 // State management
@@ -1138,12 +1129,16 @@ const contextMenuItems = computed<ContentMenuItem[]>(() => [
     },
   },
   {
-    text: "Add as superset",
+    text: hasSupersetGroup.value ? "Remove as superset" : "Add as superset",
     icon: link,
     handler: () => {
       showContextMenu.value = false;
       triggerHaptic(ImpactStyle.Medium);
-      emit("linkSuperset");
+      if (hasSupersetGroup.value) {
+        emit("unlinkSuperset");
+      } else {
+        emit("linkSuperset");
+      }
     },
   },
   {
@@ -1519,6 +1514,11 @@ onMounted(() => {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+.exercise-header--completed .exercise-name--superset {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 3px rgba(139, 92, 246, 0.5);
+}
+
 .exercise-header--completed .exercise-summary {
   color: rgba(255, 255, 255, 0.9);
   font-weight: var(--typography-body-weight-medium);
@@ -1566,10 +1566,6 @@ onMounted(() => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.exercise-header--completed .superset-group-indicator {
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: var(--typography-body-weight-semibold);
-}
 
 .header-left {
   flex: 1;
@@ -1633,6 +1629,10 @@ onMounted(() => {
   text-transform: capitalize;
 }
 
+.exercise-name--superset {
+  color: #8b5cf6;
+}
+
 .superset-badge {
   display: flex;
   align-items: center;
@@ -1651,16 +1651,6 @@ onMounted(() => {
   font-size: 14px;
 }
 
-.summary-separator {
-  margin: 0 var(--spacing-xs);
-  color: var(--color-text-tertiary);
-}
-
-.superset-group-indicator {
-  color: #8b5cf6;
-  font-weight: var(--typography-body-weight-medium);
-  font-size: var(--typography-small-size);
-}
 
 .exercise-summary-row {
   display: flex;
@@ -1691,16 +1681,9 @@ onMounted(() => {
 
 .header-right {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--spacing-xs);
-  flex-shrink: 0;
-}
-
-.header-right-buttons {
-  display: flex;
   align-items: center;
   gap: var(--spacing-xs);
+  flex-shrink: 0;
 }
 
 .rest-time-button {

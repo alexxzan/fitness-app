@@ -46,6 +46,7 @@
           @replace-exercise="handleReplaceExercise"
           @delete-exercise="handleDeleteExercise"
           @link-superset="handleLinkSuperset"
+          @unlink-superset="handleUnlinkSuperset"
         />
 
         <!-- Interval Workout View -->
@@ -161,6 +162,7 @@ const {
   deleteSet,
   replaceExercise,
   linkExercisesAsSuperset,
+  unlinkSuperset,
   removeExercise,
   saveWorkoutChangesToRoutine,
   finishWorkout,
@@ -255,6 +257,22 @@ function handleDeleteExercise(exerciseId: string) {
 function handleLinkSuperset(exerciseId: string) {
   exerciseToLinkId.value = exerciseId;
   showSupersetSelectorModal.value = true;
+}
+
+function handleUnlinkSuperset(exerciseId: string) {
+  try {
+    unlinkSuperset(exerciseId);
+  } catch (error) {
+    console.error("Failed to unlink superset:", error);
+    showAlert({
+      header: "Failed to Unlink Superset",
+      message:
+        error instanceof Error
+          ? error.message
+          : "An error occurred while unlinking the superset.",
+      buttons: [{ text: "OK", role: "confirm" }],
+    });
+  }
 }
 
 function handleSelectSupersetExercise(targetExerciseId: string) {
