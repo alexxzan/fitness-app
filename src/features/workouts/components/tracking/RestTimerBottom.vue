@@ -40,10 +40,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import { IonIcon } from "@ionic/vue";
 import { add, remove, close } from "ionicons/icons";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { playRestTimerCompleteNotification } from "@/shared/utils/audio-notification";
 
 interface Props {
   isActive: boolean;
@@ -63,6 +64,25 @@ const formattedTime = computed(() => {
   const secs = props.timeRemaining % 60;
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 });
+
+// Watch for timer completion (when timeRemaining goes from > 0 to 0)
+watch(
+  () => props.timeRemaining,
+  (newTime, oldTime) => {
+    // Only play sound if timer was active, had time remaining, and now reached 0
+    if (
+      props.isActive &&
+      oldTime !== undefined &&
+      oldTime > 0 &&
+      newTime === 0
+    ) {
+      playRestTimerCompleteNotification().catch((error) => {
+        // Silently fail if audio notification is not available
+        console.debug("Audio notification not available:", error);
+      });
+    }
+  }
+);
 
 async function adjustTime(delta: number) {
   emit("adjustTime", delta);
