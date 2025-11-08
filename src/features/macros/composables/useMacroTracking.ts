@@ -311,6 +311,39 @@ export function useMacroTracking() {
   });
 
   /**
+   * Get recent foods (last 10 unique foods by name, sorted by most recent)
+   */
+  const recentFoods = computed(() => {
+    const seen = new Map<string, FoodLog>();
+    // Iterate through food logs in reverse (most recent first)
+    const sortedLogs = [...foodLogs.value].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    
+    for (const log of sortedLogs) {
+      if (!seen.has(log.foodName)) {
+        seen.set(log.foodName, log);
+      }
+      if (seen.size >= 10) break;
+    }
+    
+    return Array.from(seen.values());
+  });
+
+  /**
+   * Get all unique foods for search
+   */
+  const allFoods = computed(() => {
+    const seen = new Map<string, FoodLog>();
+    for (const log of foodLogs.value) {
+      if (!seen.has(log.foodName)) {
+        seen.set(log.foodName, log);
+      }
+    }
+    return Array.from(seen.values());
+  });
+
+  /**
    * Set selected date and reload data
    */
   async function setSelectedDate(date: string) {
@@ -348,6 +381,8 @@ export function useMacroTracking() {
     hasMacroPlan,
     dailySummary,
     foodLogsByMeal,
+    recentFoods,
+    allFoods,
 
     // Methods
     loadProfile,

@@ -14,7 +14,19 @@
         @complete="handleQuestionnaireComplete"
       />
 
-      <!-- Add Food Modal -->
+      <!-- Quick Add Food Modal -->
+      <QuickAddFoodModal
+        key="quick-add-modal"
+        :is-open="showQuickAddModal"
+        :date="selectedDate"
+        :recent-foods="recentFoods"
+        :all-foods="allFoods"
+        :initial-meal-type="quickAddMealType"
+        @close="showQuickAddModal = false"
+        @add="handleAddFood"
+      />
+
+      <!-- Add Food Modal (Full Form) -->
       <AddFoodModal
         key="add-food-modal"
         :is-open="showAddFoodModal"
@@ -32,73 +44,130 @@
       <div v-else class="macros-container">
         <!-- Show questionnaire if no profile -->
         <div v-if="!hasProfile" class="empty-state">
+          <ion-icon :icon="restaurantOutline" class="empty-icon"></ion-icon>
           <h2>Welcome to Macro Tracking!</h2>
           <p>Let's set up your personalized diet plan.</p>
-          <AppButton @click="showQuestionnaire = true">Get Started</AppButton>
+          <ion-button @click="showQuestionnaire = true">Get Started</ion-button>
         </div>
 
         <!-- Main tracking interface -->
         <div v-else>
-          <!-- Date selector -->
-          <ion-item button @click="showDatePicker = true">
-            <ion-label>Date</ion-label>
-            <ion-label slot="end">{{ formatDate(selectedDate) }}</ion-label>
-          </ion-item>
-          
-          <!-- Date Picker Modal -->
-          <ion-modal
-            key="date-picker-modal"
-            :is-open="showDatePicker"
-            @did-dismiss="showDatePicker = false"
-          >
-            <ion-header>
-              <ion-toolbar>
-                <ion-title>Select Date</ion-title>
-                <ion-buttons slot="end">
-                  <ion-button @click="showDatePicker = false">Done</ion-button>
-                </ion-buttons>
-              </ion-toolbar>
-            </ion-header>
-            <ion-content>
-              <ion-datetime
-                presentation="date"
-                :value="selectedDate"
-                @ion-change="handleDateChange"
-              ></ion-datetime>
-            </ion-content>
-          </ion-modal>
+          <!-- Date Navigation -->
+          <DateNavigationBar
+            :date="selectedDate"
+            @date-change="handleDateChange"
+          />
 
           <!-- Macro Plan Summary -->
-          <ion-card v-if="macroPlan" class="plan-summary">
+          <ion-card v-if="macroPlan" class="plan-summary-card">
             <ion-card-header>
-              <ion-card-title>Your Daily Targets</ion-card-title>
+              <ion-card-title>
+                <ion-icon :icon="flagOutline" slot="start"></ion-icon>
+                Daily Targets
+              </ion-card-title>
             </ion-card-header>
             <ion-card-content>
-              <div class="targets-grid">
-                <div class="target-item">
-                  <div class="target-label">Calories</div>
-                  <div class="target-value">{{ Math.round(macroPlan.dailyCalories) }}</div>
-                </div>
-                <div class="target-item">
-                  <div class="target-label">Protein</div>
-                  <div class="target-value">{{ Math.round(macroPlan.protein) }}g</div>
-                </div>
-                <div class="target-item">
-                  <div class="target-label">Carbs</div>
-                  <div class="target-value">{{ Math.round(macroPlan.carbs) }}g</div>
-                </div>
-                <div class="target-item">
-                  <div class="target-label">Fats</div>
-                  <div class="target-value">{{ Math.round(macroPlan.fats) }}g</div>
-                </div>
-              </div>
+              <ion-grid>
+                <ion-row>
+                  <ion-col size="6">
+                    <div class="target-item">
+                      <ion-label class="target-label">Calories</ion-label>
+                      <ion-badge color="primary" class="target-value">
+                        {{ Math.round(macroPlan.dailyCalories) }}
+                      </ion-badge>
+                    </div>
+                  </ion-col>
+                  <ion-col size="6">
+                    <div class="target-item">
+                      <ion-label class="target-label">Protein</ion-label>
+                      <ion-badge color="success" class="target-value">
+                        {{ Math.round(macroPlan.protein) }}g
+                      </ion-badge>
+                    </div>
+                  </ion-col>
+                  <ion-col size="6">
+                    <div class="target-item">
+                      <ion-label class="target-label">Carbs</ion-label>
+                      <ion-badge color="warning" class="target-value">
+                        {{ Math.round(macroPlan.carbs) }}g
+                      </ion-badge>
+                    </div>
+                  </ion-col>
+                  <ion-col size="6">
+                    <div class="target-item">
+                      <ion-label class="target-label">Fats</ion-label>
+                      <ion-badge color="danger" class="target-value">
+                        {{ Math.round(macroPlan.fats) }}g
+                      </ion-badge>
+                    </div>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
             </ion-card-content>
           </ion-card>
 
           <!-- Progress Visualization -->
           <ion-card v-if="dailySummary" class="progress-card">
             <ion-card-header>
-              <ion-card-title>Today's Progress</ion-card-title>
+              <ion-card-title>
+                <ion-icon :icon="statsChart" slot="start"></ion-icon>
+                Today's Progress
+              </ion-card-title>
+            </ion-card-header>
+            <ion-card-content>
+              <!-- Linear Progress Bars -->
+              <div class="progress-bars">
+                <MacroProgressBar
+                  label="Calories"
+                  :value="dailySummary.consumed.calories"
+                  :max="dailySummary.target.calories"
+                  color="primary"
+                />
+                <MacroProgressBar
+                  label="Protein"
+                  :value="dailySummary.consumed.protein"
+                  :max="dailySummary.target.protein"
+                  unit="g"
+                  color="success"
+                />
+                <MacroProgressBar
+                  label="Carbs"
+                  :value="dailySummary.consumed.carbs"
+                  :max="dailySummary.target.carbs"
+                  unit="g"
+                  color="warning"
+                />
+                <MacroProgressBar
+                  label="Fats"
+                  :value="dailySummary.consumed.fats"
+                  :max="dailySummary.target.fats"
+                  unit="g"
+                  color="danger"
+                />
+              </div>
+
+              <!-- Remaining Summary -->
+              <ion-grid class="remaining-summary">
+                <ion-row>
+                  <ion-col>
+                    <div class="remaining-item">
+                      <ion-label>Remaining Calories</ion-label>
+                      <ion-badge
+                        :color="dailySummary.remaining.calories > 0 ? 'primary' : 'danger'"
+                      >
+                        {{ Math.round(dailySummary.remaining.calories) }}
+                      </ion-badge>
+                    </div>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Circular Progress (Alternative View) -->
+          <ion-card v-if="dailySummary" class="circular-progress-card">
+            <ion-card-header>
+              <ion-card-title>Macro Breakdown</ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <div class="progress-grid">
@@ -130,104 +199,89 @@
                   unit="g"
                 />
               </div>
-              <div class="remaining-summary">
-                <div class="remaining-item">
-                  <span>Remaining Calories:</span>
-                  <strong>{{ Math.round(dailySummary.remaining.calories) }}</strong>
-                </div>
-                <div class="remaining-item">
-                  <span>Water:</span>
-                  <strong>{{ Math.round(dailySummary.waterConsumed) }}ml / {{ Math.round(dailySummary.waterGoal) }}ml</strong>
-                </div>
-              </div>
             </ion-card-content>
           </ion-card>
 
-          <!-- Food Logs -->
-          <ion-card class="food-logs-card">
-            <ion-card-header>
-              <ion-card-title>Food Log</ion-card-title>
-              <AppButton
-                slot="end"
-                size="small"
-                @click="showAddFoodModal = true"
-              >
-                Add Food
-              </AppButton>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-list v-if="foodLogs.length > 0">
-                <ion-item
-                  v-for="log in foodLogs"
-                  :key="`food-log-${log.id}`"
-                  class="food-log-item"
-                >
-                  <ion-label>
-                    <h3>{{ log.foodName }}</h3>
-                    <p>{{ log.mealType }}</p>
-                    <p>
-                      {{ Math.round(log.calories) }} kcal | P: {{ Math.round(log.protein) }}g |
-                      C: {{ Math.round(log.carbs) }}g | F: {{ Math.round(log.fats) }}g
-                    </p>
-                  </ion-label>
-                  <ion-button
-                    slot="end"
-                    fill="clear"
-                    color="danger"
-                    @click="handleDeleteFood(log.id)"
-                  >
-                    <ion-icon :icon="trashOutline"></ion-icon>
-                  </ion-button>
-                </ion-item>
-              </ion-list>
-              <div v-else class="empty-food-log">
-                <p>No food logged yet today.</p>
-                <AppButton fill="outline" @click="showAddFoodModal = true">
-                  Add Your First Meal
-                </AppButton>
-              </div>
-            </ion-card-content>
-          </ion-card>
+          <!-- Recent Foods -->
+          <RecentFoodsList
+            v-if="recentFoods.length > 0"
+            :recent-foods="recentFoods"
+            @add-food="handleAddRecentFood"
+          />
+
+          <!-- Meal Sections -->
+          <div class="meals-container">
+            <MealSection
+              v-for="mealType in mealTypes"
+              :key="mealType"
+              :meal-type="mealType"
+              :items="foodLogsByMeal[mealType]"
+              @add-food="handleAddFoodToMeal"
+              @edit="handleEditFood"
+              @duplicate="handleDuplicateFood"
+              @delete="handleDeleteFood"
+            />
+          </div>
 
           <!-- Water Tracking -->
           <ion-card class="water-card">
             <ion-card-header>
-              <ion-card-title>Water Intake</ion-card-title>
+              <ion-card-title>
+                <ion-icon :icon="water" slot="start"></ion-icon>
+                Water Intake
+              </ion-card-title>
             </ion-card-header>
             <ion-card-content>
               <div class="water-tracking">
-                <div class="water-progress">
-                  <div
-                    class="water-bar"
-                    :style="{
-                      width: dailySummary
-                        ? `${(dailySummary.waterConsumed / dailySummary.waterGoal) * 100}%`
-                        : '0%',
-                    }"
-                  ></div>
+                <div class="water-progress-container">
+                  <ion-progress-bar
+                    :value="waterProgress"
+                    color="primary"
+                    class="water-progress-bar"
+                  ></ion-progress-bar>
+                  <div class="water-amount">
+                    <ion-text>
+                      <strong>{{ Math.round(dailySummary?.waterConsumed || 0) }}ml</strong>
+                    </ion-text>
+                    <ion-text color="medium">
+                      / {{ Math.round(dailySummary?.waterGoal || 0) }}ml
+                    </ion-text>
+                  </div>
                 </div>
                 <div class="water-actions">
-                  <AppButton
+                  <ion-button
                     v-for="amount in [250, 500, 750]"
                     :key="`water-btn-${amount}`"
-                    size="small"
                     fill="outline"
                     @click="handleAddWater(amount)"
                   >
+                    <ion-icon slot="start" :icon="addOutline"></ion-icon>
                     +{{ amount }}ml
-                  </AppButton>
+                  </ion-button>
                 </div>
               </div>
             </ion-card-content>
           </ion-card>
         </div>
       </div>
+
+      <!-- Floating Action Button -->
+      <ion-fab
+        v-if="hasProfile"
+        vertical="bottom"
+        horizontal="end"
+        slot="fixed"
+      >
+        <ion-fab-button @click="showQuickAddModal = true">
+          <ion-icon :icon="addOutline"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
     </ion-content>
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick, computed } from "vue";
 import {
   IonPage,
   IonHeader,
@@ -238,23 +292,36 @@ import {
   IonCardHeader,
   IonCardTitle,
   IonCardContent,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonButton,
-  IonIcon,
   IonSpinner,
-  IonModal,
-  IonDatetime,
-  IonButtons,
+  IonIcon,
+  IonLabel,
+  IonBadge,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonButton,
+  IonText,
+  IonProgressBar,
+  IonFab,
+  IonFabButton,
 } from "@ionic/vue";
-import { trashOutline } from "ionicons/icons";
-import AppButton from "@/components/atoms/AppButton.vue";
+import {
+  restaurantOutline,
+  flagOutline,
+  statsChart,
+  water,
+  addOutline,
+} from "ionicons/icons";
 import { useMacroTracking } from "@/features/macros/composables/useMacroTracking";
 import MacroQuestionnaireModal from "@/features/macros/components/questionnaire/MacroQuestionnaireModal.vue";
 import AddFoodModal from "@/features/macros/components/food/AddFoodModal.vue";
+import QuickAddFoodModal from "@/features/macros/components/food/QuickAddFoodModal.vue";
 import CircularProgress from "@/features/macros/components/progress/CircularProgress.vue";
-import type { UserProfile } from "@/features/macros/types/macro.types";
+import MacroProgressBar from "@/features/macros/components/progress/MacroProgressBar.vue";
+import DateNavigationBar from "@/features/macros/components/navigation/DateNavigationBar.vue";
+import RecentFoodsList from "@/features/macros/components/food/RecentFoodsList.vue";
+import MealSection from "@/features/macros/components/meals/MealSection.vue";
+import type { UserProfile, MealType, FoodLog } from "@/features/macros/types/macro.types";
 
 const {
   userProfile,
@@ -264,8 +331,12 @@ const {
   isLoading,
   hasProfile,
   dailySummary,
+  foodLogsByMeal,
+  recentFoods,
+  allFoods,
   saveProfile,
   addFoodLog,
+  updateFoodLog,
   deleteFoodLog,
   addWaterLog,
   setSelectedDate,
@@ -273,7 +344,18 @@ const {
 
 const showQuestionnaire = ref(false);
 const showAddFoodModal = ref(false);
-const showDatePicker = ref(false);
+const showQuickAddModal = ref(false);
+const quickAddMealType = ref<MealType>("breakfast");
+
+const mealTypes: MealType[] = ["breakfast", "lunch", "dinner", "snack"];
+
+const waterProgress = computed(() => {
+  if (!dailySummary.value || dailySummary.value.waterGoal === 0) return 0;
+  return Math.min(
+    dailySummary.value.waterConsumed / dailySummary.value.waterGoal,
+    1
+  );
+});
 
 function handleQuestionnaireComplete(profile: UserProfile) {
   saveProfile(profile);
@@ -282,6 +364,45 @@ function handleQuestionnaireComplete(profile: UserProfile) {
 
 function handleAddFood(food: Parameters<typeof addFoodLog>[0]) {
   addFoodLog(food);
+  showQuickAddModal.value = false;
+  showAddFoodModal.value = false;
+}
+
+function handleAddRecentFood(foodLog: FoodLog) {
+  handleAddFood({
+    date: selectedDate.value,
+    mealType: foodLog.mealType,
+    foodName: foodLog.foodName,
+    calories: foodLog.calories,
+    protein: foodLog.protein,
+    carbs: foodLog.carbs,
+    fats: foodLog.fats,
+    notes: foodLog.notes,
+  });
+}
+
+function handleAddFoodToMeal(mealType: MealType) {
+  quickAddMealType.value = mealType;
+  showQuickAddModal.value = true;
+}
+
+function handleEditFood(foodLog: FoodLog) {
+  // For now, open the add modal with pre-filled data
+  // In the future, we could create an EditFoodModal
+  showAddFoodModal.value = true;
+}
+
+function handleDuplicateFood(foodLog: FoodLog) {
+  handleAddFood({
+    date: selectedDate.value,
+    mealType: foodLog.mealType,
+    foodName: foodLog.foodName,
+    calories: foodLog.calories,
+    protein: foodLog.protein,
+    carbs: foodLog.carbs,
+    fats: foodLog.fats,
+    notes: foodLog.notes,
+  });
 }
 
 function handleDeleteFood(id: string) {
@@ -292,33 +413,12 @@ function handleAddWater(amount: number) {
   addWaterLog(amount);
 }
 
-function handleDateChange(event: CustomEvent) {
-  const date = event.detail.value;
-  if (date) {
-    setSelectedDate(date.split("T")[0]);
-    showDatePicker.value = false;
-  }
-}
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  
-  if (date.toDateString() === today.toDateString()) {
-    return "Today";
-  } else if (date.toDateString() === yesterday.toDateString()) {
-    return "Yesterday";
-  } else {
-    return date.toLocaleDateString();
-  }
+function handleDateChange(date: string) {
+  setSelectedDate(date);
 }
 
 onMounted(async () => {
-  // Wait for reactive state to be fully initialized
   await nextTick();
-  // Check profile status after initialization
   if (!hasProfile.value) {
     showQuestionnaire.value = true;
   }
@@ -328,6 +428,7 @@ onMounted(async () => {
 <style scoped>
 .macros-container {
   padding: var(--spacing-md);
+  padding-bottom: calc(var(--spacing-md) + 80px); /* Space for FAB */
 }
 
 .loading-container {
@@ -342,9 +443,16 @@ onMounted(async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xl);
+  padding: var(--spacing-2xl);
   text-align: center;
   min-height: 50vh;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+  margin-bottom: var(--spacing-lg);
 }
 
 .empty-state h2 {
@@ -356,18 +464,17 @@ onMounted(async () => {
   color: var(--color-text-secondary);
 }
 
-.plan-summary {
+.plan-summary-card,
+.progress-card,
+.circular-progress-card {
   margin-bottom: var(--spacing-md);
 }
 
-.targets-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
-}
-
 .target-item {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
   padding: var(--spacing-md);
   background: var(--color-background-secondary);
   border-radius: var(--radius-card);
@@ -376,31 +483,22 @@ onMounted(async () => {
 .target-label {
   font-size: var(--typography-caption-size);
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xs);
 }
 
 .target-value {
   font-size: var(--typography-heading-size-md);
   font-weight: var(--typography-weight-bold);
-  color: var(--color-text-primary);
 }
 
-.progress-card {
-  margin-bottom: var(--spacing-md);
-}
-
-.progress-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-lg);
+.progress-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
-  justify-items: center;
 }
 
 .remaining-summary {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
   padding-top: var(--spacing-md);
   border-top: 1px solid var(--color-border);
 }
@@ -408,21 +506,19 @@ onMounted(async () => {
 .remaining-item {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: var(--typography-body-size);
 }
 
-.food-logs-card {
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-lg);
+  justify-items: center;
+}
+
+.meals-container {
   margin-bottom: var(--spacing-md);
-}
-
-.empty-food-log {
-  text-align: center;
-  padding: var(--spacing-xl);
-}
-
-.food-log-item {
-  --padding-start: var(--spacing-md);
-  --padding-end: var(--spacing-md);
 }
 
 .water-card {
@@ -435,23 +531,28 @@ onMounted(async () => {
   gap: var(--spacing-md);
 }
 
-.water-progress {
-  width: 100%;
-  height: 24px;
-  background: var(--color-background-tertiary);
-  border-radius: var(--radius-button);
-  overflow: hidden;
+.water-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
-.water-bar {
-  height: 100%;
-  background: var(--color-primary);
-  transition: width 0.3s ease;
+.water-progress-bar {
+  height: 12px;
+  border-radius: var(--radius-full);
+}
+
+.water-amount {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spacing-xs);
+  font-size: var(--typography-body-size);
 }
 
 .water-actions {
   display: flex;
   gap: var(--spacing-sm);
   justify-content: center;
+  flex-wrap: wrap;
 }
 </style>

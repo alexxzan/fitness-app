@@ -734,3 +734,16 @@ ion-input:focus input,
 ion-input:focus textarea {
   caret-color: var(--input-cursor-color);
 }
+
+/* ==========================================================================
+   GLOBAL DATETIME THEMING
+   ========================================================================== */
+/* Global theming for ion-datetime components */
+ion-datetime {
+  --background: var(--color-background-elevated);
+  --background-rgb: var(--ion-background-color-rgb);
+  --title-color: var(--color-text-primary);
+  --wheel-fade-background-rgb: var(--ion-background-color-rgb);
+  --wheel-highlight-background: var(--color-surface-hover);
+  --wheel-highlight-border-radius: var(--radius-md);
+}

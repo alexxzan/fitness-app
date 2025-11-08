@@ -10,20 +10,30 @@
     </ion-header>
     <ion-content>
       <div class="food-entry-container">
+        <!-- Meal Type Selection -->
+        <ion-segment
+          v-model="foodData.mealType"
+          class="meal-type-segment"
+        >
+          <ion-segment-button value="breakfast">
+            <ion-label>Breakfast</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="lunch">
+            <ion-label>Lunch</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="dinner">
+            <ion-label>Dinner</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="snack">
+            <ion-label>Snack</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+
         <FormField
           v-model="foodData.foodName"
           label="Food Name"
           placeholder="e.g., Grilled Chicken Breast"
         />
-        <ion-item>
-          <ion-label>Meal Type</ion-label>
-          <ion-select v-model="foodData.mealType" placeholder="Select meal">
-            <ion-select-option value="breakfast">Breakfast</ion-select-option>
-            <ion-select-option value="lunch">Lunch</ion-select-option>
-            <ion-select-option value="dinner">Dinner</ion-select-option>
-            <ion-select-option value="snack">Snack</ion-select-option>
-          </ion-select>
-        </ion-item>
         <FormField
           v-model="foodData.calories"
           label="Calories"
@@ -71,10 +81,9 @@ import {
   IonButtons,
   IonButton,
   IonContent,
-  IonItem,
+  IonSegment,
+  IonSegmentButton,
   IonLabel,
-  IonSelect,
-  IonSelectOption,
 } from "@ionic/vue";
 import FormField from "@/components/molecules/FormField.vue";
 import AppButton from "@/components/atoms/AppButton.vue";
@@ -151,6 +160,10 @@ function submit() {
 <style scoped>
 .food-entry-container {
   padding: var(--spacing-lg);
+}
+
+.meal-type-segment {
+  margin-bottom: var(--spacing-lg);
 }
 
 .modal-actions {
