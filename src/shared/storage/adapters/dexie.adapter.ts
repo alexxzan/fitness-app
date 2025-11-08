@@ -17,6 +17,10 @@ import type {
   Muscle,
 } from "@/features/exercises/types/exercise.types";
 import type { RoutineAnalytics } from "@/features/workouts/types/analytics.types";
+import type { Food, FoodLog } from "@/features/nutrition/types/food.types";
+import type { NutritionTarget, NutritionAnalytic } from "@/features/nutrition/types/nutrition.types";
+import type { CoachingSetting } from "@/features/nutrition/types/coaching.types";
+import type { BodyMetric } from "@/features/nutrition/types/body-metrics.types";
 
 class FitnessDexieDB extends Dexie {
   workouts!: Table<Workout, string>;
@@ -28,6 +32,12 @@ class FitnessDexieDB extends Dexie {
   equipment!: Table<Equipment, string>;
   muscles!: Table<Muscle, string>;
   appSettings!: Table<{ key: string; value: any }, string>;
+  foods!: Table<Food, string>;
+  foodLogs!: Table<FoodLog, string>;
+  nutritionTargets!: Table<NutritionTarget, string>;
+  bodyMetrics!: Table<BodyMetric, string>;
+  nutritionAnalytics!: Table<NutritionAnalytic, string>;
+  coachingSettings!: Table<CoachingSetting, string>;
 
   constructor() {
     super("FitnessDatabase");
@@ -68,6 +78,25 @@ class FitnessDexieDB extends Dexie {
       equipment: "name",
       muscles: "name",
       appSettings: "key",
+    });
+
+    // Version 4: Add nutrition tables
+    this.version(4).stores({
+      workouts: "id, name, createdAt, startTime, endTime, routineId, completed",
+      routines: "id, name, createdAt, type, templateId, isFavorite",
+      workoutPrograms: "id, name, createdAt, templateId",
+      routineAnalytics: "id, routineId, lastCompletedAt",
+      exercises: "exerciseId, name, *bodyParts, *equipments, *targetMuscles",
+      bodyParts: "name",
+      equipment: "name",
+      muscles: "name",
+      appSettings: "key",
+      foods: "id, name, barcode, createdAt",
+      foodLogs: "id, userId, date, foodId, createdAt",
+      nutritionTargets: "id, userId, startDate, endDate",
+      bodyMetrics: "id, userId, date, createdAt",
+      nutritionAnalytics: "id, userId, date, createdAt",
+      coachingSettings: "id, userId",
     });
 
   }
@@ -304,6 +333,200 @@ export class DexieAdapter implements IDatabaseAdapter {
 
     delete: async (key: string): Promise<void> => {
       await this.db.appSettings.delete(key);
+    },
+  };
+
+  // Foods
+  foods = {
+    getAll: async (): Promise<Food[]> => {
+      return await this.db.foods.orderBy("name").toArray();
+    },
+
+    getById: async (id: string): Promise<Food | null> => {
+      return (await this.db.foods.get(id)) ?? null;
+    },
+
+    save: async (food: Food): Promise<string> => {
+      return await this.db.foods.put(food);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await this.db.foods.delete(id);
+    },
+
+    searchByName: async (query: string): Promise<Food[]> => {
+      const lowerQuery = query.toLowerCase();
+      return await this.db.foods
+        .filter((food) => food.name.toLowerCase().includes(lowerQuery))
+        .toArray();
+    },
+
+    findByBarcode: async (barcode: string): Promise<Food | null> => {
+      return (await this.db.foods.filter((food) => food.barcode === barcode).first()) ?? null;
+    },
+
+    bulkInsert: async (foods: Food[]): Promise<void> => {
+      await this.db.foods.bulkPut(foods);
+    },
+  };
+
+  // Food Logs
+  foodLogs = {
+    getAll: async (): Promise<FoodLog[]> => {
+      return await this.db.foodLogs.orderBy("date").reverse().toArray();
+    },
+
+    getById: async (id: string): Promise<FoodLog | null> => {
+      return (await this.db.foodLogs.get(id)) ?? null;
+    },
+
+    save: async (foodLog: FoodLog): Promise<string> => {
+      return await this.db.foodLogs.put(foodLog);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await this.db.foodLogs.delete(id);
+    },
+
+    getByDate: async (date: string): Promise<FoodLog[]> => {
+      return await this.db.foodLogs.filter((log) => log.date === date).toArray();
+    },
+
+    getByDateRange: async (startDate: string, endDate: string): Promise<FoodLog[]> => {
+      return await this.db.foodLogs
+        .filter((log) => log.date >= startDate && log.date <= endDate)
+        .toArray();
+    },
+
+    getByUserId: async (userId: string): Promise<FoodLog[]> => {
+      return await this.db.foodLogs.filter((log) => log.userId === userId).toArray();
+    },
+  };
+
+  // Nutrition Targets
+  nutritionTargets = {
+    getAll: async (): Promise<NutritionTarget[]> => {
+      return await this.db.nutritionTargets.orderBy("startDate").reverse().toArray();
+    },
+
+    getById: async (id: string): Promise<NutritionTarget | null> => {
+      return (await this.db.nutritionTargets.get(id)) ?? null;
+    },
+
+    save: async (target: NutritionTarget): Promise<string> => {
+      return await this.db.nutritionTargets.put(target);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await this.db.nutritionTargets.delete(id);
+    },
+
+    getActive: async (userId: string): Promise<NutritionTarget | null> => {
+      const targets = await this.db.nutritionTargets
+        .filter((t) => t.userId === userId && (!t.endDate || t.endDate === ""))
+        .toArray();
+      return targets.length > 0 ? targets[0] : null;
+    },
+
+    getByUserId: async (userId: string): Promise<NutritionTarget[]> => {
+      return await this.db.nutritionTargets
+        .filter((t) => t.userId === userId)
+        .orderBy("startDate")
+        .reverse()
+        .toArray();
+    },
+  };
+
+  // Body Metrics
+  bodyMetrics = {
+    getAll: async (): Promise<BodyMetric[]> => {
+      return await this.db.bodyMetrics.orderBy("date").reverse().toArray();
+    },
+
+    getById: async (id: string): Promise<BodyMetric | null> => {
+      return (await this.db.bodyMetrics.get(id)) ?? null;
+    },
+
+    save: async (metric: BodyMetric): Promise<string> => {
+      return await this.db.bodyMetrics.put(metric);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await this.db.bodyMetrics.delete(id);
+    },
+
+    getByUserId: async (userId: string): Promise<BodyMetric[]> => {
+      return await this.db.bodyMetrics
+        .filter((m) => m.userId === userId)
+        .orderBy("date")
+        .reverse()
+        .toArray();
+    },
+
+    getByDateRange: async (userId: string, startDate: string, endDate: string): Promise<BodyMetric[]> => {
+      return await this.db.bodyMetrics
+        .filter((m) => m.userId === userId && m.date >= startDate && m.date <= endDate)
+        .toArray();
+    },
+  };
+
+  // Nutrition Analytics
+  nutritionAnalytics = {
+    getAll: async (): Promise<NutritionAnalytic[]> => {
+      return await this.db.nutritionAnalytics.orderBy("date").reverse().toArray();
+    },
+
+    getById: async (id: string): Promise<NutritionAnalytic | null> => {
+      return (await this.db.nutritionAnalytics.get(id)) ?? null;
+    },
+
+    save: async (analytic: NutritionAnalytic): Promise<string> => {
+      return await this.db.nutritionAnalytics.put(analytic);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await this.db.nutritionAnalytics.delete(id);
+    },
+
+    getByDate: async (date: string): Promise<NutritionAnalytic | null> => {
+      return (await this.db.nutritionAnalytics.filter((a) => a.date === date).first()) ?? null;
+    },
+
+    getByDateRange: async (startDate: string, endDate: string): Promise<NutritionAnalytic[]> => {
+      return await this.db.nutritionAnalytics
+        .filter((a) => a.date >= startDate && a.date <= endDate)
+        .toArray();
+    },
+
+    getByUserId: async (userId: string): Promise<NutritionAnalytic[]> => {
+      return await this.db.nutritionAnalytics
+        .filter((a) => a.userId === userId)
+        .orderBy("date")
+        .reverse()
+        .toArray();
+    },
+  };
+
+  // Coaching Settings
+  coachingSettings = {
+    getAll: async (): Promise<CoachingSetting[]> => {
+      return await this.db.coachingSettings.toArray();
+    },
+
+    getById: async (id: string): Promise<CoachingSetting | null> => {
+      return (await this.db.coachingSettings.get(id)) ?? null;
+    },
+
+    save: async (setting: CoachingSetting): Promise<string> => {
+      return await this.db.coachingSettings.put(setting);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await this.db.coachingSettings.delete(id);
+    },
+
+    getByUserId: async (userId: string): Promise<CoachingSetting | null> => {
+      return (await this.db.coachingSettings.filter((s) => s.userId === userId).first()) ?? null;
     },
   };
 }

@@ -20,6 +20,10 @@ import type {
   Equipment,
   Muscle,
 } from "@/features/exercises/types/exercise.types";
+import type { Food, FoodLog } from "@/features/nutrition/types/food.types";
+import type { NutritionTarget, NutritionAnalytic } from "@/features/nutrition/types/nutrition.types";
+import type { CoachingSetting } from "@/features/nutrition/types/coaching.types";
+import type { BodyMetric } from "@/features/nutrition/types/body-metrics.types";
 
 export class SQLiteAdapter implements IDatabaseAdapter {
   private static readonly DB_NAME = "fitness-db";
@@ -178,6 +182,89 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       );
       CREATE TABLE IF NOT EXISTS app_settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 
+      CREATE TABLE IF NOT EXISTS foods (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        brand TEXT,
+        barcode TEXT,
+        serving_size TEXT NOT NULL,
+        calories REAL NOT NULL,
+        protein REAL NOT NULL,
+        carbs REAL NOT NULL,
+        fats REAL NOT NULL,
+        micronutrients TEXT,
+        verified INTEGER DEFAULT 0,
+        user_submitted INTEGER DEFAULT 0,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS food_logs (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        food_id TEXT NOT NULL,
+        quantity REAL NOT NULL,
+        meal_type TEXT,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS nutrition_targets (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        calories REAL NOT NULL,
+        protein REAL NOT NULL,
+        carbs REAL NOT NULL,
+        fats REAL NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT,
+        goal_type TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS body_metrics (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        weight REAL,
+        body_fat REAL,
+        measurements TEXT,
+        photo_paths TEXT,
+        notes TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS nutrition_analytics (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        total_calories REAL DEFAULT 0,
+        total_protein REAL DEFAULT 0,
+        total_carbs REAL DEFAULT 0,
+        total_fats REAL DEFAULT 0,
+        micronutrients TEXT,
+        adherence_score REAL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS coaching_settings (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        activity_level TEXT NOT NULL,
+        gender TEXT,
+        age INTEGER,
+        height REAL,
+        initial_weight REAL,
+        goal_weight REAL,
+        preferred_macro_split TEXT,
+        recalibration_frequency INTEGER,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
       CREATE INDEX IF NOT EXISTS idx_workouts_created_at ON workouts(created_at);
       CREATE INDEX IF NOT EXISTS idx_workouts_name ON workouts(name);
       CREATE INDEX IF NOT EXISTS idx_workouts_routine_id ON workouts(routine_id);
@@ -187,6 +274,15 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       CREATE INDEX IF NOT EXISTS idx_routine_analytics_routine_id ON routine_analytics(routine_id);
       CREATE INDEX IF NOT EXISTS idx_routine_analytics_last_completed ON routine_analytics(last_completed_at);
       CREATE INDEX IF NOT EXISTS idx_exercises_name ON exercises(name);
+      CREATE INDEX IF NOT EXISTS idx_foods_name ON foods(name);
+      CREATE INDEX IF NOT EXISTS idx_foods_barcode ON foods(barcode);
+      CREATE INDEX IF NOT EXISTS idx_food_logs_date ON food_logs(date);
+      CREATE INDEX IF NOT EXISTS idx_food_logs_user_id ON food_logs(user_id);
+      CREATE INDEX IF NOT EXISTS idx_nutrition_targets_user_id ON nutrition_targets(user_id);
+      CREATE INDEX IF NOT EXISTS idx_body_metrics_user_id ON body_metrics(user_id);
+      CREATE INDEX IF NOT EXISTS idx_body_metrics_date ON body_metrics(date);
+      CREATE INDEX IF NOT EXISTS idx_nutrition_analytics_date ON nutrition_analytics(date);
+      CREATE INDEX IF NOT EXISTS idx_nutrition_analytics_user_id ON nutrition_analytics(user_id);
     `;
 
     await this.dbConnection.execute(createTablesSQL);
@@ -977,6 +1073,585 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     },
   };
 
+  // Foods
+  foods = {
+    getAll: async (): Promise<Food[]> => {
+      const db = this.getDb();
+      const result = await db.query("SELECT * FROM foods ORDER BY name", []);
+      return (result.values || []).map((r: any) =>
+        this.parseFood(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<Food | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM foods WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseFood(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (food: Food): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeFood(food);
+      await db.query(
+        `INSERT INTO foods (
+          id, name, brand, barcode, serving_size, calories, protein, carbs, fats,
+          micronutrients, verified, user_submitted, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          name = excluded.name,
+          brand = excluded.brand,
+          barcode = excluded.barcode,
+          serving_size = excluded.serving_size,
+          calories = excluded.calories,
+          protein = excluded.protein,
+          carbs = excluded.carbs,
+          fats = excluded.fats,
+          micronutrients = excluded.micronutrients,
+          verified = excluded.verified,
+          user_submitted = excluded.user_submitted,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.name,
+          serialized.brand || null,
+          serialized.barcode || null,
+          serialized.servingSize,
+          serialized.calories,
+          serialized.protein,
+          serialized.carbs,
+          serialized.fats,
+          serialized.micronutrients || null,
+          serialized.verified,
+          serialized.userSubmitted,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return food.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM foods WHERE id = ?", [id]);
+    },
+
+    searchByName: async (query: string): Promise<Food[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM foods WHERE LOWER(name) LIKE ? ORDER BY name",
+        [`%${query.toLowerCase()}%`]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseFood(this.mapSnakeToCamel(r))
+      );
+    },
+
+    findByBarcode: async (barcode: string): Promise<Food | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM foods WHERE barcode = ? LIMIT 1",
+        [barcode]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseFood(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    bulkInsert: async (foods: Food[]): Promise<void> => {
+      const db = this.getDb();
+      if (foods.length === 0) return;
+
+      const BATCH_SIZE = 100;
+      for (let i = 0; i < foods.length; i += BATCH_SIZE) {
+        const batch = foods.slice(i, i + BATCH_SIZE);
+        const serialized = batch.map((f) => this.serializeFood(f));
+
+        const values = serialized.map(() => "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(", ");
+        const params: any[] = [];
+        serialized.forEach((s) => {
+          params.push(
+            s.id,
+            s.name,
+            s.brand || null,
+            s.barcode || null,
+            s.servingSize,
+            s.calories,
+            s.protein,
+            s.carbs,
+            s.fats,
+            s.micronutrients || null,
+            s.verified,
+            s.userSubmitted,
+            s.createdAt,
+            s.updatedAt
+          );
+        });
+
+        try {
+          await db.query(
+            `INSERT OR IGNORE INTO foods (
+              id, name, brand, barcode, serving_size, calories, protein, carbs, fats,
+              micronutrients, verified, user_submitted, created_at, updated_at
+            ) VALUES ${values}`,
+            params
+          );
+        } catch (error) {
+          console.error(`Failed to insert food batch ${i}-${i + batch.length}:`, error);
+          throw error;
+        }
+      }
+    },
+  };
+
+  // Food Logs
+  foodLogs = {
+    getAll: async (): Promise<FoodLog[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM food_logs ORDER BY date DESC, created_at DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseFoodLog(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<FoodLog | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM food_logs WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseFoodLog(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (foodLog: FoodLog): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeFoodLog(foodLog);
+      await db.query(
+        `INSERT INTO food_logs (
+          id, user_id, date, food_id, quantity, meal_type, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          user_id = excluded.user_id,
+          date = excluded.date,
+          food_id = excluded.food_id,
+          quantity = excluded.quantity,
+          meal_type = excluded.meal_type`,
+        [
+          serialized.id,
+          serialized.userId,
+          serialized.date,
+          serialized.foodId,
+          serialized.quantity,
+          serialized.mealType || null,
+          serialized.createdAt,
+        ]
+      );
+      return foodLog.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM food_logs WHERE id = ?", [id]);
+    },
+
+    getByDate: async (date: string): Promise<FoodLog[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM food_logs WHERE date = ? ORDER BY created_at",
+        [date]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseFoodLog(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getByDateRange: async (startDate: string, endDate: string): Promise<FoodLog[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM food_logs WHERE date >= ? AND date <= ? ORDER BY date DESC, created_at DESC",
+        [startDate, endDate]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseFoodLog(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getByUserId: async (userId: string): Promise<FoodLog[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM food_logs WHERE user_id = ? ORDER BY date DESC, created_at DESC",
+        [userId]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseFoodLog(this.mapSnakeToCamel(r))
+      );
+    },
+  };
+
+  // Nutrition Targets
+  nutritionTargets = {
+    getAll: async (): Promise<NutritionTarget[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_targets ORDER BY start_date DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseNutritionTarget(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<NutritionTarget | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_targets WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseNutritionTarget(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (target: NutritionTarget): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeNutritionTarget(target);
+      await db.query(
+        `INSERT INTO nutrition_targets (
+          id, user_id, calories, protein, carbs, fats, start_date, end_date,
+          goal_type, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          user_id = excluded.user_id,
+          calories = excluded.calories,
+          protein = excluded.protein,
+          carbs = excluded.carbs,
+          fats = excluded.fats,
+          start_date = excluded.start_date,
+          end_date = excluded.end_date,
+          goal_type = excluded.goal_type,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.userId,
+          serialized.calories,
+          serialized.protein,
+          serialized.carbs,
+          serialized.fats,
+          serialized.startDate,
+          serialized.endDate || null,
+          serialized.goalType,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return target.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM nutrition_targets WHERE id = ?", [id]);
+    },
+
+    getActive: async (userId: string): Promise<NutritionTarget | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_targets WHERE user_id = ? AND (end_date IS NULL OR end_date = '') ORDER BY start_date DESC LIMIT 1",
+        [userId]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseNutritionTarget(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    getByUserId: async (userId: string): Promise<NutritionTarget[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_targets WHERE user_id = ? ORDER BY start_date DESC",
+        [userId]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseNutritionTarget(this.mapSnakeToCamel(r))
+      );
+    },
+  };
+
+  // Body Metrics
+  bodyMetrics = {
+    getAll: async (): Promise<BodyMetric[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM body_metrics ORDER BY date DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseBodyMetric(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<BodyMetric | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM body_metrics WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseBodyMetric(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (metric: BodyMetric): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeBodyMetric(metric);
+      await db.query(
+        `INSERT INTO body_metrics (
+          id, user_id, date, weight, body_fat, measurements, photo_paths, notes,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          user_id = excluded.user_id,
+          date = excluded.date,
+          weight = excluded.weight,
+          body_fat = excluded.body_fat,
+          measurements = excluded.measurements,
+          photo_paths = excluded.photo_paths,
+          notes = excluded.notes,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.userId,
+          serialized.date,
+          serialized.weight || null,
+          serialized.bodyFat || null,
+          serialized.measurements || null,
+          serialized.photoPaths || null,
+          serialized.notes || null,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return metric.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM body_metrics WHERE id = ?", [id]);
+    },
+
+    getByUserId: async (userId: string): Promise<BodyMetric[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM body_metrics WHERE user_id = ? ORDER BY date DESC",
+        [userId]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseBodyMetric(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getByDateRange: async (userId: string, startDate: string, endDate: string): Promise<BodyMetric[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM body_metrics WHERE user_id = ? AND date >= ? AND date <= ? ORDER BY date",
+        [userId, startDate, endDate]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseBodyMetric(this.mapSnakeToCamel(r))
+      );
+    },
+  };
+
+  // Nutrition Analytics
+  nutritionAnalytics = {
+    getAll: async (): Promise<NutritionAnalytic[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_analytics ORDER BY date DESC",
+        []
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseNutritionAnalytic(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<NutritionAnalytic | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_analytics WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseNutritionAnalytic(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (analytic: NutritionAnalytic): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeNutritionAnalytic(analytic);
+      await db.query(
+        `INSERT INTO nutrition_analytics (
+          id, user_id, date, total_calories, total_protein, total_carbs, total_fats,
+          micronutrients, adherence_score, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          user_id = excluded.user_id,
+          date = excluded.date,
+          total_calories = excluded.total_calories,
+          total_protein = excluded.total_protein,
+          total_carbs = excluded.total_carbs,
+          total_fats = excluded.total_fats,
+          micronutrients = excluded.micronutrients,
+          adherence_score = excluded.adherence_score,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.userId,
+          serialized.date,
+          serialized.totalCalories,
+          serialized.totalProtein,
+          serialized.totalCarbs,
+          serialized.totalFats,
+          serialized.micronutrients || null,
+          serialized.adherenceScore || null,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return analytic.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM nutrition_analytics WHERE id = ?", [id]);
+    },
+
+    getByDate: async (date: string): Promise<NutritionAnalytic | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_analytics WHERE date = ? LIMIT 1",
+        [date]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseNutritionAnalytic(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    getByDateRange: async (startDate: string, endDate: string): Promise<NutritionAnalytic[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_analytics WHERE date >= ? AND date <= ? ORDER BY date",
+        [startDate, endDate]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseNutritionAnalytic(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getByUserId: async (userId: string): Promise<NutritionAnalytic[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM nutrition_analytics WHERE user_id = ? ORDER BY date DESC",
+        [userId]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseNutritionAnalytic(this.mapSnakeToCamel(r))
+      );
+    },
+  };
+
+  // Coaching Settings
+  coachingSettings = {
+    getAll: async (): Promise<CoachingSetting[]> => {
+      const db = this.getDb();
+      const result = await db.query("SELECT * FROM coaching_settings", []);
+      return (result.values || []).map((r: any) =>
+        this.parseCoachingSetting(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<CoachingSetting | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM coaching_settings WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseCoachingSetting(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (setting: CoachingSetting): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeCoachingSetting(setting);
+      await db.query(
+        `INSERT INTO coaching_settings (
+          id, user_id, activity_level, gender, age, height, initial_weight, goal_weight,
+          preferred_macro_split, recalibration_frequency, created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          user_id = excluded.user_id,
+          activity_level = excluded.activity_level,
+          gender = excluded.gender,
+          age = excluded.age,
+          height = excluded.height,
+          initial_weight = excluded.initial_weight,
+          goal_weight = excluded.goal_weight,
+          preferred_macro_split = excluded.preferred_macro_split,
+          recalibration_frequency = excluded.recalibration_frequency,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.userId,
+          serialized.activityLevel,
+          serialized.gender || null,
+          serialized.age || null,
+          serialized.height || null,
+          serialized.initialWeight || null,
+          serialized.goalWeight || null,
+          serialized.preferredMacroSplit || null,
+          serialized.recalibrationFrequency || null,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return setting.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM coaching_settings WHERE id = ?", [id]);
+    },
+
+    getByUserId: async (userId: string): Promise<CoachingSetting | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM coaching_settings WHERE user_id = ? LIMIT 1",
+        [userId]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseCoachingSetting(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+  };
+
   // Serialization helpers
   private parseWorkout(row: any): Workout {
     return {
@@ -1181,6 +1856,196 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       targetMuscles: safeStringify(exercise.targetMuscles),
       secondaryMuscles: safeStringify(exercise.secondaryMuscles),
       instructions: safeStringify(exercise.instructions),
+    };
+  }
+
+  private parseFood(row: any): Food {
+    return {
+      id: row.id,
+      name: row.name,
+      brand: row.brand || undefined,
+      barcode: row.barcode || undefined,
+      servingSize: row.servingSize,
+      calories: row.calories,
+      protein: row.protein,
+      carbs: row.carbs,
+      fats: row.fats,
+      micronutrients: row.micronutrients || undefined,
+      verified: row.verified === 1 ? 1 : 0,
+      userSubmitted: row.userSubmitted === 1 ? 1 : 0,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeFood(food: Food): any {
+    return {
+      id: food.id,
+      name: food.name,
+      brand: food.brand || undefined,
+      barcode: food.barcode || undefined,
+      servingSize: food.servingSize,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fats: food.fats,
+      micronutrients: food.micronutrients || undefined,
+      verified: food.verified,
+      userSubmitted: food.userSubmitted,
+      createdAt: typeof food.createdAt === "string" ? food.createdAt : food.createdAt.toISOString(),
+      updatedAt: typeof food.updatedAt === "string" ? food.updatedAt : food.updatedAt.toISOString(),
+    };
+  }
+
+  private parseFoodLog(row: any): FoodLog {
+    return {
+      id: row.id,
+      userId: row.userId,
+      date: row.date,
+      foodId: row.foodId,
+      quantity: row.quantity,
+      mealType: row.mealType as 'breakfast' | 'lunch' | 'dinner' | 'snack' | undefined,
+      createdAt: row.createdAt,
+    };
+  }
+
+  private serializeFoodLog(foodLog: FoodLog): any {
+    return {
+      id: foodLog.id,
+      userId: foodLog.userId,
+      date: foodLog.date,
+      foodId: foodLog.foodId,
+      quantity: foodLog.quantity,
+      mealType: foodLog.mealType || undefined,
+      createdAt: typeof foodLog.createdAt === "string" ? foodLog.createdAt : foodLog.createdAt.toISOString(),
+    };
+  }
+
+  private parseNutritionTarget(row: any): NutritionTarget {
+    return {
+      id: row.id,
+      userId: row.userId,
+      calories: row.calories,
+      protein: row.protein,
+      carbs: row.carbs,
+      fats: row.fats,
+      startDate: row.startDate,
+      endDate: row.endDate || undefined,
+      goalType: row.goalType as 'cutting' | 'bulking' | 'maintenance',
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeNutritionTarget(target: NutritionTarget): any {
+    return {
+      id: target.id,
+      userId: target.userId,
+      calories: target.calories,
+      protein: target.protein,
+      carbs: target.carbs,
+      fats: target.fats,
+      startDate: target.startDate,
+      endDate: target.endDate || undefined,
+      goalType: target.goalType,
+      createdAt: typeof target.createdAt === "string" ? target.createdAt : target.createdAt.toISOString(),
+      updatedAt: typeof target.updatedAt === "string" ? target.updatedAt : target.updatedAt.toISOString(),
+    };
+  }
+
+  private parseBodyMetric(row: any): BodyMetric {
+    return {
+      id: row.id,
+      userId: row.userId,
+      date: row.date,
+      weight: row.weight || undefined,
+      bodyFat: row.bodyFat || undefined,
+      measurements: row.measurements || undefined,
+      photoPaths: row.photoPaths || undefined,
+      notes: row.notes || undefined,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeBodyMetric(metric: BodyMetric): any {
+    return {
+      id: metric.id,
+      userId: metric.userId,
+      date: metric.date,
+      weight: metric.weight || undefined,
+      bodyFat: metric.bodyFat || undefined,
+      measurements: metric.measurements || undefined,
+      photoPaths: metric.photoPaths || undefined,
+      notes: metric.notes || undefined,
+      createdAt: typeof metric.createdAt === "string" ? metric.createdAt : metric.createdAt.toISOString(),
+      updatedAt: typeof metric.updatedAt === "string" ? metric.updatedAt : metric.updatedAt.toISOString(),
+    };
+  }
+
+  private parseNutritionAnalytic(row: any): NutritionAnalytic {
+    return {
+      id: row.id,
+      userId: row.userId,
+      date: row.date,
+      totalCalories: row.totalCalories || 0,
+      totalProtein: row.totalProtein || 0,
+      totalCarbs: row.totalCarbs || 0,
+      totalFats: row.totalFats || 0,
+      micronutrients: row.micronutrients || undefined,
+      adherenceScore: row.adherenceScore || undefined,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeNutritionAnalytic(analytic: NutritionAnalytic): any {
+    return {
+      id: analytic.id,
+      userId: analytic.userId,
+      date: analytic.date,
+      totalCalories: analytic.totalCalories,
+      totalProtein: analytic.totalProtein,
+      totalCarbs: analytic.totalCarbs,
+      totalFats: analytic.totalFats,
+      micronutrients: analytic.micronutrients || undefined,
+      adherenceScore: analytic.adherenceScore || undefined,
+      createdAt: typeof analytic.createdAt === "string" ? analytic.createdAt : analytic.createdAt.toISOString(),
+      updatedAt: typeof analytic.updatedAt === "string" ? analytic.updatedAt : analytic.updatedAt.toISOString(),
+    };
+  }
+
+  private parseCoachingSetting(row: any): CoachingSetting {
+    return {
+      id: row.id,
+      userId: row.userId,
+      activityLevel: row.activityLevel as 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active',
+      gender: row.gender as 'male' | 'female' | 'other' | undefined,
+      age: row.age || undefined,
+      height: row.height || undefined,
+      initialWeight: row.initialWeight || undefined,
+      goalWeight: row.goalWeight || undefined,
+      preferredMacroSplit: row.preferredMacroSplit || undefined,
+      recalibrationFrequency: row.recalibrationFrequency || undefined,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeCoachingSetting(setting: CoachingSetting): any {
+    return {
+      id: setting.id,
+      userId: setting.userId,
+      activityLevel: setting.activityLevel,
+      gender: setting.gender || undefined,
+      age: setting.age || undefined,
+      height: setting.height || undefined,
+      initialWeight: setting.initialWeight || undefined,
+      goalWeight: setting.goalWeight || undefined,
+      preferredMacroSplit: setting.preferredMacroSplit || undefined,
+      recalibrationFrequency: setting.recalibrationFrequency || undefined,
+      createdAt: typeof setting.createdAt === "string" ? setting.createdAt : setting.createdAt.toISOString(),
+      updatedAt: typeof setting.updatedAt === "string" ? setting.updatedAt : setting.updatedAt.toISOString(),
     };
   }
 

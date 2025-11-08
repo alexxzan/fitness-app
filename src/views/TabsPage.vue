@@ -25,7 +25,7 @@
 
         <ion-tab-button tab="macros" href="/macros">
           <ion-icon aria-hidden="true" :icon="restaurant" />
-          <ion-label>Macros</ion-label>
+          <ion-label>Nutrition</ion-label>
         </ion-tab-button>
       </ion-tab-bar>
     </ion-tabs>

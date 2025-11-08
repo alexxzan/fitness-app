@@ -42,7 +42,11 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: "macros",
-        component: () => import("@/views/MacrosPage.vue"),
+        component: () => import("@/views/NutritionPage.vue"),
+      },
+      {
+        path: "nutrition",
+        redirect: "/macros",
       },
     ],
   },

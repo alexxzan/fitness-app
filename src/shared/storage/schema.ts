@@ -126,6 +126,113 @@ export const appSettings = sqliteTable("app_settings", {
   value: text("value").notNull(), // JSON string
 });
 
+/**
+ * Foods table
+ * Stores food database (verified + user-submitted)
+ */
+export const foods = sqliteTable("foods", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  brand: text("brand"),
+  barcode: text("barcode"), // Barcode for quick lookup
+  servingSize: text("serving_size").notNull(), // JSON string: { amount: number, unit: string }
+  calories: real("calories").notNull(), // per serving
+  protein: real("protein").notNull(), // grams per serving
+  carbs: real("carbs").notNull(), // grams per serving
+  fats: real("fats").notNull(), // grams per serving
+  micronutrients: text("micronutrients"), // JSON string of micronutrient values
+  verified: integer("verified").default(0), // 0 or 1 for boolean
+  userSubmitted: integer("user_submitted").default(0), // 0 or 1 for boolean
+  createdAt: text("created_at").notNull(), // ISO date string
+  updatedAt: text("updated_at").notNull(), // ISO date string
+});
+
+/**
+ * Food logs table
+ * Stores daily food entries
+ */
+export const foodLogs = sqliteTable("food_logs", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(), // For future multi-user support
+  date: text("date").notNull(), // ISO date string (date only)
+  foodId: text("food_id").notNull(), // Reference to foods table
+  quantity: real("quantity").notNull(), // Multiplier for serving size
+  mealType: text("meal_type"), // 'breakfast' | 'lunch' | 'dinner' | 'snack' | null
+  createdAt: text("created_at").notNull(), // ISO date string
+});
+
+/**
+ * Nutrition targets table
+ * Stores user macro/calorie targets
+ */
+export const nutritionTargets = sqliteTable("nutrition_targets", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  calories: real("calories").notNull(),
+  protein: real("protein").notNull(), // grams
+  carbs: real("carbs").notNull(), // grams
+  fats: real("fats").notNull(), // grams
+  startDate: text("start_date").notNull(), // ISO date string
+  endDate: text("end_date"), // ISO date string (null for active target)
+  goalType: text("goal_type").notNull(), // 'cutting' | 'bulking' | 'maintenance'
+  createdAt: text("created_at").notNull(), // ISO date string
+  updatedAt: text("updated_at").notNull(), // ISO date string
+});
+
+/**
+ * Body metrics table
+ * Stores weight, measurements, photos
+ */
+export const bodyMetrics = sqliteTable("body_metrics", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  date: text("date").notNull(), // ISO date string
+  weight: real("weight"), // kg
+  bodyFat: real("body_fat"), // percentage
+  measurements: text("measurements"), // JSON string: { chest, waist, hips, etc. }
+  photoPaths: text("photo_paths"), // JSON string array of file paths
+  notes: text("notes"),
+  createdAt: text("created_at").notNull(), // ISO date string
+  updatedAt: text("updated_at").notNull(), // ISO date string
+});
+
+/**
+ * Nutrition analytics table
+ * Stores aggregated daily/weekly/monthly stats
+ */
+export const nutritionAnalytics = sqliteTable("nutrition_analytics", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  date: text("date").notNull(), // ISO date string (date only)
+  totalCalories: real("total_calories").default(0),
+  totalProtein: real("total_protein").default(0), // grams
+  totalCarbs: real("total_carbs").default(0), // grams
+  totalFats: real("total_fats").default(0), // grams
+  micronutrients: text("micronutrients"), // JSON string of micronutrient totals
+  adherenceScore: real("adherence_score"), // 0-100 percentage
+  createdAt: text("created_at").notNull(), // ISO date string
+  updatedAt: text("updated_at").notNull(), // ISO date string
+});
+
+/**
+ * Coaching settings table
+ * Stores user preferences for coaching algorithm
+ */
+export const coachingSettings = sqliteTable("coaching_settings", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  activityLevel: text("activity_level").notNull(), // 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active'
+  gender: text("gender"), // 'male' | 'female' | 'other'
+  age: integer("age"),
+  height: real("height"), // cm
+  initialWeight: real("initial_weight"), // kg
+  goalWeight: real("goal_weight"), // kg
+  preferredMacroSplit: text("preferred_macro_split"), // JSON string: { proteinPercent, carbsPercent, fatsPercent }
+  recalibrationFrequency: integer("recalibration_frequency"), // days
+  createdAt: text("created_at").notNull(), // ISO date string
+  updatedAt: text("updated_at").notNull(), // ISO date string
+});
+
 // Type exports for use in repositories
 export type Workout = typeof workouts.$inferSelect;
 export type WorkoutInsert = typeof workouts.$inferInsert;
@@ -145,3 +252,15 @@ export type WorkoutProgram = typeof workoutPrograms.$inferSelect;
 export type WorkoutProgramInsert = typeof workoutPrograms.$inferInsert;
 export type AppSetting = typeof appSettings.$inferSelect;
 export type AppSettingInsert = typeof appSettings.$inferInsert;
+export type Food = typeof foods.$inferSelect;
+export type FoodInsert = typeof foods.$inferInsert;
+export type FoodLog = typeof foodLogs.$inferSelect;
+export type FoodLogInsert = typeof foodLogs.$inferInsert;
+export type NutritionTarget = typeof nutritionTargets.$inferSelect;
+export type NutritionTargetInsert = typeof nutritionTargets.$inferInsert;
+export type BodyMetric = typeof bodyMetrics.$inferSelect;
+export type BodyMetricInsert = typeof bodyMetrics.$inferInsert;
+export type NutritionAnalytic = typeof nutritionAnalytics.$inferSelect;
+export type NutritionAnalyticInsert = typeof nutritionAnalytics.$inferInsert;
+export type CoachingSetting = typeof coachingSettings.$inferSelect;
+export type CoachingSettingInsert = typeof coachingSettings.$inferInsert;

@@ -36,8 +36,34 @@ if (import.meta.env.DEV) {
     completeAllUnfinishedWorkouts:
       DatabaseReset.completeAllUnfinishedWorkouts.bind(DatabaseReset),
     debugWorkouts: async () => {
-      const { debugWorkoutData } = await import("@/features/workouts/composables/useWorkoutDebug");
+      const { debugWorkoutData } = await import(
+        "@/features/workouts/composables/useWorkoutDebug"
+      );
       return debugWorkoutData();
+    },
+    seedFoods: async () => {
+      const { DummyDataService } = await import(
+        "@/features/nutrition/services/dummy-data.service"
+      );
+      return DummyDataService.seedFoods();
+    },
+    seedAllNutrition: async () => {
+      const { DummyDataService } = await import(
+        "@/features/nutrition/services/dummy-data.service"
+      );
+      return DummyDataService.seedAll();
+    },
+    clearFoods: async () => {
+      const { DummyDataService } = await import(
+        "@/features/nutrition/services/dummy-data.service"
+      );
+      return DummyDataService.clearFoods();
+    },
+    clearAllNutrition: async () => {
+      const { DummyDataService } = await import(
+        "@/features/nutrition/services/dummy-data.service"
+      );
+      return DummyDataService.clearAll();
     },
   };
 
@@ -58,10 +84,25 @@ if (import.meta.env.DEV) {
   console.log(
     "  - window.__FITNESS_APP_DEBUG__.debugWorkouts() - Inspect workout data in database"
   );
+  console.log(
+    "  - window.__FITNESS_APP_DEBUG__.seedFoods() - Seed sample food data"
+  );
+  console.log(
+    "  - window.__FITNESS_APP_DEBUG__.seedAllNutrition() - Seed all nutrition data (foods, logs, targets, metrics)"
+  );
+  console.log(
+    "  - window.__FITNESS_APP_DEBUG__.clearFoods() - Clear all food data"
+  );
+  console.log(
+    "  - window.__FITNESS_APP_DEBUG__.clearAllNutrition() - Clear all nutrition data"
+  );
   console.log("");
   console.log("%c💡 Tip:", "color: #FF9800; font-weight: bold;");
   console.log(
     "Run resetExerciseData() then refresh to see the splash screen again!"
+  );
+  console.log(
+    "Run seedFoods() to add sample foods for testing nutrition features!"
   );
 }
 
@@ -104,20 +145,22 @@ async function initializeTheme() {
     const { LocalStorage } = await import("@/shared/storage/local-storage");
     const THEME_KEY = "app_theme";
     type Theme = "light" | "dark" | "system";
-    
+
     const stored = await LocalStorage.get<Theme>(THEME_KEY);
     const html = document.documentElement;
-    
+
     // Remove existing theme class (Ionic uses .ion-palette-dark, not .dark)
     html.classList.remove("ion-palette-dark");
-    
+
     if (stored === "dark") {
       html.classList.add("ion-palette-dark");
     } else if (stored === "light") {
       // No class needed for light mode (defaults to light)
     } else {
       // System preference
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
       if (prefersDark) {
         html.classList.add("ion-palette-dark");
       }
@@ -126,7 +169,9 @@ async function initializeTheme() {
   } catch (error) {
     console.error("Failed to initialize theme:", error);
     // Fallback to system preference
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
     if (prefersDark) {
       document.documentElement.classList.add("ion-palette-dark");
     }
@@ -136,6 +181,20 @@ async function initializeTheme() {
 // Initialize database, then wait for router, then mount app
 // Exercise and workout template initialization happens in SplashScreen.vue
 initializeDatabase()
+  .then(async () => {
+    // Auto-seed all nutrition data if none exists (only in development)
+    if (import.meta.env.DEV) {
+      try {
+        const { DummyDataService } = await import(
+          "@/features/nutrition/services/dummy-data.service"
+        );
+        await DummyDataService.seedAll();
+      } catch (error) {
+        // Silently fail - seeding is optional
+        console.debug("Nutrition data seeding skipped:", error);
+      }
+    }
+  })
   .then(() => initializeTheme())
   .then(() => initializeGlobalKeyboard())
   .then(() => router.isReady())

@@ -16,6 +16,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    exclude: ['@capacitor-community/barcode-scanner'], // Exclude optional dependency from pre-bundling
+  },
   server: {
     host: '0.0.0.0', // Allow external connections (needed for iOS simulator)
     port: 5173,
