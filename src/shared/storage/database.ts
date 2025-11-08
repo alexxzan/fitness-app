@@ -111,6 +111,7 @@ class DatabaseManager {
         exercises TEXT NOT NULL,
         interval_config TEXT,
         interval_progress TEXT,
+        cardio_data TEXT,
         start_time TEXT,
         end_time TEXT,
         notes TEXT,
@@ -312,6 +313,13 @@ class DatabaseManager {
           columnsToAdd.push({
             name: "completion_percentage",
             sql: "ALTER TABLE workouts ADD COLUMN completion_percentage REAL",
+          });
+        }
+
+        if (!columnNames.includes("cardio_data")) {
+          columnsToAdd.push({
+            name: "cardio_data",
+            sql: "ALTER TABLE workouts ADD COLUMN cardio_data TEXT",
           });
         }
 

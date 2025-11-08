@@ -114,6 +114,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         exercises TEXT NOT NULL,
         interval_config TEXT,
         interval_progress TEXT,
+        cardio_data TEXT,
         start_time TEXT,
         end_time TEXT,
         notes TEXT,
@@ -415,6 +416,13 @@ export class SQLiteAdapter implements IDatabaseAdapter {
           });
         }
 
+        if (!columnNames.includes("cardio_data")) {
+          columnsToAdd.push({
+            name: "cardio_data",
+            sql: "ALTER TABLE workouts ADD COLUMN cardio_data TEXT",
+          });
+        }
+
         // Add missing columns
         if (columnsToAdd.length > 0) {
           console.log(
@@ -562,16 +570,17 @@ export class SQLiteAdapter implements IDatabaseAdapter {
 
         await db.query(
           `INSERT INTO workouts (
-            id, name, type, exercises, interval_config, interval_progress,
+            id, name, type, exercises, interval_config, interval_progress, cardio_data,
             start_time, end_time, notes, program_id, routine_id, routine_template_id,
             completed, completion_percentage, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT(id) DO UPDATE SET
             name = excluded.name,
             type = excluded.type,
             exercises = excluded.exercises,
             interval_config = excluded.interval_config,
             interval_progress = excluded.interval_progress,
+            cardio_data = excluded.cardio_data,
             start_time = excluded.start_time,
             end_time = excluded.end_time,
             notes = excluded.notes,
@@ -588,6 +597,7 @@ export class SQLiteAdapter implements IDatabaseAdapter {
             serialized.exercises,
             serialized.intervalConfig || null,
             serialized.intervalProgress || null,
+            serialized.cardioData || null,
             serialized.startTime || null,
             serialized.endTime || null,
             serialized.notes || null,
@@ -1808,6 +1818,9 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       intervalProgress: row.intervalProgress
         ? JSON.parse(row.intervalProgress)
         : undefined,
+      cardioData: row.cardioData
+        ? JSON.parse(row.cardioData)
+        : undefined,
       startTime: row.startTime || undefined,
       endTime: row.endTime || undefined,
       notes: row.notes || undefined,
@@ -1832,6 +1845,9 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         : undefined,
       intervalProgress: workout.intervalProgress
         ? JSON.stringify(workout.intervalProgress)
+        : undefined,
+      cardioData: workout.cardioData
+        ? JSON.stringify(workout.cardioData)
         : undefined,
       startTime: workout.startTime
         ? typeof workout.startTime === "string"

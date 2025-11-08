@@ -3,11 +3,12 @@
  */
 
 import type { IntervalConfig, IntervalProgress } from "./interval.types";
+import type { CardioData } from "@/features/cardio/types/cardio.types";
 
 /**
  * Workout type discriminator
  */
-export type WorkoutType = "regular" | "interval";
+export type WorkoutType = "regular" | "interval" | "cardio-gps" | "cardio-manual";
 
 export type SetType =
   | "working"
@@ -41,10 +42,12 @@ export interface Workout {
   id: string;
   name: string;
   type: WorkoutType;
-  exercises: WorkoutExercise[];
+  exercises: WorkoutExercise[]; // Empty array [] for cardio workouts
   // Interval workout specific fields
   intervalConfig?: IntervalConfig;
   intervalProgress?: IntervalProgress;
+  // Cardio workout specific fields
+  cardioData?: CardioData;
   // Routine tracking fields
   programId?: string; // Reference to workout_programs table (if started from program)
   routineId?: string; // Reference to routines table (if started from routine) or routine ID within program

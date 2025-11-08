@@ -7,10 +7,11 @@ import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 export const workouts = sqliteTable("workouts", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  type: text("type").notNull(), // 'regular' | 'interval'
-  exercises: text("exercises").notNull(), // JSON string of WorkoutExercise[]
+  type: text("type").notNull(), // 'regular' | 'interval' | 'cardio-gps' | 'cardio-manual'
+  exercises: text("exercises").notNull(), // JSON string of WorkoutExercise[] (empty [] for cardio)
   intervalConfig: text("interval_config"), // JSON string of IntervalConfig
   intervalProgress: text("interval_progress"), // JSON string of IntervalProgress
+  cardioData: text("cardio_data"), // JSON string of CardioData
   startTime: text("start_time"), // ISO date string
   endTime: text("end_time"), // ISO date string
   notes: text("notes"),

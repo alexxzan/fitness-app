@@ -24,7 +24,12 @@
           <ion-title>Workout</ion-title>
           <ion-buttons slot="end">
             <ion-button
-              v-if="currentWorkout && workoutState === 'active'"
+              v-if="
+                currentWorkout &&
+                workoutState === 'active' &&
+                currentWorkout?.type !== 'cardio-gps' &&
+                currentWorkout?.type !== 'cardio-manual'
+              "
               @click="showFinishModal = true"
             >
               Finish
@@ -33,9 +38,18 @@
         </ion-toolbar>
       </ion-header>
       <ion-content :fullscreen="true">
+        <!-- Cardio Workout View -->
+        <ActiveCardioWorkout
+          v-if="
+            workoutState === 'active' &&
+            (currentWorkout?.type === 'cardio-gps' ||
+              currentWorkout?.type === 'cardio-manual')
+          "
+        />
+
         <!-- Regular Workout View -->
         <RegularWorkoutView
-          v-if="workoutState === 'active' && currentWorkout?.type === 'regular'"
+          v-else-if="workoutState === 'active' && currentWorkout?.type === 'regular'"
           :workout="currentWorkout"
           :statistics="statistics"
           @add-exercise="showExerciseModal = true"
@@ -147,6 +161,7 @@ import WorkoutCompletedScreen from "@/features/workouts/components/active/Workou
 import ExerciseSelectorModal from "@/features/workouts/components/selection/ExerciseSelectorModal.vue";
 import SupersetSelectorModal from "@/features/workouts/components/selection/SupersetSelectorModal.vue";
 import FinishWorkoutModal from "@/features/workouts/components/completion/FinishWorkoutModal.vue";
+import ActiveCardioWorkout from "@/features/cardio/components/active/ActiveCardioWorkout.vue";
 
 const router = useRouter();
 
