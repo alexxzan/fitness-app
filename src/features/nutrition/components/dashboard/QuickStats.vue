@@ -15,7 +15,7 @@
         <ion-icon :icon="flame" />
       </div>
       <div class="stat-content">
-        <div class="stat-value">{{ caloriesRemaining }}</div>
+        <div class="stat-value">{{ Math.round(caloriesRemaining || 0) }}</div>
         <div class="stat-label">Calories Left</div>
       </div>
     </div>
@@ -107,4 +107,3 @@ defineProps<Props>();
   margin-top: var(--spacing-xs);
 }
 </style>
-
