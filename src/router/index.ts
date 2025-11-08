@@ -17,6 +17,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/views/ActiveWorkoutPage.vue"),
   },
   {
+    path: "/diet-setup",
+    component: () => import("@/views/DietQuestionnairePage.vue"),
+  },
+  {
     path: "/",
     component: TabsPage,
     children: [
@@ -59,8 +63,8 @@ const router = createRouter({
 
 // Navigation guard to check initialization and active workouts
 router.beforeEach(async (to, from, next) => {
-  // Don't redirect if already going to active workout page or splash
-  if (to.path === "/active-workout" || to.path === "/splash") {
+  // Don't redirect if already going to active workout page, splash, or diet-setup
+  if (to.path === "/active-workout" || to.path === "/splash" || to.path === "/diet-setup") {
     next();
     return;
   }
@@ -100,6 +104,26 @@ router.beforeEach(async (to, from, next) => {
   } catch (error) {
     console.error("Error checking for active workout:", error);
     // Continue with normal navigation on error
+  }
+
+  // Check nutrition profile completion for /macros route
+  if (to.path === "/macros") {
+    try {
+      const { QuestionnaireRepository } = await import(
+        "@/features/nutrition/repositories/questionnaire.repository"
+      );
+      const hasProfile = await QuestionnaireRepository.hasCompletedProfile();
+
+      // If no profile exists, redirect to questionnaire
+      if (!hasProfile) {
+        console.log("🔄 No nutrition profile found, redirecting to questionnaire...");
+        next("/diet-setup");
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking nutrition profile:", error);
+      // On error, allow navigation (user can still access nutrition page)
+    }
   }
 
   next();

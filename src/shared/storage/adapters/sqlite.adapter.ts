@@ -24,6 +24,7 @@ import type { Food, FoodLog } from "@/features/nutrition/types/food.types";
 import type { NutritionTarget, NutritionAnalytic } from "@/features/nutrition/types/nutrition.types";
 import type { CoachingSetting } from "@/features/nutrition/types/coaching.types";
 import type { BodyMetric } from "@/features/nutrition/types/body-metrics.types";
+import type { QuestionnaireResponse } from "@/features/nutrition/types/questionnaire.types";
 
 export class SQLiteAdapter implements IDatabaseAdapter {
   private static readonly DB_NAME = "fitness-db";
@@ -261,6 +262,33 @@ export class SQLiteAdapter implements IDatabaseAdapter {
         goal_weight REAL,
         preferred_macro_split TEXT,
         recalibration_frequency INTEGER,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS questionnaire_responses (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        age INTEGER NOT NULL,
+        sex TEXT NOT NULL,
+        height REAL NOT NULL,
+        weight REAL NOT NULL,
+        activity_level TEXT NOT NULL,
+        dietary_restrictions TEXT,
+        allergies TEXT,
+        intolerances TEXT,
+        primary_goal TEXT NOT NULL,
+        target_weight REAL,
+        target_date TEXT,
+        meal_frequency INTEGER NOT NULL,
+        fasting_preferences TEXT,
+        typical_wake_time TEXT,
+        typical_bed_time TEXT,
+        medical_conditions TEXT,
+        medications TEXT,
+        food_dislikes TEXT,
+        food_favorites TEXT,
+        completed_at TEXT NOT NULL,
         created_at TEXT NOT NULL,
         updated_at TEXT NOT NULL
       );
@@ -1652,6 +1680,121 @@ export class SQLiteAdapter implements IDatabaseAdapter {
     },
   };
 
+  questionnaireResponses = {
+    getAll: async (): Promise<QuestionnaireResponse[]> => {
+      const db = this.getDb();
+      const result = await db.query("SELECT * FROM questionnaire_responses", []);
+      return (result.values || []).map((r: any) =>
+        this.parseQuestionnaireResponse(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getById: async (id: string): Promise<QuestionnaireResponse | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM questionnaire_responses WHERE id = ? LIMIT 1",
+        [id]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseQuestionnaireResponse(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+
+    save: async (response: QuestionnaireResponse): Promise<string> => {
+      const db = this.getDb();
+      const serialized = this.serializeQuestionnaireResponse(response);
+      await db.query(
+        `INSERT INTO questionnaire_responses (
+          id, user_id, age, sex, height, weight, activity_level,
+          dietary_restrictions, allergies, intolerances, primary_goal,
+          target_weight, target_date, meal_frequency, fasting_preferences,
+          typical_wake_time, typical_bed_time, medical_conditions,
+          medications, food_dislikes, food_favorites, completed_at,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          user_id = excluded.user_id,
+          age = excluded.age,
+          sex = excluded.sex,
+          height = excluded.height,
+          weight = excluded.weight,
+          activity_level = excluded.activity_level,
+          dietary_restrictions = excluded.dietary_restrictions,
+          allergies = excluded.allergies,
+          intolerances = excluded.intolerances,
+          primary_goal = excluded.primary_goal,
+          target_weight = excluded.target_weight,
+          target_date = excluded.target_date,
+          meal_frequency = excluded.meal_frequency,
+          fasting_preferences = excluded.fasting_preferences,
+          typical_wake_time = excluded.typical_wake_time,
+          typical_bed_time = excluded.typical_bed_time,
+          medical_conditions = excluded.medical_conditions,
+          medications = excluded.medications,
+          food_dislikes = excluded.food_dislikes,
+          food_favorites = excluded.food_favorites,
+          completed_at = excluded.completed_at,
+          updated_at = excluded.updated_at`,
+        [
+          serialized.id,
+          serialized.userId,
+          serialized.age,
+          serialized.sex,
+          serialized.height,
+          serialized.weight,
+          serialized.activityLevel,
+          serialized.dietaryRestrictions || null,
+          serialized.allergies || null,
+          serialized.intolerances || null,
+          serialized.primaryGoal,
+          serialized.targetWeight || null,
+          serialized.targetDate || null,
+          serialized.mealFrequency,
+          serialized.fastingPreferences || null,
+          serialized.typicalWakeTime || null,
+          serialized.typicalBedTime || null,
+          serialized.medicalConditions || null,
+          serialized.medications || null,
+          serialized.foodDislikes || null,
+          serialized.foodFavorites || null,
+          serialized.completedAt,
+          serialized.createdAt,
+          serialized.updatedAt,
+        ]
+      );
+      return response.id;
+    },
+
+    delete: async (id: string): Promise<void> => {
+      const db = this.getDb();
+      await db.query("DELETE FROM questionnaire_responses WHERE id = ?", [id]);
+    },
+
+    getByUserId: async (userId: string): Promise<QuestionnaireResponse[]> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM questionnaire_responses WHERE user_id = ? ORDER BY completed_at DESC",
+        [userId]
+      );
+      return (result.values || []).map((r: any) =>
+        this.parseQuestionnaireResponse(this.mapSnakeToCamel(r))
+      );
+    },
+
+    getLatestByUserId: async (userId: string): Promise<QuestionnaireResponse | null> => {
+      const db = this.getDb();
+      const result = await db.query(
+        "SELECT * FROM questionnaire_responses WHERE user_id = ? ORDER BY completed_at DESC LIMIT 1",
+        [userId]
+      );
+      if (result.values && result.values.length > 0) {
+        return this.parseQuestionnaireResponse(this.mapSnakeToCamel(result.values[0]));
+      }
+      return null;
+    },
+  };
+
   // Serialization helpers
   private parseWorkout(row: any): Workout {
     return {
@@ -2046,6 +2189,64 @@ export class SQLiteAdapter implements IDatabaseAdapter {
       recalibrationFrequency: setting.recalibrationFrequency || undefined,
       createdAt: typeof setting.createdAt === "string" ? setting.createdAt : setting.createdAt.toISOString(),
       updatedAt: typeof setting.updatedAt === "string" ? setting.updatedAt : setting.updatedAt.toISOString(),
+    };
+  }
+
+  private parseQuestionnaireResponse(row: any): QuestionnaireResponse {
+    return {
+      id: row.id,
+      userId: row.userId,
+      age: row.age,
+      sex: row.sex as 'male' | 'female' | 'other',
+      height: row.height,
+      weight: row.weight,
+      activityLevel: row.activityLevel as 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active',
+      dietaryRestrictions: row.dietaryRestrictions ? JSON.parse(row.dietaryRestrictions) : [],
+      allergies: row.allergies ? JSON.parse(row.allergies) : [],
+      intolerances: row.intolerances ? JSON.parse(row.intolerances) : [],
+      primaryGoal: row.primaryGoal as 'weight_loss' | 'muscle_gain' | 'maintenance' | 'performance',
+      targetWeight: row.targetWeight || undefined,
+      targetDate: row.targetDate || undefined,
+      mealFrequency: row.mealFrequency,
+      fastingPreferences: row.fastingPreferences ? JSON.parse(row.fastingPreferences) : [],
+      typicalWakeTime: row.typicalWakeTime || undefined,
+      typicalBedTime: row.typicalBedTime || undefined,
+      medicalConditions: row.medicalConditions ? JSON.parse(row.medicalConditions) : undefined,
+      medications: row.medications ? JSON.parse(row.medications) : undefined,
+      foodDislikes: row.foodDislikes ? JSON.parse(row.foodDislikes) : undefined,
+      foodFavorites: row.foodFavorites ? JSON.parse(row.foodFavorites) : undefined,
+      completedAt: row.completedAt,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    };
+  }
+
+  private serializeQuestionnaireResponse(response: QuestionnaireResponse): any {
+    return {
+      id: response.id,
+      userId: response.userId,
+      age: response.age,
+      sex: response.sex,
+      height: response.height,
+      weight: response.weight,
+      activityLevel: response.activityLevel,
+      dietaryRestrictions: response.dietaryRestrictions.length > 0 ? JSON.stringify(response.dietaryRestrictions) : null,
+      allergies: response.allergies.length > 0 ? JSON.stringify(response.allergies) : null,
+      intolerances: response.intolerances.length > 0 ? JSON.stringify(response.intolerances) : null,
+      primaryGoal: response.primaryGoal,
+      targetWeight: response.targetWeight || null,
+      targetDate: response.targetDate || null,
+      mealFrequency: response.mealFrequency,
+      fastingPreferences: response.fastingPreferences.length > 0 ? JSON.stringify(response.fastingPreferences) : null,
+      typicalWakeTime: response.typicalWakeTime || null,
+      typicalBedTime: response.typicalBedTime || null,
+      medicalConditions: response.medicalConditions && response.medicalConditions.length > 0 ? JSON.stringify(response.medicalConditions) : null,
+      medications: response.medications && response.medications.length > 0 ? JSON.stringify(response.medications) : null,
+      foodDislikes: response.foodDislikes && response.foodDislikes.length > 0 ? JSON.stringify(response.foodDislikes) : null,
+      foodFavorites: response.foodFavorites && response.foodFavorites.length > 0 ? JSON.stringify(response.foodFavorites) : null,
+      completedAt: typeof response.completedAt === "string" ? response.completedAt : response.completedAt.toISOString(),
+      createdAt: typeof response.createdAt === "string" ? response.createdAt : response.createdAt.toISOString(),
+      updatedAt: typeof response.updatedAt === "string" ? response.updatedAt : response.updatedAt.toISOString(),
     };
   }
 

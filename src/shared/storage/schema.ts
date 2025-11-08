@@ -233,6 +233,44 @@ export const coachingSettings = sqliteTable("coaching_settings", {
   updatedAt: text("updated_at").notNull(), // ISO date string
 });
 
+/**
+ * Questionnaire responses table
+ * Stores detailed questionnaire responses for diet plan calculation
+ */
+export const questionnaireResponses = sqliteTable("questionnaire_responses", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  // Basic Demographics
+  age: integer("age").notNull(),
+  sex: text("sex").notNull(), // 'male' | 'female' | 'other'
+  height: real("height").notNull(), // cm
+  weight: real("weight").notNull(), // kg
+  // Activity Level
+  activityLevel: text("activity_level").notNull(), // 'sedentary' | 'lightly_active' | 'moderately_active' | 'very_active' | 'extra_active'
+  // Dietary Preferences (JSON strings)
+  dietaryRestrictions: text("dietary_restrictions"), // JSON string array
+  allergies: text("allergies"), // JSON string array
+  intolerances: text("intolerances"), // JSON string array
+  // Goals
+  primaryGoal: text("primary_goal").notNull(), // 'weight_loss' | 'muscle_gain' | 'maintenance' | 'performance'
+  targetWeight: real("target_weight"), // kg
+  targetDate: text("target_date"), // ISO date string
+  // Lifestyle
+  mealFrequency: integer("meal_frequency").notNull(), // meals per day
+  fastingPreferences: text("fasting_preferences"), // JSON string array
+  typicalWakeTime: text("typical_wake_time"), // HH:mm
+  typicalBedTime: text("typical_bed_time"), // HH:mm
+  // Optional (JSON strings)
+  medicalConditions: text("medical_conditions"), // JSON string array
+  medications: text("medications"), // JSON string array
+  foodDislikes: text("food_dislikes"), // JSON string array
+  foodFavorites: text("food_favorites"), // JSON string array
+  // Metadata
+  completedAt: text("completed_at").notNull(), // ISO date string
+  createdAt: text("created_at").notNull(), // ISO date string
+  updatedAt: text("updated_at").notNull(), // ISO date string
+});
+
 // Type exports for use in repositories
 export type Workout = typeof workouts.$inferSelect;
 export type WorkoutInsert = typeof workouts.$inferInsert;
@@ -264,3 +302,6 @@ export type NutritionAnalytic = typeof nutritionAnalytics.$inferSelect;
 export type NutritionAnalyticInsert = typeof nutritionAnalytics.$inferInsert;
 export type CoachingSetting = typeof coachingSettings.$inferSelect;
 export type CoachingSettingInsert = typeof coachingSettings.$inferInsert;
+export type QuestionnaireResponse = typeof questionnaireResponses.$inferSelect;
+export type QuestionnaireResponseInsert =
+  typeof questionnaireResponses.$inferInsert;

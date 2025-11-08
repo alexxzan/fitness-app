@@ -18,6 +18,7 @@ import type { Food, FoodLog } from "@/features/nutrition/types/food.types";
 import type { NutritionTarget, NutritionAnalytic } from "@/features/nutrition/types/nutrition.types";
 import type { CoachingSetting } from "@/features/nutrition/types/coaching.types";
 import type { BodyMetric } from "@/features/nutrition/types/body-metrics.types";
+import type { QuestionnaireResponse } from "@/features/nutrition/types/questionnaire.types";
 
 export interface IDatabaseAdapter {
   // Initialization
@@ -158,5 +159,15 @@ export interface IDatabaseAdapter {
     save(setting: CoachingSetting): Promise<string>;
     delete(id: string): Promise<void>;
     getByUserId(userId: string): Promise<CoachingSetting | null>;
+  };
+
+  // Questionnaire Responses
+  questionnaireResponses: {
+    getAll(): Promise<QuestionnaireResponse[]>;
+    getById(id: string): Promise<QuestionnaireResponse | null>;
+    save(response: QuestionnaireResponse): Promise<string>;
+    delete(id: string): Promise<void>;
+    getByUserId(userId: string): Promise<QuestionnaireResponse[]>;
+    getLatestByUserId(userId: string): Promise<QuestionnaireResponse | null>;
   };
 }

@@ -21,6 +21,7 @@ import type { Food, FoodLog } from "@/features/nutrition/types/food.types";
 import type { NutritionTarget, NutritionAnalytic } from "@/features/nutrition/types/nutrition.types";
 import type { CoachingSetting } from "@/features/nutrition/types/coaching.types";
 import type { BodyMetric } from "@/features/nutrition/types/body-metrics.types";
+import type { QuestionnaireResponse } from "@/features/nutrition/types/questionnaire.types";
 
 class FitnessDexieDB extends Dexie {
   workouts!: Table<Workout, string>;
@@ -38,6 +39,7 @@ class FitnessDexieDB extends Dexie {
   bodyMetrics!: Table<BodyMetric, string>;
   nutritionAnalytics!: Table<NutritionAnalytic, string>;
   coachingSettings!: Table<CoachingSetting, string>;
+  questionnaireResponses!: Table<QuestionnaireResponse, string>;
 
   constructor() {
     super("FitnessDatabase");
@@ -97,6 +99,26 @@ class FitnessDexieDB extends Dexie {
       bodyMetrics: "id, userId, date, createdAt",
       nutritionAnalytics: "id, userId, date, createdAt",
       coachingSettings: "id, userId",
+    });
+
+    // Version 5: Add questionnaire responses
+    this.version(5).stores({
+      workouts: "id, name, createdAt, startTime, endTime, routineId, completed",
+      routines: "id, name, createdAt, type, templateId, isFavorite",
+      workoutPrograms: "id, name, createdAt, templateId",
+      routineAnalytics: "id, routineId, lastCompletedAt",
+      exercises: "exerciseId, name, *bodyParts, *equipments, *targetMuscles",
+      bodyParts: "name",
+      equipment: "name",
+      muscles: "name",
+      appSettings: "key",
+      foods: "id, name, barcode, createdAt",
+      foodLogs: "id, userId, date, foodId, createdAt",
+      nutritionTargets: "id, userId, startDate, endDate",
+      bodyMetrics: "id, userId, date, createdAt",
+      nutritionAnalytics: "id, userId, date, createdAt",
+      coachingSettings: "id, userId",
+      questionnaireResponses: "id, userId, completedAt",
     });
 
   }
@@ -527,6 +549,39 @@ export class DexieAdapter implements IDatabaseAdapter {
 
     getByUserId: async (userId: string): Promise<CoachingSetting | null> => {
       return (await this.db.coachingSettings.filter((s) => s.userId === userId).first()) ?? null;
+    },
+  };
+
+  // Questionnaire Responses
+  questionnaireResponses = {
+    getAll: async (): Promise<QuestionnaireResponse[]> => {
+      return await this.db.questionnaireResponses.toArray();
+    },
+
+    getById: async (id: string): Promise<QuestionnaireResponse | null> => {
+      return (await this.db.questionnaireResponses.get(id)) ?? null;
+    },
+
+    save: async (response: QuestionnaireResponse): Promise<string> => {
+      return await this.db.questionnaireResponses.put(response);
+    },
+
+    delete: async (id: string): Promise<void> => {
+      await this.db.questionnaireResponses.delete(id);
+    },
+
+    getByUserId: async (userId: string): Promise<QuestionnaireResponse[]> => {
+      return await this.db.questionnaireResponses
+        .filter((r) => r.userId === userId)
+        .sortBy("completedAt")
+        .then((responses) => responses.reverse());
+    },
+
+    getLatestByUserId: async (userId: string): Promise<QuestionnaireResponse | null> => {
+      return (await this.db.questionnaireResponses
+        .filter((r) => r.userId === userId)
+        .sortBy("completedAt")
+        .then((responses) => responses[responses.length - 1])) ?? null;
     },
   };
 }
