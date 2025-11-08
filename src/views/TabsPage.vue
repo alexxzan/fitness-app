@@ -9,8 +9,8 @@
         </ion-tab-button>
 
         <ion-tab-button tab="exercises" href="/exercises">
-          <ion-icon aria-hidden="true" :icon="fitness" />
-          <ion-label>Exercises</ion-label>
+          <ion-icon aria-hidden="true" :icon="pulse" />
+          <ion-label>Cardio</ion-label>
         </ion-tab-button>
 
         <ion-tab-button tab="workout" href="/workout" class="workout-tab">
@@ -42,7 +42,7 @@ import {
   IonPage,
   IonRouterOutlet,
 } from "@ionic/vue";
-import { home, fitness, barbell, statsChart, restaurant } from "ionicons/icons";
+import { home, pulse, barbell, statsChart, restaurant } from "ionicons/icons";
 </script>
 
 <style scoped>

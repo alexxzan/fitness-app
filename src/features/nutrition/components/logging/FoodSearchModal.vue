@@ -20,7 +20,11 @@
             @ionInput="handleSearch"
             :debounce="300"
           />
-          <ion-button expand="block" fill="outline" @click="showBarcodeScanner = true">
+          <ion-button
+            expand="block"
+            fill="outline"
+            @click="showBarcodeScanner = true"
+          >
             <ion-icon :icon="barcode" slot="start" />
             Scan Barcode
           </ion-button>
@@ -41,7 +45,8 @@
               <h3>{{ food.name }}</h3>
               <p v-if="food.brand">{{ food.brand }}</p>
               <p class="nutrition-preview">
-                {{ food.calories }} cal • {{ food.protein }}g P • {{ food.carbs }}g C • {{ food.fats }}g F
+                {{ food.calories }} cal • {{ food.protein }}g P •
+                {{ food.carbs }}g C • {{ food.fats }}g F
               </p>
             </ion-label>
             <ion-icon :icon="chevronForward" slot="end" />
@@ -55,7 +60,10 @@
         </div>
 
         <!-- Quantity Selector Modal -->
-        <ion-modal :is-open="showQuantitySelector" @didDismiss="showQuantitySelector = false">
+        <ion-modal
+          :is-open="showQuantitySelector"
+          @didDismiss="showQuantitySelector = false"
+        >
           <ion-header>
             <ion-toolbar>
               <ion-title>{{ selectedFood?.name }}</ion-title>
@@ -71,40 +79,79 @@
               <div class="food-info">
                 <h3>{{ selectedFood?.name }}</h3>
                 <p v-if="selectedFood?.brand">{{ selectedFood.brand }}</p>
-                <p class="serving-size">Serving size: {{ parseServingSize(selectedFood?.servingSize) }}</p>
+                <p class="serving-size">
+                  Serving size:
+                  {{ parseServingSize(selectedFood?.servingSize) }}
+                </p>
+              </div>
+              <div class="input-mode-selector">
+                <ion-segment v-model="inputMode" @ionChange="handleModeChange">
+                  <ion-segment-button value="servings">
+                    <ion-label>Servings</ion-label>
+                  </ion-segment-button>
+                  <ion-segment-button value="grams">
+                    <ion-label>Grams</ion-label>
+                  </ion-segment-button>
+                </ion-segment>
               </div>
               <div class="quantity-input">
-                <ion-label>Quantity (servings)</ion-label>
+                <ion-label v-if="inputMode === 'servings'"
+                  >Quantity (servings)</ion-label
+                >
+                <ion-label v-else>Weight (grams)</ion-label>
                 <ion-input
-                  v-model.number="quantity"
+                  v-model.number="inputValue"
                   type="number"
-                  min="0.1"
-                  step="0.1"
-                  placeholder="1.0"
+                  :min="inputMode === 'servings' ? '0.1' : '1'"
+                  :step="inputMode === 'servings' ? '0.1' : '1'"
+                  :placeholder="inputMode === 'servings' ? '1.0' : '100'"
                 />
               </div>
               <div class="nutrition-preview" v-if="selectedFood">
-                <h4>Nutrition ({{ quantity }} serving{{ quantity !== 1 ? 's' : '' }})</h4>
+                <h4 v-if="inputMode === 'servings'">
+                  Nutrition ({{ inputValue }} serving{{
+                    inputValue !== 1 ? "s" : ""
+                  }})
+                </h4>
+                <h4 v-else>Nutrition ({{ inputValue }}g)</h4>
                 <div class="nutrition-grid">
                   <div class="nutrition-item">
                     <span class="label">Calories</span>
-                    <span class="value">{{ Math.round(selectedFood.calories * quantity) }}</span>
+                    <span class="value">{{
+                      Math.round(selectedFood.calories * multiplier)
+                    }}</span>
                   </div>
                   <div class="nutrition-item">
                     <span class="label">Protein</span>
-                    <span class="value">{{ Math.round(selectedFood.protein * quantity) }}g</span>
+                    <span class="value"
+                      >{{
+                        Math.round(selectedFood.protein * multiplier * 10) / 10
+                      }}g</span
+                    >
                   </div>
                   <div class="nutrition-item">
                     <span class="label">Carbs</span>
-                    <span class="value">{{ Math.round(selectedFood.carbs * quantity) }}g</span>
+                    <span class="value"
+                      >{{
+                        Math.round(selectedFood.carbs * multiplier * 10) / 10
+                      }}g</span
+                    >
                   </div>
                   <div class="nutrition-item">
                     <span class="label">Fats</span>
-                    <span class="value">{{ Math.round(selectedFood.fats * quantity) }}g</span>
+                    <span class="value"
+                      >{{
+                        Math.round(selectedFood.fats * multiplier * 10) / 10
+                      }}g</span
+                    >
                   </div>
                 </div>
               </div>
-              <ion-button expand="block" @click="confirmSelection" :disabled="!quantity || quantity <= 0">
+              <ion-button
+                expand="block"
+                @click="confirmSelection"
+                :disabled="!inputValue || inputValue <= 0"
+              >
                 Add Food
               </ion-button>
             </div>
@@ -123,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import {
   IonModal,
   IonHeader,
@@ -138,11 +185,13 @@ import {
   IonIcon,
   IonSpinner,
   IonInput,
+  IonSegment,
+  IonSegmentButton,
 } from "@ionic/vue";
 import { close, chevronForward, barcode } from "ionicons/icons";
 import { useFoodSearch } from "@/features/nutrition/composables/useFoodSearch";
 import BarcodeScanner from "./BarcodeScanner.vue";
-import type { Food } from "@/features/nutrition/types/food.types";
+import type { Food, ServingSize } from "@/features/nutrition/types/food.types";
 
 interface Props {
   isOpen: boolean;
@@ -159,15 +208,61 @@ const searchQuery = ref("");
 const showQuantitySelector = ref(false);
 const showBarcodeScanner = ref(false);
 const selectedFood = ref<Food | null>(null);
-const quantity = ref(1);
+const inputMode = ref<"servings" | "grams">("servings");
+const inputValue = ref(1);
+const previousMode = ref<"servings" | "grams">("servings");
 
-watch(() => props.isOpen, (newVal) => {
-  if (!newVal) {
-    searchQuery.value = "";
-    showQuantitySelector.value = false;
-    showBarcodeScanner.value = false;
-    selectedFood.value = null;
-    quantity.value = 1;
+watch(
+  () => props.isOpen,
+  (newVal) => {
+    if (!newVal) {
+      searchQuery.value = "";
+      showQuantitySelector.value = false;
+      showBarcodeScanner.value = false;
+      selectedFood.value = null;
+      inputValue.value = 1;
+      inputMode.value = "servings";
+      previousMode.value = "servings";
+    }
+  }
+);
+
+// Computed property to get serving size as object
+const servingSize = computed((): ServingSize | null => {
+  if (!selectedFood.value?.servingSize) return null;
+  try {
+    return JSON.parse(selectedFood.value.servingSize);
+  } catch {
+    return null;
+  }
+});
+
+// Computed property to calculate multiplier based on input mode
+const multiplier = computed((): number => {
+  if (!selectedFood.value || !inputValue.value || inputValue.value <= 0)
+    return 0;
+
+  if (inputMode.value === "servings") {
+    return inputValue.value;
+  } else {
+    // Input is in grams, need to convert to servings
+    const serving = servingSize.value;
+    if (!serving) return inputValue.value; // Fallback to treating as servings if no serving size
+
+    // If serving size is in grams, calculate ratio
+    if (
+      serving.unit.toLowerCase() === "g" ||
+      serving.unit.toLowerCase() === "gram" ||
+      serving.unit.toLowerCase() === "grams"
+    ) {
+      return inputValue.value / serving.amount;
+    }
+
+    // For other units, we can't directly convert to grams
+    // In this case, we'll assume 1 serving = serving.amount of the unit
+    // and try to convert if possible (this is a limitation)
+    // For now, we'll show a message or fallback
+    return inputValue.value / serving.amount;
   }
 });
 
@@ -180,8 +275,47 @@ async function handleSearch(event: any) {
 
 function selectFood(food: Food) {
   selectedFood.value = food;
-  quantity.value = 1;
+  inputValue.value = 1;
+  inputMode.value = "servings";
+  previousMode.value = "servings";
   showQuantitySelector.value = true;
+}
+
+function handleModeChange() {
+  // When switching modes, convert the current value from the previous mode
+  if (!selectedFood.value || !servingSize.value) {
+    inputValue.value = inputMode.value === "servings" ? 1 : 100;
+    previousMode.value = inputMode.value;
+    return;
+  }
+
+  const serving = servingSize.value;
+  const isGramsUnit =
+    serving.unit.toLowerCase() === "g" ||
+    serving.unit.toLowerCase() === "gram" ||
+    serving.unit.toLowerCase() === "grams";
+
+  if (previousMode.value === "servings" && inputMode.value === "grams") {
+    // Converting from servings to grams
+    if (isGramsUnit) {
+      inputValue.value = Math.round(inputValue.value * serving.amount);
+    } else {
+      // Can't convert accurately, set a default
+      inputValue.value = 100;
+    }
+  } else if (previousMode.value === "grams" && inputMode.value === "servings") {
+    // Converting from grams to servings
+    if (isGramsUnit) {
+      inputValue.value =
+        Math.round((inputValue.value / serving.amount) * 10) / 10;
+      if (inputValue.value === 0) inputValue.value = 0.1; // Ensure minimum value
+    } else {
+      // Can't convert accurately, set default
+      inputValue.value = 1;
+    }
+  }
+
+  previousMode.value = inputMode.value;
 }
 
 async function handleBarcodeScanned(barcode: string) {
@@ -193,8 +327,9 @@ async function handleBarcodeScanned(barcode: string) {
 }
 
 function confirmSelection() {
-  if (selectedFood.value && quantity.value > 0) {
-    emit("foodSelected", selectedFood.value, quantity.value);
+  if (selectedFood.value && inputValue.value > 0 && multiplier.value > 0) {
+    // Always emit the quantity in servings (multiplier)
+    emit("foodSelected", selectedFood.value, multiplier.value);
     showQuantitySelector.value = false;
   }
 }
@@ -283,6 +418,10 @@ function parseServingSize(servingSize?: string): string {
   color: var(--color-text-tertiary);
 }
 
+.input-mode-selector {
+  margin-bottom: var(--spacing-lg);
+}
+
 .quantity-input {
   margin-bottom: var(--spacing-xl);
 }
@@ -329,4 +468,3 @@ function parseServingSize(servingSize?: string): string {
   color: var(--color-text-primary);
 }
 </style>
-

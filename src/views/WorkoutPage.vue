@@ -71,11 +71,8 @@
             @start-interval="handleStartInterval"
           />
 
-          <!-- Favorite Routines -->
-          <FavoriteRoutinesSection
-            :routines="mockFavoriteRoutines"
-            @start-routine="handleStartFromRoutineSelection"
-          />
+          <!-- Exercises -->
+          <ExercisesSection />
         </div>
       </div>
 
@@ -246,12 +243,11 @@ import WorkoutStatsDashboard from "@/features/workouts/components/dashboard/Work
 import RecentWorkoutsSection from "@/features/workouts/components/dashboard/RecentWorkoutsSection.vue";
 import { useWorkoutCelebration } from "@/features/workouts/composables/useWorkoutCelebration";
 import ActiveWorkoutResumeCard from "@/features/workouts/components/dashboard/ActiveWorkoutResumeCard.vue";
-import FavoriteRoutinesSection from "@/features/workouts/components/dashboard/FavoriteRoutinesSection.vue";
+import ExercisesSection from "@/features/workouts/components/dashboard/ExercisesSection.vue";
 import MyWorkoutProgramsSection from "@/features/workouts/components/dashboard/MyWorkoutProgramsSection.vue";
 import AddProgramModal from "@/features/workouts/components/programs/AddProgramModal.vue";
 import CreateCustomProgramModal from "@/features/workouts/components/programs/CreateCustomProgramModal.vue";
 import type { WorkoutRoutine } from "@/features/workouts/types/workout.types";
-import { mockFavoriteRoutines as mockFavoriteRoutinesData } from "@/features/workouts/mocks/mock";
 import { WorkoutRepository } from "@/features/workouts/repositories/workout.repository";
 
 const router = useRouter();
@@ -323,7 +319,6 @@ const completedStats = ref<WorkoutStatistics | null>(null);
 
 // Real data for empty state
 const recentWorkouts = ref<Workout[]>([]);
-const mockFavoriteRoutines = ref<WorkoutRoutine[]>(mockFavoriteRoutinesData);
 
 // Workout stats
 const {
@@ -727,12 +722,6 @@ async function handleRepeatWorkout(workout: Workout) {
   } catch (error) {
     console.error("Failed to repeat workout:", error);
   }
-}
-
-async function handleStartFromRoutineSelection(routine: WorkoutRoutine) {
-  // Create workout from the selected routine
-  await createWorkoutFromRoutine(routine);
-  // Navigation to full-screen page will happen via watch on currentWorkout
 }
 
 async function handleToggleTheme() {

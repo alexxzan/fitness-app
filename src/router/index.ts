@@ -34,6 +34,10 @@ const routes: Array<RouteRecordRaw> = [
       },
       {
         path: "exercises",
+        component: () => import("@/views/CardioPage.vue"),
+      },
+      {
+        path: "exercise-library",
         component: () => import("@/views/ExerciseLibraryPage.vue"),
       },
       {
