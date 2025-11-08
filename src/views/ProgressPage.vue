@@ -7,7 +7,9 @@
     </ion-header>
     <ion-content :fullscreen="true">
       <div class="placeholder-container">
-        <p>Progress tracking - coming soon</p>
+        <ion-icon :icon="statsChartOutline" class="placeholder-icon"></ion-icon>
+        <h2>Progress Tracking</h2>
+        <p>Coming soon...</p>
       </div>
     </ion-content>
   </ion-page>
@@ -20,22 +22,35 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
+  IonIcon,
 } from "@ionic/vue";
+import { statsChartOutline } from "ionicons/icons";
 </script>
 
 <style scoped>
 .placeholder-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  padding: var(--spacing-xl);
+  padding: var(--spacing-2xl);
   text-align: center;
-  color: var(--color-text-secondary);
-  font-size: var(--typography-body-size);
+  min-height: 50vh;
+}
+
+.placeholder-icon {
+  font-size: 64px;
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+  margin-bottom: var(--spacing-lg);
+}
+
+.placeholder-container h2 {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
 }
 
 .placeholder-container p {
-  margin: 0;
+  color: var(--color-text-secondary);
 }
 </style>

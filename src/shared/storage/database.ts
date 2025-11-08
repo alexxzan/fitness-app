@@ -193,89 +193,6 @@ class DatabaseManager {
         value TEXT NOT NULL
       );
 
-      CREATE TABLE IF NOT EXISTS user_profile (
-        id TEXT PRIMARY KEY,
-        height REAL NOT NULL,
-        weight REAL NOT NULL,
-        age INTEGER NOT NULL,
-        gender TEXT NOT NULL,
-        activity_level TEXT NOT NULL,
-        goal TEXT NOT NULL,
-        protein_preference TEXT,
-        carb_preference TEXT,
-        dietary_restrictions TEXT,
-        body_fat_percentage REAL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS macro_plan (
-        id TEXT PRIMARY KEY,
-        user_id TEXT,
-        daily_calories REAL NOT NULL,
-        protein REAL NOT NULL,
-        carbs REAL NOT NULL,
-        fats REAL NOT NULL,
-        water_goal REAL NOT NULL,
-        calculation_method TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS food_logs (
-        id TEXT PRIMARY KEY,
-        date TEXT NOT NULL,
-        meal_type TEXT NOT NULL,
-        food_name TEXT NOT NULL,
-        calories REAL NOT NULL,
-        protein REAL NOT NULL,
-        carbs REAL NOT NULL,
-        fats REAL NOT NULL,
-        notes TEXT,
-        created_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS meal_templates (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        description TEXT,
-        foods TEXT NOT NULL,
-        total_calories REAL NOT NULL,
-        total_protein REAL NOT NULL,
-        total_carbs REAL NOT NULL,
-        total_fats REAL NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS meal_plans (
-        id TEXT PRIMARY KEY,
-        date TEXT NOT NULL,
-        meals TEXT NOT NULL,
-        is_completed INTEGER DEFAULT 0,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS water_logs (
-        id TEXT PRIMARY KEY,
-        date TEXT NOT NULL,
-        amount REAL NOT NULL,
-        timestamp TEXT NOT NULL,
-        created_at TEXT NOT NULL
-      );
-
-      CREATE TABLE IF NOT EXISTS macro_history (
-        id TEXT PRIMARY KEY,
-        date TEXT NOT NULL,
-        total_calories REAL NOT NULL,
-        total_protein REAL NOT NULL,
-        total_carbs REAL NOT NULL,
-        total_fats REAL NOT NULL,
-        water_intake REAL NOT NULL,
-        created_at TEXT NOT NULL
-      );
-
       -- Create indexes for better query performance
       CREATE INDEX IF NOT EXISTS idx_workouts_created_at ON workouts(created_at);
       CREATE INDEX IF NOT EXISTS idx_workouts_name ON workouts(name);
@@ -288,11 +205,6 @@ class DatabaseManager {
       CREATE INDEX IF NOT EXISTS idx_exercises_name ON exercises(name);
       CREATE INDEX IF NOT EXISTS idx_workout_programs_template_id ON workout_programs(template_id);
       CREATE INDEX IF NOT EXISTS idx_workout_programs_created_at ON workout_programs(created_at);
-      CREATE INDEX IF NOT EXISTS idx_food_logs_date ON food_logs(date);
-      CREATE INDEX IF NOT EXISTS idx_food_logs_meal_type ON food_logs(meal_type);
-      CREATE INDEX IF NOT EXISTS idx_water_logs_date ON water_logs(date);
-      CREATE INDEX IF NOT EXISTS idx_macro_history_date ON macro_history(date);
-      CREATE INDEX IF NOT EXISTS idx_meal_plans_date ON meal_plans(date);
     `;
 
     await this.dbConnection.execute(createTablesSQL);

@@ -17,15 +17,6 @@ import type {
   Muscle,
 } from "@/features/exercises/types/exercise.types";
 import type { RoutineAnalytics } from "@/features/workouts/types/analytics.types";
-import type {
-  UserProfile,
-  MacroPlan,
-  FoodLog,
-  MealTemplate,
-  MealPlan,
-  WaterLog,
-  MacroHistory,
-} from "@/features/macros/types/macro.types";
 
 class FitnessDexieDB extends Dexie {
   workouts!: Table<Workout, string>;
@@ -37,13 +28,6 @@ class FitnessDexieDB extends Dexie {
   equipment!: Table<Equipment, string>;
   muscles!: Table<Muscle, string>;
   appSettings!: Table<{ key: string; value: any }, string>;
-  userProfile!: Table<UserProfile, string>;
-  macroPlan!: Table<MacroPlan, string>;
-  foodLogs!: Table<FoodLog, string>;
-  mealTemplates!: Table<MealTemplate, string>;
-  mealPlans!: Table<MealPlan, string>;
-  waterLogs!: Table<WaterLog, string>;
-  macroHistory!: Table<MacroHistory, string>;
 
   constructor() {
     super("FitnessDatabase");
@@ -86,25 +70,6 @@ class FitnessDexieDB extends Dexie {
       appSettings: "key",
     });
 
-    // Version 4: Add macro tracking tables
-    this.version(4).stores({
-      workouts: "id, name, createdAt, startTime, endTime, routineId, completed",
-      routines: "id, name, createdAt, type, templateId, isFavorite",
-      workoutPrograms: "id, name, createdAt, templateId",
-      routineAnalytics: "id, routineId, lastCompletedAt",
-      exercises: "exerciseId, name, *bodyParts, *equipments, *targetMuscles",
-      bodyParts: "name",
-      equipment: "name",
-      muscles: "name",
-      appSettings: "key",
-      userProfile: "id",
-      macroPlan: "id",
-      foodLogs: "id, date, mealType",
-      mealTemplates: "id, name, createdAt",
-      mealPlans: "id, date",
-      waterLogs: "id, date, timestamp",
-      macroHistory: "id, date",
-    });
   }
 }
 
@@ -339,206 +304,6 @@ export class DexieAdapter implements IDatabaseAdapter {
 
     delete: async (key: string): Promise<void> => {
       await this.db.appSettings.delete(key);
-    },
-  };
-
-  // User Profile
-  userProfile = {
-    get: async (): Promise<UserProfile | null> => {
-      const profiles = await this.db.userProfile.toArray();
-      return profiles.length > 0 ? profiles[0] : null;
-    },
-
-    save: async (profile: UserProfile): Promise<string> => {
-      // Delete existing profile first (only one profile allowed)
-      await this.db.userProfile.clear();
-      await this.db.userProfile.add(profile);
-      return profile.id;
-    },
-
-    delete: async (): Promise<void> => {
-      await this.db.userProfile.clear();
-    },
-  };
-
-  // Macro Plan
-  macroPlan = {
-    get: async (): Promise<MacroPlan | null> => {
-      const plans = await this.db.macroPlan.toArray();
-      return plans.length > 0 ? plans[0] : null;
-    },
-
-    save: async (plan: MacroPlan): Promise<string> => {
-      // Delete existing plan first (only one plan allowed)
-      await this.db.macroPlan.clear();
-      await this.db.macroPlan.add(plan);
-      return plan.id;
-    },
-
-    delete: async (): Promise<void> => {
-      await this.db.macroPlan.clear();
-    },
-  };
-
-  // Food Logs
-  foodLogs = {
-    getByDate: async (date: string): Promise<FoodLog[]> => {
-      return await this.db.foodLogs
-        .where("date")
-        .equals(date)
-        .sortBy("createdAt");
-    },
-
-    getById: async (id: string): Promise<FoodLog | null> => {
-      return (await this.db.foodLogs.get(id)) ?? null;
-    },
-
-    save: async (log: FoodLog): Promise<string> => {
-      await this.db.foodLogs.put(log);
-      return log.id;
-    },
-
-    update: async (id: string, log: Partial<FoodLog>): Promise<void> => {
-      const existing = await this.db.foodLogs.get(id);
-      if (existing) {
-        await this.db.foodLogs.put({ ...existing, ...log });
-      }
-    },
-
-    delete: async (id: string): Promise<void> => {
-      await this.db.foodLogs.delete(id);
-    },
-
-    getDateRange: async (
-      startDate: string,
-      endDate: string
-    ): Promise<FoodLog[]> => {
-      return await this.db.foodLogs
-        .where("date")
-        .between(startDate, endDate, true, true)
-        .sortBy("date");
-    },
-  };
-
-  // Meal Templates
-  mealTemplates = {
-    getAll: async (): Promise<MealTemplate[]> => {
-      return await this.db.mealTemplates
-        .orderBy("createdAt")
-        .reverse()
-        .toArray();
-    },
-
-    getById: async (id: string): Promise<MealTemplate | null> => {
-      return (await this.db.mealTemplates.get(id)) ?? null;
-    },
-
-    save: async (template: MealTemplate): Promise<string> => {
-      await this.db.mealTemplates.put(template);
-      return template.id;
-    },
-
-    delete: async (id: string): Promise<void> => {
-      await this.db.mealTemplates.delete(id);
-    },
-  };
-
-  // Meal Plans
-  mealPlans = {
-    getByDate: async (date: string): Promise<MealPlan | null> => {
-      return (await this.db.mealPlans.where("date").equals(date).first()) ?? null;
-    },
-
-    getAll: async (): Promise<MealPlan[]> => {
-      return await this.db.mealPlans.orderBy("date").reverse().toArray();
-    },
-
-    save: async (plan: MealPlan): Promise<string> => {
-      await this.db.mealPlans.put(plan);
-      return plan.id;
-    },
-
-    delete: async (id: string): Promise<void> => {
-      await this.db.mealPlans.delete(id);
-    },
-
-    getDateRange: async (
-      startDate: string,
-      endDate: string
-    ): Promise<MealPlan[]> => {
-      return await this.db.mealPlans
-        .where("date")
-        .between(startDate, endDate, true, true)
-        .sortBy("date");
-    },
-  };
-
-  // Water Logs
-  waterLogs = {
-    getByDate: async (date: string): Promise<WaterLog[]> => {
-      return await this.db.waterLogs
-        .where("date")
-        .equals(date)
-        .sortBy("timestamp");
-    },
-
-    getTotalByDate: async (date: string): Promise<number> => {
-      const logs = await this.db.waterLogs
-        .where("date")
-        .equals(date)
-        .toArray();
-      return logs.reduce((sum, log) => sum + log.amount, 0);
-    },
-
-    save: async (log: WaterLog): Promise<string> => {
-      await this.db.waterLogs.add(log);
-      return log.id;
-    },
-
-    delete: async (id: string): Promise<void> => {
-      await this.db.waterLogs.delete(id);
-    },
-
-    getDateRange: async (
-      startDate: string,
-      endDate: string
-    ): Promise<WaterLog[]> => {
-      return await this.db.waterLogs
-        .where("date")
-        .between(startDate, endDate, true, true)
-        .sortBy("date");
-    },
-  };
-
-  // Macro History
-  macroHistory = {
-    getByDate: async (date: string): Promise<MacroHistory | null> => {
-      return (
-        (await this.db.macroHistory.where("date").equals(date).first()) ?? null
-      );
-    },
-
-    getAll: async (): Promise<MacroHistory[]> => {
-      return await this.db.macroHistory.orderBy("date").reverse().toArray();
-    },
-
-    save: async (history: MacroHistory): Promise<string> => {
-      await this.db.macroHistory.put(history);
-      return history.id;
-    },
-
-    delete: async (id: string): Promise<void> => {
-      await this.db.macroHistory.delete(id);
-    },
-
-    getDateRange: async (
-      startDate: string,
-      endDate: string
-    ): Promise<MacroHistory[]> => {
-      return await this.db.macroHistory
-        .where("date")
-        .between(startDate, endDate, true, true)
-        .sortBy("date");
     },
   };
 }
